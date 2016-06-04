@@ -7,16 +7,16 @@ import net.minecraft.world.World;
 
 import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.api.IRailMapper;
+import com.minemaarten.signals.api.SignalsRail;
 
+@SignalsRail
 public class RailMapperBlockRail implements IRailMapper{
 
+	private final RailBase RAIL = new RailBase();
+	
     @Override
     public IRail getRail(World world, BlockPos pos, IBlockState state){
-        if(state.getBlock() instanceof BlockRailBase) {
-            return RailBase.getInstance();
-        } else {
-            return null;
-        }
+        return state.getBlock() instanceof BlockRailBase ? RAIL : null;
     }
 
 }

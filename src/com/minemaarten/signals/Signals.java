@@ -5,6 +5,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.discovery.ASMDataTable;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -17,6 +18,7 @@ import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.lib.Versions;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.proxy.CommonProxy;
+import com.minemaarten.signals.rail.RailManager;
 
 @Mod(modid = Constants.MOD_ID, name = "PneumaticCraft", dependencies = "required-after:Forge@[10.13.3.1388,);" + "after:Forestry")
 public class Signals{
@@ -26,6 +28,7 @@ public class Signals{
 
     @Instance(Constants.MOD_ID)
     public static Signals instance;
+    private ASMDataTable asmData;
 
     @EventHandler
     public void PreInit(FMLPreInitializationEvent event){
@@ -37,7 +40,7 @@ public class Signals{
         ModItems.init();
         CapabilityMinecartDestination.register();
         MinecraftForge.EVENT_BUS.register(new com.minemaarten.signals.event.EventHandler());
-
+        asmData = event.getAsmData();
     }
 
     @EventHandler
@@ -50,5 +53,8 @@ public class Signals{
     @EventHandler
     public void postInit(FMLPostInitializationEvent event){
         proxy.postInit();
+        RailManager.getInstance().initializeAPIImplementors(asmData);
     }
+    
+
 }
