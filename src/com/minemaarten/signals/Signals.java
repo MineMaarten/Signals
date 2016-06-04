@@ -19,6 +19,7 @@ import com.minemaarten.signals.lib.Versions;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.proxy.CommonProxy;
 import com.minemaarten.signals.rail.RailManager;
+import com.minemaarten.signals.recipe.RecipeRegistrator;
 
 @Mod(modid = Constants.MOD_ID, name = "Signals", dependencies = "required-after:Forge@[10.13.3.1388,);" + "after:Forestry")
 public class Signals{
@@ -38,6 +39,7 @@ public class Signals{
         proxy.preInit();
         ModBlocks.init();
         ModItems.init();
+        RecipeRegistrator.init();
         CapabilityMinecartDestination.register();
         MinecraftForge.EVENT_BUS.register(new com.minemaarten.signals.event.EventHandler());
         asmData = event.getAsmData();
