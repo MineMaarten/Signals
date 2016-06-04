@@ -20,7 +20,7 @@ import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.proxy.CommonProxy;
 import com.minemaarten.signals.rail.RailManager;
 
-@Mod(modid = Constants.MOD_ID, name = "PneumaticCraft", dependencies = "required-after:Forge@[10.13.3.1388,);" + "after:Forestry")
+@Mod(modid = Constants.MOD_ID, name = "Signals", dependencies = "required-after:Forge@[10.13.3.1388,);" + "after:Forestry")
 public class Signals{
 
     @SidedProxy(clientSide = "com.minemaarten.signals.proxy.ClientProxy", serverSide = "com.minemaarten.signals.proxy.CommonProxy")
