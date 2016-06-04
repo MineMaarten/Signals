@@ -1,0 +1,6 @@
+{
+    "parent": "block/rail_flat",
+    "textures": {
+        "rail": "signals:blocks/rail_limiter"
+    }
+}

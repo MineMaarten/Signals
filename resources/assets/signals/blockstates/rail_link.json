@@ -1,0 +1,28 @@
+{
+    "forge_marker": 1,
+    "defaults": {
+        "model": "signals:station_marker"
+    },
+    "variants": {
+       "connected":{
+            "true":{
+                "textures": {
+                    "housing":"signals:blocks/lamp_housing",
+                    "middle":"signals:blocks/lamp_green"
+                }
+            },
+            "false":{
+                "textures": {
+                    "housing":"signals:blocks/lamp_housing",
+                    "middle":"signals:blocks/lamp_red"
+                }
+            }
+       },
+       "inventory": [{
+            "textures": {
+                "housing":"signals:blocks/lamp_housing",
+                "middle":"signals:blocks/lamp_green"
+            }
+        }]
+    }
+}

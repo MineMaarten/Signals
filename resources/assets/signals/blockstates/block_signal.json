@@ -1,0 +1,56 @@
+{
+    "forge_marker": 1,
+    "defaults": {
+        "model": "signals:block_signal"
+    },
+	"variants": {
+	   "facing":{
+			"north":{"y": 180},
+			"east":{"y": -90},
+			"south":{},
+			"west":{"y": 90}
+	   },
+	   "lamp_status":{
+			"green":{
+				"textures": {
+				    "housing":"signals:blocks/lamp_housing",
+				    "top":"signals:blocks/lamp_housing",
+				    "red":"signals:blocks/lamp_housing",
+				    "green":"signals:blocks/lamp_green"
+				}
+			},
+			"red":{
+                "textures": {
+                    "housing":"signals:blocks/lamp_housing",
+                    "top":"signals:blocks/lamp_housing",
+                    "red":"signals:blocks/lamp_red",
+                    "green":"signals:blocks/lamp_housing"
+                }
+			},
+			"yellow":{
+                "textures": {
+                    "housing":"signals:blocks/lamp_housing",
+                    "top":"signals:blocks/lamp_housing",
+                    "red":"signals:blocks/lamp_yellow",
+                    "green":"signals:blocks/lamp_yellow"
+                }
+			},
+			"yellow_blinking":{
+                "textures": {
+                    "housing":"signals:blocks/lamp_housing",
+                    "top":"signals:blocks/lamp_housing",
+                    "red":"signals:blocks/lamp_yellow_blinking",
+                    "green":"signals:blocks/lamp_yellow_blinking"
+                }
+			}
+	   },
+	   "inventory": [{
+            "textures": {
+                "housing":"signals:blocks/lamp_housing",
+                "top":"signals:blocks/lamp_housing",
+                "red":"signals:blocks/lamp_housing",
+                "green":"signals:blocks/lamp_green"
+            }
+        }]
+	}
+}

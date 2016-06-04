@@ -1,0 +1,19 @@
+﻿
+tile.block_signal.name=Block Signal
+tile.path_signal.name=Path Signal
+tile.station_marker.name=Station Marker
+tile.limiter_rail.name=Limiter Rail
+
+itemGroup.signals=Signals
+
+signals.message.no_destination=[$ROUTER$] $CART$ has no destination set!
+signals.message.routing_cart=[$ROUTER$] Routing $CART$ to destination: %1$s...
+signals.message.no_path_found=[$ROUTER$] No path found!
+signals.message.path_found=[$ROUTER$] Path found.
+signals.message.changing_junction=[$ROUTER$] Set junction at (%1$s, %2$s, %3$s) from %4$s to %5$s.
+signals.message.changing_junction_failed=[$ROUTER$] Failed setting junction at (%1$s, %2$s, %3$s) from %4$s to %5$s. Rail does not support.
+
+signals.dir.north=north
+signals.dir.south=south
+signals.dir.west=west
+signals.dir.east=east

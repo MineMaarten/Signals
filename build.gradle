@@ -1,0 +1,163 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+    }
+}
+
+repositories {
+		maven { // The repo from which to get waila
+			name "Mobius Repo"
+			url "http://mobiusstrip.eu/maven"
+		}
+		maven { // the repo from which to get NEI and stuff 
+			name 'CB Repo'
+			url "http://chickenbones.net/maven/"
+		}
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+project.ext {
+	massive = "0"
+    major = "1"
+    minor = "0"
+    mcVersion = "1.9.4"
+}
+
+
+version = "${project.ext.massive}.${project.ext.major}.${project.minor}"
+group = "signals"
+archivesBaseName = "Signals"
+
+
+if (System.getenv().BUILD_NUMBER != null) {
+    version += "-${System.getenv().BUILD_NUMBER}"
+}
+
+def grabDep(url) {
+    ant.get(src: url, dest: 'dep')
+	compile files("dep/" + url.substring(url.lastIndexOf("/")));
+}
+
+dependencies {
+    def f = new File('dep/')
+    if (f.exists()) {
+        f.delete()
+    }
+    f.mkdirs()
+    if (!f.exists()) {
+        f.mkdir()
+    }
+    println("  Adding dependencies!")
+    //compile "codechicken:CodeChickenCore:1.8-1.0.5.34:dev"
+	//compile "codechicken:NotEnoughItems:1.8-1.0.5.82:dev"
+    println("  Finished adding dependencies!")
+}
+
+minecraft {
+    version = "1.9.4-12.17.0.1910-1.9.4"
+    runDir = "eclipse"
+    
+    // the mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   snapshot are built nightly.
+    // stable_#            stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not allways work.
+    // simply re-run your setup task after changing the mappings to update your workspace.
+    mappings = "snapshot_20160518"
+
+    // replacing stuff in the source
+	replace '@MASSIVE@', project.massive
+    replace '@MAJOR@', project.major
+    replace '@MINOR@', project.minor
+    replace '@MC_VERSION@', version
+    if (System.getenv("BUILD_NUMBER") != null) {
+        replace '@BUILD_NUMBER@', System.getenv("BUILD_NUMBER")
+    } else {
+        replace '@BUILD_NUMBER@', 0
+    }
+
+}
+
+// configure the source folders
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+            // exclude 'some exclusion'
+            // include 'some inclusion'
+        }
+        resources {
+            srcDir 'resources'
+            exclude '**/.md' // exclude readme from localization repo
+			exclude 'Models'
+			exclude 'unused resources'
+			exclude '**/.txt'
+			exclude '**/.docx'
+            // exclude 'some exclusion'
+            // include 'some inclusion'
+        }
+    }
+	
+	api {
+    java {
+
+    }
+}
+}
+
+processResources
+{
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+                
+        // replace version and mcversion
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    // copy everything else, thats not the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+task("uploadJars", dependsOn:"reobf") {
+    description = "uploads JARs"
+    if (System.getenv("local_maven") != null) {
+        apply plugin: 'maven'
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    repository(url: "file://" + System.getenv("local_maven"))
+                }
+            }
+        }
+    }
+}
+
+jar {
+    appendix = "${project.ext.mcVersion}"
+    classifier = "universal"
+}
+
+task userdevJar(type: Jar) {
+    from(sourceSets.main.output)
+	from(sourceSets.main.allSource)
+    appendix = "${project.ext.mcVersion}"
+    classifier = "userdev"
+}
+
+artifacts {
+    archives userdevJar
+}
