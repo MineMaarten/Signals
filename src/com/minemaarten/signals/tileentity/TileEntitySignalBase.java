@@ -106,7 +106,13 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     public EnumLampStatus getLampStatus(){
-        return getWorld() != null ? getWorld().getBlockState(getPos()).getValue(BlockSignalBase.LAMP_STATUS) : null;
+    	if(getWorld() != null){
+    		IBlockState state = getWorld().getBlockState(getPos());
+    		if(state.getBlock() instanceof BlockSignalBase){
+    			return state.getValue(BlockSignalBase.LAMP_STATUS);
+    		}
+    	}
+    	return null;
     }
 
     protected List<EntityMinecart> getNeighborMinecarts(){

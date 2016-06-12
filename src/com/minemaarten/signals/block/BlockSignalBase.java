@@ -63,7 +63,7 @@ public class BlockSignalBase extends BlockBase{
 
     @Override
     public int getWeakPower(IBlockState state, IBlockAccess worldIn, BlockPos pos, EnumFacing side){
-        if(state.getValue(LAMP_STATUS) != EnumLampStatus.GREEN ) return 0;
+        if(state.getBlock() != this || state.getValue(LAMP_STATUS) != EnumLampStatus.GREEN ) return 0;
         TileEntitySignalBase signal = (TileEntitySignalBase) worldIn.getTileEntity(pos);
         signal.setWorldObj((WorldServer)worldIn);
         for(RailWrapper rail : signal.getConnectedRails()){
