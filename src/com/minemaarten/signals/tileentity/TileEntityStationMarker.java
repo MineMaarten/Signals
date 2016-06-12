@@ -3,8 +3,11 @@ package com.minemaarten.signals.tileentity;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 
@@ -91,10 +94,29 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
     public void setText(int textFieldID, String text){
         stationName = text;
         markDirty();
+        sendUpdatePacket();
     }
 
     @Override
     public String getText(int textFieldID){
         return getStationName();
+    }
+    
+    @Override
+    public NBTTagCompound getUpdateTag() {
+    	NBTTagCompound tag = super.getUpdateTag();
+    	tag.setString("stationName", stationName);
+    	return tag;
+    }
+    
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket() {
+    	return new SPacketUpdateTileEntity(getPos(), 0, getUpdateTag());
+    }
+    
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+    	super.onDataPacket(net, pkt);
+    	stationName = pkt.getNbtCompound().getString("stationName");
     }
 }

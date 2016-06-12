@@ -18,12 +18,18 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
 public class BlockSignalBase extends BlockBase{
     public enum EnumLampStatus implements IStringSerializable{
-        GREEN, RED, YELLOW, YELLOW_BLINKING;
+        GREEN(0xFF00FF00), RED(0xFFFF0000), YELLOW(0xFFFFFF00), YELLOW_BLINKING(0xFF999900);
 
+        public int color;
+        
+        private EnumLampStatus(int color){
+        	this.color = color;
+        }
+        
         @Override
         public String getName(){
             return toString().toLowerCase();
-        }
+        } 
     }
 
     public static PropertyEnum<EnumLampStatus> LAMP_STATUS = PropertyEnum.<EnumLampStatus> create("lamp_status", EnumLampStatus.class);

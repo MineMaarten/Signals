@@ -4,6 +4,10 @@ tile.path_signal.name=Path Signal
 tile.station_marker.name=Station Marker
 tile.limiter_rail.name=Limiter Rail
 
+item.rail_network_controller.name=Rail Network Controller
+
+gui.tooltip.item.rail_network_controller=Shows an overview of the rail network of the world you are currently in. \n \nLeft clicking a signal forces it to turn green. \nRight clicking a signal forces it to go red.
+
 itemGroup.signals=Signals
 
 signals.message.no_destination=[$ROUTER$] $CART$ has no destination set!
@@ -13,7 +17,16 @@ signals.message.path_found=[$ROUTER$] Path found.
 signals.message.changing_junction=[$ROUTER$] Set junction at (%1$s, %2$s, %3$s) from %4$s to %5$s.
 signals.message.changing_junction_failed=[$ROUTER$] Failed setting junction at (%1$s, %2$s, %3$s) from %4$s to %5$s. Rail does not support.
 
+signals.signal_message.cart_without_destination=Block signal behaviour: Cart routed without destination.
+signals.signal_message.cart_on_track_without_destination=Red signal: Cart on track without destination.  Cart position: (%1$s, %2$s, %3$s).
+signals.signal_message.cart_intersecting_path=Red signal: Cart on rails intersecting the path of the routed cart. Cart position: (%1$s, %2$s, %3$s).
+signals.signal_message.standby=Standby...
+signals.signal_message.forced_green=Forced green.
+signals.signal_message.forced_red=Forced red.
+
 signals.dir.north=north
 signals.dir.south=south
 signals.dir.west=west
 signals.dir.east=east
+
+signals.gui.tooltip.sneakForInfo=Sneak for info

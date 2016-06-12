@@ -23,9 +23,11 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import com.minemaarten.signals.client.ClientEventHandler;
 import com.minemaarten.signals.client.glasses.GlassesHUD;
 import com.minemaarten.signals.client.gui.GuiMinecart;
+import com.minemaarten.signals.client.gui.GuiNetworkController;
 import com.minemaarten.signals.client.gui.GuiStationMarker;
 import com.minemaarten.signals.client.render.tileentity.SignalStatusRenderer;
 import com.minemaarten.signals.init.ModBlocks;
+import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
@@ -44,6 +46,7 @@ public class ClientProxy extends CommonProxy{
             Item item = Item.getItemFromBlock(block);
             registerItemModels(item);
         }
+        registerItemModels(ModItems.railNetworkController);
     }
     
     private void registerItemModels(Item item){
@@ -79,6 +82,8 @@ public class ClientProxy extends CommonProxy{
                 return new GuiStationMarker((TileEntityStationMarker)te);
             case MINECART_DESTINATION:
                 return new GuiMinecart((EntityMinecart)entity);
+            case NETWORK_CONTROLLER:
+            	return new GuiNetworkController();
         }
         throw new IllegalStateException("No Gui for gui id: " + ID);
     }

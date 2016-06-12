@@ -37,6 +37,7 @@ import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketUpdateMessage;
 import com.minemaarten.signals.rail.DestinationPathFinder;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
+import com.minemaarten.signals.rail.NetworkController;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
 
@@ -47,6 +48,11 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     private Set<TileEntitySignalBase> nextSignals = new HashSet<TileEntitySignalBase>();
     private String text = "";
     private String arguments = "";
+    private EnumForceMode forceMode = EnumForceMode.NONE;
+    
+    public enum EnumForceMode{
+    	NONE, FORCED_GREEN_ONCE, FORCED_RED;
+    }
 
     public RailWrapper getConnectedRail(){
         BlockPos neighborPos = getPos().offset(getFacing().rotateYCCW());
@@ -86,9 +92,15 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     protected void setLampStatus(EnumLampStatus lampStatus){
+    	if(forceMode == EnumForceMode.FORCED_GREEN_ONCE){
+    		lampStatus = EnumLampStatus.GREEN;
+    	}else if(forceMode == EnumForceMode.FORCED_RED){
+    		lampStatus = EnumLampStatus.RED;
+    	}
         IBlockState state = getBlockState();
         if(state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
             getWorld().setBlockState(getPos(), state.withProperty(BlockSignalBase.LAMP_STATUS, lampStatus));
+            NetworkController.getInstance(getWorld()).updateColor(this, getPos());
             if(lampStatus == EnumLampStatus.GREEN) {
                 //Push carts when they're standing still.
                 for(EntityMinecart cart : getNeighborMinecarts()) {
@@ -139,7 +151,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
                 NetworkHandler.sendToAllAround(message, getWorld());
             }
         }
-        capability.setPath(path);
+        capability.setPath(cart, path);
         return path;
     }
     
@@ -215,7 +227,8 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return rails;
     }
 
-    protected static <T extends TileEntitySignalBase> T getNeighborSignal(World world, BlockPos pos, Class<T> teClass, EnumFacing blacklistedSignalDir){
+    @SuppressWarnings("unchecked")
+	protected static <T extends TileEntitySignalBase> T getNeighborSignal(World world, BlockPos pos, Class<T> teClass, EnumFacing blacklistedSignalDir){
         for(EnumFacing dir : EnumFacing.HORIZONTALS) {
             BlockPos neighbor = pos.offset(dir);
             TileEntity te = world.getTileEntity(neighbor);
@@ -235,7 +248,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     public static List<EntityMinecart> getMinecarts(World worldObj, final Collection<RailWrapper> railsOnBlock){
-        if(railsOnBlock.isEmpty()) return Collections.EMPTY_LIST;
+        if(railsOnBlock.isEmpty()) return Collections.emptyList();
         BlockPos.MutableBlockPos min = new BlockPos.MutableBlockPos(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
         BlockPos.MutableBlockPos max = new BlockPos.MutableBlockPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
         for(RailWrapper pos : railsOnBlock) {
@@ -258,6 +271,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         if(!worldObj.isRemote) {
             RailWrapper neighbor = getConnectedRail();
             if(neighbor != null) neighbor.updateSignalCache();
+            NetworkController.getInstance(getWorld()).updateColor((TileEntitySignalBase)null, getPos());
         }
     }
 
@@ -268,10 +282,14 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
                 firstTick = false;
                 RailWrapper neighbor = getConnectedRail();
                 if(neighbor != null) neighbor.updateSignalCache();
+                NetworkController.getInstance(getWorld()).updateColor(this, getPos());
             }
             List<EntityMinecart> carts = getNeighborMinecarts();
             for(EntityMinecart cart : carts) {
                 if(!routedMinecarts.contains(cart)) onCartEnteringBlock(cart);
+            }
+            for(EntityMinecart cart : routedMinecarts) {
+                if(!carts.contains(cart)) onCartLeavingBlock(cart);
             }
             routedMinecarts = carts;
 
@@ -281,6 +299,12 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     protected abstract void onCartEnteringBlock(EntityMinecart cart);
+    
+    protected void onCartLeavingBlock(EntityMinecart cart){
+    	if(forceMode == EnumForceMode.FORCED_GREEN_ONCE){
+    		setForceMode(EnumForceMode.NONE);
+    	}
+    }
 
     public void updateConnectedSignals(RailWrapper curRail){
         EnumFacing direction = getFacing();
@@ -317,7 +341,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
 
         if(!signals.equals(nextSignals)) {
             nextSignals = signals;
-            worldObj.notifyBlockUpdate(getPos(), getBlockState(), getBlockState(), 3);
+            sendUpdatePacket();
         }
     }
 
@@ -377,5 +401,34 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     		localizedArguments[i] = I18n.format(localizedArguments[i]);
     	}
     	return I18n.format(text, (Object[])localizedArguments);
+    }
+    
+    public void setForceMode(EnumForceMode forceMode){
+    	this.forceMode = forceMode;
+    	markDirty();
+    	if(forceMode == EnumForceMode.FORCED_GREEN_ONCE){
+    		setLampStatus(EnumLampStatus.GREEN);
+    		setMessage("signals.signal_message.forced_green");
+    	}else if(forceMode == EnumForceMode.FORCED_RED){
+    		setLampStatus(EnumLampStatus.RED);
+    		setMessage("signals.signal_message.forced_red");
+    	}else{
+    		setMessage("");
+    	}
+    }
+    
+    public EnumForceMode getForceMode(){
+    	return forceMode;
+    }
+    
+    public NBTTagCompound writeToNBT(NBTTagCompound tag){
+    	super.writeToNBT(tag);
+    	tag.setByte("forceMode", (byte) forceMode.ordinal());
+    	return tag;
+    }
+    
+    public void readFromNBT(NBTTagCompound tag){
+    	super.readFromNBT(tag);
+    	forceMode = EnumForceMode.values()[tag.getByte("forceMode")];
     }
 }

@@ -30,8 +30,8 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 
 project.ext {
 	massive = "0"
-    major = "1"
-    minor = "1"
+    major = "2"
+    minor = "0"
     mcVersion = "1.9.4"
 }
 

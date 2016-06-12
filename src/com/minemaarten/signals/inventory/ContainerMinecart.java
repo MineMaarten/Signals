@@ -24,7 +24,7 @@ public class ContainerMinecart extends ContainerBase<TileEntity> implements IGUI
     }
 
     @Override
-    public void handleGUIButtonPress(int guiID, EntityPlayer player){
+    public void handleGUIButtonPress(EntityPlayer player, int... data){
 
     }
 }
