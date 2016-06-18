@@ -57,6 +57,6 @@ public class EventHandler{
 
     @SubscribeEvent
     public void onNeighborChange(NeighborNotifyEvent event){
-        RailCacheManager.getInstance(event.getWorld()).onNeighborChanged(event);
+    	if(!event.getWorld().isRemote) RailCacheManager.getInstance(event.getWorld()).onNeighborChanged(event);
     }
 }
