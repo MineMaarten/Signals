@@ -19,7 +19,7 @@ import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.tileentity.TileEntityRailLink;
 
-public class ItemRailConfigurator extends Item {
+public class ItemRailConfigurator extends ItemSignals {
 
 	public ItemRailConfigurator() {
 		setUnlocalizedName("rail_configurator");

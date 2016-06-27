@@ -70,6 +70,7 @@ public class RailCacheManager{
                 for(RailWrapper neighbor : rail.getNeighbors().keySet()) {
                     neighbor.updateNeighborCache();
                 }
+                NetworkController.getInstance(world).updateColor(rail, pos);
                 return rail;
             }
         }
@@ -146,10 +147,12 @@ public class RailCacheManager{
 
     public void addStationMarker(TileEntityStationMarker marker){
         stations.add(marker);
+        NetworkController.getInstance(marker.getWorld()).updateColor(marker, marker.getPos());
     }
 
     public void removeStationMarker(TileEntityStationMarker marker){
         stations.remove(marker);
+        NetworkController.getInstance(marker.getWorld()).updateColor((TileEntityStationMarker)null, marker.getPos());
     }
 
     public Collection<RailWrapper> getStationRails(String stationName){
@@ -163,7 +166,7 @@ public class RailCacheManager{
     }
 
     public Iterable<RailWrapper> getAllRails(){
-        Iterable<RailWrapper> iterable = Collections.EMPTY_LIST;
+        Iterable<RailWrapper> iterable = Collections.emptyList();
         for(Map<BlockPos, RailWrapper> map : railCache.values()) {
             iterable = Iterables.concat(iterable, map.values());
         }

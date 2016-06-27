@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -16,6 +17,8 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 
 import com.minemaarten.signals.network.GuiSynced;
+import com.minemaarten.signals.network.NetworkHandler;
+import com.minemaarten.signals.network.PacketUpdateMinecartPath;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.tileentity.IGUITextFieldSensitive;
@@ -123,9 +126,14 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         }
     }
 
-    public void setPath(AStarRailNode path){
+    public void setPath(EntityMinecart cart, AStarRailNode path){
         curPath = path;
         nbtLoadedPath = null;
+        sendUpdatePacket(cart);
+    }
+    
+    private void sendUpdatePacket(EntityMinecart cart){
+    	NetworkHandler.sendToAll(new PacketUpdateMinecartPath(cart));
     }
 
     public AStarRailNode getPath(World world){
@@ -140,6 +148,10 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
             nbtLoadedPath = null;
         }
         return curPath;
+    }
+    
+    public List<BlockPos> getNBTPath(){
+    	return nbtLoadedPath;
     }
 
     public static class Provider implements ICapabilitySerializable<NBTBase>{

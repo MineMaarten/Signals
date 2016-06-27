@@ -71,6 +71,7 @@ public class RailWrapper extends BlockPos{
         for(TileEntityRailLink railLink : railLinks){
         	railLink.onLinkedRailInvalidated();
         }
+        NetworkController.getInstance(world).updateColor((RailWrapper)null, this);
     }
     
     public void link(TileEntityRailLink link){

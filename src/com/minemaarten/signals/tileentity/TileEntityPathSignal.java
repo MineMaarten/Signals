@@ -22,7 +22,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
     @Override
     public void update(){
         super.update();
-        if(!worldObj.isRemote && pathingTimer-- <= 0) {
+        if(!worldObj.isRemote && pathingTimer-- <= 0 && getForceMode() == EnumForceMode.NONE) {
             route();
         }
     }
@@ -41,7 +41,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                 for(EntityMinecart routingCart : routingMinecarts) {
                     if(routeCart(routingCart, getFacing(),  false) == null) {
                         setLampStatus(cartsOnNextBlock.isEmpty() ? EnumLampStatus.GREEN : EnumLampStatus.RED);
-                        setMessage("Cart routed without destination. Block signal behaviour.");
+                        setMessage("signals.signal_message.cart_without_destination");
                         Log.debug("[Path Signal] Cart routed without destination. Block signal behaviour.");
                         return;
                     }
@@ -51,7 +51,8 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                 for(EntityMinecart cartOnNextBlock : cartsOnNextBlock) {
                     if(getStoredPath(cartOnNextBlock) == null) {
                         setLampStatus(EnumLampStatus.RED);
-                        setMessage("Cart on rails without destination. Red signal. Cart: " + cartOnNextBlock.getPosition());
+                        BlockPos pos = cartOnNextBlock.getPosition();
+                        setMessage("signals.signal_message.cart_on_track_without_destination", pos.getX(), pos.getY(), pos.getZ());
                         Log.debug("[Path Signal] Cart on rails without destination. Red signal. Cart: " + cartOnNextBlock.getPosition());
                         return;
                     }
@@ -68,7 +69,8 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                     for(BlockPos pos : list) {
                         if(claimingPositions.contains(pos)) {
                             setLampStatus(EnumLampStatus.RED);
-                            setMessage("Cart on rails intersecting the path of the routed cart. Red signal. Cart: " + cartOnNextBlock.getPosition());
+                            BlockPos p = cartOnNextBlock.getPosition();
+                            setMessage("signals.signal_message.cart_intersecting_path", p.getX(), p.getY(), p.getZ());
                             Log.debug("[Path Signal] Cart on rails intersecting the path of the routed cart. Red signal. Cart: " + cartOnNextBlock.getPosition());
                             return;
                         }
@@ -78,7 +80,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                // AStarRailNode path = getStoredPath(routingMinecarts.get(0));
                // if(path != null) updateSwitches(path, routingMinecarts.get(0), true);
             } else {
-            	setMessage("Standby...");
+            	setMessage("signals.signal_message.standby");
                 setLampStatus(EnumLampStatus.YELLOW);
             }
         } else {
