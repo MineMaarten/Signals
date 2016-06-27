@@ -10,7 +10,7 @@ import com.minemaarten.signals.init.ModBlocks;
 
 public class RecipeRegistrator {
 	public static void init(){
-		register(new ItemStack(ModBlocks.limiterRail, 6), "i i", "isi", "ici", 'i', "ingotIron", 's', Items.STICK, 'c', Blocks.UNPOWERED_COMPARATOR);
+		register(new ItemStack(ModBlocks.limiterRail, 6), "i i", "isi", "ici", 'i', "ingotIron", 's', Items.STICK, 'c', Items.COMPARATOR);
 		register(new ItemStack(ModBlocks.blockSignal, 8), "sss", "srs", "sds", 's', "stone", 'r', "dustRedstone", 'd', "dyeGreen");
 		register(new ItemStack(ModBlocks.blockSignal, 8), "sss", "srs", "sds", 's', "stone", 'r', "dyeRed", 'd', "dyeGreen");
 		register(new ItemStack(ModBlocks.pathSignal, 8), "sss", "srs", "sds", 's', "ingotGold", 'r', "dustRedstone", 'd', "dyeGreen");
