@@ -1,6 +1,7 @@
 package com.minemaarten.signals.rail;
 
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -220,12 +221,16 @@ public class NetworkController {
     	for(RailWrapper wrapper : allRails){
     		posToColor.put(wrapper, RAIL_COLOR);
     	}
-    	for(TileEntity te : DimensionManager.getWorld(dimensionId).tickableTileEntities){
-    		if(te instanceof TileEntitySignalBase){
-    			posToColor.put(te.getPos(), ((TileEntitySignalBase) te).getLampStatus().color);
-    		}else if(te instanceof TileEntityStationMarker){
-    			posToColor.put(te.getPos(), STATION_COLOR);
-    		}
+    	try{
+	    	for(TileEntity te : DimensionManager.getWorld(dimensionId).tickableTileEntities){
+	    		if(te instanceof TileEntitySignalBase){
+	    			posToColor.put(te.getPos(), ((TileEntitySignalBase) te).getLampStatus().color);
+	    		}else if(te instanceof TileEntityStationMarker){
+	    			posToColor.put(te.getPos(), STATION_COLOR);
+	    		}
+	    	}
+    	}catch(ConcurrentModificationException e){
+    		
     	}
     	
     	//allRails = Lists.newArrayList(allRails);
