@@ -27,8 +27,6 @@ public class GlassesHUD{
 
     public void onNewMessage(GlassesMessage message){
     	if(message.associatedCart != null){
-	        CapabilityMinecartDestination cap = message.associatedCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-	        // if(cap.destinationStations.contains("Dropoff"))
 	        messages.add(message);
 	        while(messages.size() > 20) {
 	            messages.remove(0);
@@ -36,7 +34,7 @@ public class GlassesHUD{
     	}
     }
 
-    @SubscribeEvent
+   // @SubscribeEvent HUD disabled
     public void renderTick(TickEvent.RenderTickEvent event){
         if(event.phase == TickEvent.Phase.END) {
             Minecraft mc = FMLClientHandler.instance().getClient();
@@ -67,8 +65,6 @@ public class GlassesHUD{
             for(int i = 0; i < messages.size(); i++) {
                 minecraft.fontRendererObj.drawString(messages.get(i).localizedMessage, 16, 16 + i * (minecraft.fontRendererObj.FONT_HEIGHT + 1), 0xFF0000);
             }
-            // minecraft.fontRendererObj.drawString(text, x, y, color)
-            //  if(comHudHandler.ticksExisted <= comHudHandler.getStartupTime()) minecraft.fontRendererObj.drawString(CommonHUDHandler.getHandlerForPlayer().ticksExisted * 100 / comHudHandler.getStartupTime() + "%", sr.getScaledWidth() * 3 / 4 - 8, 16, 0x000000);
         }
     }
 }
