@@ -37,7 +37,8 @@ public class GuiMinecart extends GuiContainerBase<TileEntity>{
         }
         if(oldFields != null) {
             for(int i = 0; i < oldFields.length && i < stationNameFields.length; i++) {
-                stationNameFields[i].setFocused(oldFields[i].isFocused());
+            	if(oldFields[i].isFocused()) stationNameFields[i].setText(oldFields[i].getText());
+            	stationNameFields[i].setFocused(oldFields[i].isFocused());
             }
         }
     }
