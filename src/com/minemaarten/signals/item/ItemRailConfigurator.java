@@ -22,11 +22,8 @@ import com.minemaarten.signals.tileentity.TileEntityRailLink;
 public class ItemRailConfigurator extends ItemSignals {
 
 	public ItemRailConfigurator() {
-		setUnlocalizedName("rail_configurator");
-		setRegistryName("rail_configurator");
-		GameRegistry.register(this);
+		super("rail_configurator");
 		setMaxStackSize(1);
-		setCreativeTab(CreativeTabSignals.getInstance());
 	}
 	
 	@Override

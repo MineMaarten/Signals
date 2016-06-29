@@ -5,8 +5,10 @@ tile.station_marker.name=Station Marker
 tile.limiter_rail.name=Limiter Rail
 
 item.rail_network_controller.name=Rail Network Controller
+item.cart_engine.name=Cart Engine
 
 gui.tooltip.item.rail_network_controller=Shows an overview of the rail network of the world you are currently in. \n \nLeft clicking a signal forces it to turn green. \nRight clicking a signal forces it to go red.
+gui.tooltip.item.cart_engine=Sneak-right-click with this on any cart. This will add a solid-fueled motor to the cart. Additionally, the engine is clever, meaning that it will automatically stop at red signals, without requiring powered rails, for instance.
 
 itemGroup.signals=Signals
 
@@ -30,3 +32,8 @@ signals.dir.west=west
 signals.dir.east=east
 
 signals.gui.tooltip.sneakForInfo=Sneak for info
+
+signals.gui.cart.schedule=Schedule
+signals.gui.cart.engine_fuel=Engine fuel
+signals.gui.cart.destination=Destination: %1$s
+signals.gui.cart.no_destination=No destination

@@ -14,11 +14,8 @@ import com.minemaarten.signals.proxy.CommonProxy;
 
 public class ItemRailNetworkController extends ItemSignals {
 	public ItemRailNetworkController() {
-		setUnlocalizedName("rail_network_controller");
-		setRegistryName("rail_network_controller");
-		GameRegistry.register(this);
+		super("rail_network_controller"); 
 		setMaxStackSize(1);
-		setCreativeTab(CreativeTabSignals.getInstance());
 	}
 	
 	@Override

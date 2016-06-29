@@ -40,7 +40,7 @@ public class CommonProxy implements IGuiHandler{
             case STATION_MARKER:
                 return new ContainerBase<TileEntity>(te);
             case MINECART_DESTINATION:
-                return new ContainerMinecart((EntityMinecart)entity);
+                return new ContainerMinecart(player.inventory, (EntityMinecart)entity, z == 1);
             case NETWORK_CONTROLLER:
                 return new ContainerNetworkController();
         }

@@ -10,9 +10,11 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
@@ -85,6 +87,31 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
         for(IGuiWidget widget : widgets) {
             widget.postRender(i, j, partialTicks);
         }
+    }
+    
+    /**
+     * Draws dark gray back layer with inventory spots.
+     */
+    protected void drawBackLayer(){
+    	GlStateManager.disableTexture2D();
+    	int borderWidth = 1;
+    	drawRect(guiLeft - borderWidth, guiTop - borderWidth, guiLeft + xSize + borderWidth, guiTop + ySize + borderWidth, 0xFF222222);
+    	drawRect(guiLeft, guiTop, guiLeft + xSize, guiTop + ySize, 0xFF333333);
+    	for(Slot slot : inventorySlots.inventorySlots){
+    		drawRect(guiLeft + slot.xDisplayPosition, guiTop + slot.yDisplayPosition, guiLeft + slot.xDisplayPosition + 16, guiTop + slot.yDisplayPosition + 16, 0xFF222222);
+    	}
+    	GlStateManager.enableTexture2D();
+    }
+    
+    protected void drawDarkGreyTextCentered(int x, int y, String localizationKey, Object... args){
+    	x -= fontRendererObj.getStringWidth(I18n.format(localizationKey, args)) / 2 + 1;
+    	drawDarkGreyText(x, y, localizationKey, args);
+    }
+    
+    protected void drawDarkGreyText(int x, int y, String localizationKey, Object... args){
+    	String text = I18n.format(localizationKey, args);
+    	drawRect(x, y, x + fontRendererObj.getStringWidth(text) + 3, y + fontRendererObj.FONT_HEIGHT + 3, 0xFF222222);
+    	fontRendererObj.drawString(text, x + 2, y + 2, 0xFFFFFFFF);
     }
 
     protected boolean shouldDrawBackground(){
