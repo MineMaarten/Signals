@@ -3,6 +3,7 @@ package com.minemaarten.signals.client.gui;
 import java.awt.Point;
 
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.tileentity.TileEntity;
 
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
@@ -18,11 +19,15 @@ public class GuiMinecart extends GuiContainerBase<TileEntity>{
     private WidgetComboBox[] stationNameFields;
     private final CapabilityMinecartDestination cap;
     private final EntityMinecart cart;
+    private final boolean isMotorized;
 
-    public GuiMinecart(EntityMinecart cart){
-        super(new ContainerMinecart(cart), null, null);
+    public GuiMinecart(InventoryPlayer playerInventory, EntityMinecart cart, boolean isMotorized){
+        super(new ContainerMinecart(playerInventory, cart, isMotorized), null, null);
         this.cart = cart;
         cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+        ySize = 200;
+        xSize = isMotorized ? 295 : 120;
+        this.isMotorized = isMotorized;
     }
 
     @Override
@@ -31,20 +36,20 @@ public class GuiMinecart extends GuiContainerBase<TileEntity>{
         WidgetComboBox[] oldFields = stationNameFields;
         stationNameFields = new WidgetComboBox[cap.getTotalDestinations() + 1];
         for(int i = 0; i < stationNameFields.length; i++) {
-            stationNameFields[i] = new WidgetComboBox(fontRendererObj, width / 2 - 50, height / 2 - 5 - stationNameFields.length * 6 + i * 12, 100, fontRendererObj.FONT_HEIGHT);
+            stationNameFields[i] = new WidgetComboBox(fontRendererObj, guiLeft + 10, height / 2 - 5 - stationNameFields.length * 7 + i * 14, 100, fontRendererObj.FONT_HEIGHT);
             stationNameFields[i].setElements(RailCacheManager.getAllStationNames());
             addWidget(stationNameFields[i]);
         }
         if(oldFields != null) {
             for(int i = 0; i < oldFields.length && i < stationNameFields.length; i++) {
-                stationNameFields[i].setFocused(oldFields[i].isFocused());
+            	if(oldFields[i].isFocused()) stationNameFields[i].setText(oldFields[i].getText());
+            	stationNameFields[i].setFocused(oldFields[i].isFocused());
             }
         }
     }
 
     @Override
     protected boolean shouldDrawBackground(){
-        fontRendererObj.drawString(cap.getCurrentDestination(), width / 2, height / 2 + stationNameFields.length * 12, 0xFFFFFFFF);
         return false;
     }
 
@@ -55,8 +60,33 @@ public class GuiMinecart extends GuiContainerBase<TileEntity>{
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int i, int j){
-        super.drawGuiContainerBackgroundLayer(partialTicks, i, j);
-        drawHorizontalLine(width / 2 - 70, width / 2 - 55, height / 2 - stationNameFields.length * 6 + cap.getDestinationIndex() * 12, 0xFFFFFFFF);
+    	drawBackLayer();
+    	drawDarkGreyText(guiLeft, guiTop, "signals.gui.cart.schedule");
+    	
+    	String dest = cap.getCurrentDestination();
+    	if(dest.equals("")){
+    		drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.no_destination");
+    	}else{
+    		drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.destination", dest);
+    	}
+    	
+    	if(isMotorized){
+	    	drawVerticalLine(guiLeft + 120, guiTop - 1, guiTop + ySize, 0xFF222222);
+	    	drawDarkGreyText(guiLeft + 120, guiTop, "signals.gui.cart.engine_fuel");
+	    	
+	    	int barSize = 87;
+	    	drawHorizontalLine(guiLeft + 164, guiLeft + 164 + barSize, guiTop + 67, 0xFF222222);
+	    	int fuelSize = cap.getScaledFuel(barSize + 1);
+	    	if(fuelSize > 0) drawHorizontalLine(guiLeft + 164, guiLeft + 164 + fuelSize - 1, guiTop + 67, 0xFFFF0000);
+    	}
+    	
+    	if(cap.getTotalDestinations() > 0){
+	    	int indicatorX = guiLeft + 7;
+	    	int indicatorY = height / 2 - stationNameFields.length * 7 + cap.getDestinationIndex() * 14 - 8;
+	    	drawRect(indicatorX, indicatorY, indicatorX + 106, indicatorY + fontRendererObj.FONT_HEIGHT + 6, 0xFF005500);
+    	}
+    	
+    	super.drawGuiContainerBackgroundLayer(partialTicks, i, j);
     }
 
     @Override

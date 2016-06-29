@@ -29,6 +29,7 @@ public class BlockBase extends BlockContainer{
         GameRegistry.registerTileEntity(tileClass, name);
         setCreativeTab(CreativeTabSignals.getInstance());
         ModBlocks.registerBlock(this);
+        setHardness(1);
     }
 
     @Override
