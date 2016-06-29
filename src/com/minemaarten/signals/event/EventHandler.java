@@ -1,22 +1,36 @@
 package com.minemaarten.signals.event;
 
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IWorldEventListener;
+import net.minecraft.world.World;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.minecart.MinecartInteractEvent;
+import net.minecraftforge.event.entity.minecart.MinecartUpdateEvent;
 import net.minecraftforge.event.world.BlockEvent.NeighborNotifyEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
+import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.proxy.CommonProxy;
 import com.minemaarten.signals.rail.RailCacheManager;
 
-public class EventHandler{
+public class EventHandler implements IWorldEventListener{
     @SubscribeEvent
     public void onCapabilityAttachment(AttachCapabilitiesEvent.Entity event){
         if(event.getEntity() instanceof EntityMinecart) {
@@ -26,18 +40,43 @@ public class EventHandler{
 
     @SubscribeEvent
     public void onMinecartInteraction(MinecartInteractEvent event){
-        if(!event.getMinecart().worldObj.isRemote && event.getPlayer().isSneaking()) {
-            RailCacheManager.syncStationNames((EntityPlayerMP)event.getPlayer());
-            event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), event.getPlayer().worldObj, event.getMinecart().getEntityId(), -1, 0);
-            event.setCanceled(true);
-
-            /*CapabilityMinecartDestination cap = event.minecart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-            if(!cap.getDestinationStation().equals("Station5")) {
-                cap.setDestinationStation("Station5");
-                event.minecart.setCustomNameTag("Heading to Station5");
-                event.setCanceled(true);
-            }*/
+        if(!event.getMinecart().worldObj.isRemote){
+        	if(event.getPlayer().isSneaking()) {
+        		ItemStack heldItem = event.getPlayer().getHeldItemMainhand();
+        		CapabilityMinecartDestination cap = event.getMinecart().getCapability(CapabilityMinecartDestination.INSTANCE, null);
+        		if(heldItem != null && heldItem.getItem() == ModItems.cartEngine && !cap.isMotorized()){
+        			if(!event.getPlayer().isCreative()){
+	        			heldItem.stackSize--;
+	        			if(heldItem.stackSize <= 0) event.getPlayer().setHeldItem(EnumHand.MAIN_HAND, null);
+        			}
+        			cap.setMotorized();
+        		}else{
+    	            RailCacheManager.syncStationNames((EntityPlayerMP)event.getPlayer());
+    	            event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), event.getPlayer().worldObj, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
+    	            event.setCanceled(true);
+        		}
+        	}
         }
+    }
+    
+    @SubscribeEvent
+    public void onMinecartUpdate(MinecartUpdateEvent event){
+    	EntityMinecart cart = event.getMinecart();
+    	CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+    	cap.onCartUpdate(event);
+    }
+    
+    @SubscribeEvent
+    public void onWorldLoad(WorldEvent.Load event){
+    	event.getWorld().addEventListener(this);
+    }
+    
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onDimensionChange(EntityTravelToDimensionEvent event){
+    	CapabilityMinecartDestination cap = event.getEntity().getCapability(CapabilityMinecartDestination.INSTANCE, null);
+    	if(cap != null){
+    		cap.travelingBetweenDimensions = !event.isCanceled();
+    	}
     }
 
     @SubscribeEvent
@@ -59,4 +98,65 @@ public class EventHandler{
     public void onNeighborChange(NeighborNotifyEvent event){
     	if(!event.getWorld().isRemote) RailCacheManager.getInstance(event.getWorld()).onNeighborChanged(event);
     }
+
+	@Override
+	public void notifyBlockUpdate(World worldIn, BlockPos pos,
+			IBlockState oldState, IBlockState newState, int flags) {
+		
+	}
+
+	@Override
+	public void notifyLightSet(BlockPos pos) {	
+	}
+
+	@Override
+	public void markBlockRangeForRenderUpdate(int x1, int y1, int z1, int x2,
+			int y2, int z2) {
+	}
+
+	@Override
+	public void playSoundToAllNearExcept(EntityPlayer player,
+			SoundEvent soundIn, SoundCategory category, double x, double y,
+			double z, float volume, float pitch) {
+	}
+
+	@Override
+	public void playRecord(SoundEvent soundIn, BlockPos pos) {
+		
+	}
+
+	@Override
+	public void spawnParticle(int particleID, boolean ignoreRange,
+			double xCoord, double yCoord, double zCoord, double xSpeed,
+			double ySpeed, double zSpeed, int... parameters) {
+	}
+
+	@Override
+	public void onEntityAdded(Entity entityIn) {
+
+	}
+
+	@Override
+	public void onEntityRemoved(Entity entityIn) {
+		if(entityIn instanceof EntityMinecart && !entityIn.worldObj.isRemote){
+			CapabilityMinecartDestination cap = entityIn.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+	    	cap.onCartBroken((EntityMinecart)entityIn);
+		}
+	}
+
+	@Override
+	public void broadcastSound(int soundID, BlockPos pos, int data) {
+
+	}
+
+	@Override
+	public void playEvent(EntityPlayer player, int type, BlockPos blockPosIn,
+			int data) {
+
+	}
+
+	@Override
+	public void sendBlockBreakProgress(int breakerId, BlockPos pos, int progress) {
+
+	}
 }

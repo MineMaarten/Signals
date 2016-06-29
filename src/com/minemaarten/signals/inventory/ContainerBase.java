@@ -78,21 +78,24 @@ public class ContainerBase<Tile extends TileEntity> extends Container{
             }
         }
     }
-
     protected void addPlayerSlots(InventoryPlayer inventoryPlayer, int yOffset){
+    	addPlayerSlots(inventoryPlayer, 8, yOffset);
+    }
+    
+    protected void addPlayerSlots(InventoryPlayer inventoryPlayer, int xOffset, int yOffset){
 
         playerSlotsStart = inventorySlots.size();
 
         // Add the player's inventory slots to the container
         for(int inventoryRowIndex = 0; inventoryRowIndex < 3; ++inventoryRowIndex) {
             for(int inventoryColumnIndex = 0; inventoryColumnIndex < 9; ++inventoryColumnIndex) {
-                addSlotToContainer(new Slot(inventoryPlayer, inventoryColumnIndex + inventoryRowIndex * 9 + 9, 8 + inventoryColumnIndex * 18, yOffset + inventoryRowIndex * 18));
+                addSlotToContainer(new Slot(inventoryPlayer, inventoryColumnIndex + inventoryRowIndex * 9 + 9, xOffset + inventoryColumnIndex * 18, yOffset + inventoryRowIndex * 18));
             }
         }
 
         // Add the player's action bar slots to the container
         for(int actionBarSlotIndex = 0; actionBarSlotIndex < 9; ++actionBarSlotIndex) {
-            addSlotToContainer(new Slot(inventoryPlayer, actionBarSlotIndex, 8 + actionBarSlotIndex * 18, yOffset + 58));
+            addSlotToContainer(new Slot(inventoryPlayer, actionBarSlotIndex, xOffset + actionBarSlotIndex * 18, yOffset + 58));
         }
     }
 

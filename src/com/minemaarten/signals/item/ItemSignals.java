@@ -3,6 +3,7 @@ package com.minemaarten.signals.item;
 import java.util.List;
 
 import com.minemaarten.signals.Signals;
+import com.minemaarten.signals.client.CreativeTabSignals;
 import com.minemaarten.signals.lib.SignalsUtils;
 
 import net.minecraft.client.resources.I18n;
@@ -11,10 +12,18 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ItemSignals extends Item {
+	public ItemSignals(String name){
+		setUnlocalizedName(name);
+		setRegistryName(name);
+		GameRegistry.register(this);
+		setCreativeTab(CreativeTabSignals.getInstance());
+	}
+	
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> curInfo, boolean extraInfo){

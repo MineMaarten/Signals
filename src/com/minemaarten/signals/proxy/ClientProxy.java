@@ -47,6 +47,7 @@ public class ClientProxy extends CommonProxy{
             registerItemModels(item);
         }
         registerItemModels(ModItems.railNetworkController);
+        registerItemModels(ModItems.cartEngine);
     }
     
     private void registerItemModels(Item item){
@@ -81,7 +82,7 @@ public class ClientProxy extends CommonProxy{
             case STATION_MARKER:
                 return new GuiStationMarker((TileEntityStationMarker)te);
             case MINECART_DESTINATION:
-                return new GuiMinecart((EntityMinecart)entity);
+                return new GuiMinecart(player.inventory, (EntityMinecart)entity, z == 1);
             case NETWORK_CONTROLLER:
             	return new GuiNetworkController();
         }
