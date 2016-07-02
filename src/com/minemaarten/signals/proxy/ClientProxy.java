@@ -22,8 +22,10 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 import com.minemaarten.signals.client.ClientEventHandler;
 import com.minemaarten.signals.client.glasses.GlassesHUD;
+import com.minemaarten.signals.client.gui.GuiItemHandlerDestination;
 import com.minemaarten.signals.client.gui.GuiMinecart;
 import com.minemaarten.signals.client.gui.GuiNetworkController;
+import com.minemaarten.signals.client.gui.GuiSelectDestinationProvider;
 import com.minemaarten.signals.client.gui.GuiStationMarker;
 import com.minemaarten.signals.client.render.tileentity.SignalStatusRenderer;
 import com.minemaarten.signals.init.ModBlocks;
@@ -42,16 +44,17 @@ public class ClientProxy extends CommonProxy{
 
     @Override
     public void init(){
-        for(Block block : new Block[]{ModBlocks.blockSignal, ModBlocks.pathSignal, ModBlocks.stationMarker, ModBlocks.limiterRail/*, ModBlocks.railLink*/ }) {
+        for(Block block : new Block[]{ModBlocks.blockSignal, ModBlocks.pathSignal, ModBlocks.stationMarker, ModBlocks.limiterRail/*, ModBlocks.railLink*/}) {
             Item item = Item.getItemFromBlock(block);
             registerItemModels(item);
         }
         registerItemModels(ModItems.railNetworkController);
         registerItemModels(ModItems.cartEngine);
+        registerItemModels(ModItems.railConfigurator);
     }
-    
+
     private void registerItemModels(Item item){
-    	List<ItemStack> stacks = new ArrayList<ItemStack>();
+        List<ItemStack> stacks = new ArrayList<ItemStack>();
         item.getSubItems(item, null, stacks);
         for(ItemStack stack : stacks) {
             ResourceLocation resLoc = new ResourceLocation(Constants.MOD_ID, stack.getUnlocalizedName().substring(5));
@@ -84,7 +87,11 @@ public class ClientProxy extends CommonProxy{
             case MINECART_DESTINATION:
                 return new GuiMinecart(player.inventory, (EntityMinecart)entity, z == 1);
             case NETWORK_CONTROLLER:
-            	return new GuiNetworkController();
+                return new GuiNetworkController();
+            case SELECT_DESTINATION_PROVIDER:
+                return new GuiSelectDestinationProvider(te);
+            case ITEM_HANDLER_DESTINATION:
+                return new GuiItemHandlerDestination(te);
         }
         throw new IllegalStateException("No Gui for gui id: " + ID);
     }

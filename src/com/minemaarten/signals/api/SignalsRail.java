@@ -5,13 +5,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.minemaarten.signals.api.tileentity.IDestinationProvider;
+
 /**
- * Annotation that should be used on {@link IRail} and {@link IRailMapper} implementations.
+ * Annotation that should be used on {@link IRail}, {@link IRailMapper} and {@link IDestinationProvider} implementations.
  * @author Maarten
  */
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface SignalsRail {
-	
+public @interface SignalsRail{
+
 }

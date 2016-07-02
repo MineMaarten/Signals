@@ -3,6 +3,8 @@ package com.minemaarten.signals.capabilities;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import net.minecraft.block.BlockHopper;
 import net.minecraft.entity.item.EntityMinecart;
@@ -46,26 +48,31 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
     @CapabilityInject(CapabilityMinecartDestination.class)
     public static Capability<CapabilityMinecartDestination> INSTANCE;
+    private static final Pattern EMPTY_PATTERN = Pattern.compile("");
 
     @GuiSynced
-    public String destinationStations = ""; //'\n' separated list of destinations
+    private String destinationStations = ""; //'\n' separated list of destinations
+    private Pattern[] destinationRegexes = new Pattern[0]; //Cache of the regexes of the destinations
     @GuiSynced
     private int curDestinationIndex;
+    @GuiSynced
+    private String invalidDestinations = ""; //Destinations become invalid when the regex is invalid.
 
     private AStarRailNode curPath;
     private List<BlockPos> nbtLoadedPath;
-    
+
     private boolean motorized; //True when an engine upgrade has been applied.
     @GuiSynced
     private int fuelLeft;
     @GuiSynced
     private int totalBurnTime;
     private int hopperTimer;
-    
+
     private InventoryBasic fuelInv = new InventoryBasic("cartEngineInv", true, 5){
-    	public boolean isItemValidForSlot(int index, ItemStack stack) {
-    		return stack == null || TileEntityFurnace.isItemFuel(stack);
-    	}
+        @Override
+        public boolean isItemValidForSlot(int index, ItemStack stack){
+            return stack == null || TileEntityFurnace.isItemFuel(stack);
+        }
     };
     private boolean motorActive;
     public boolean travelingBetweenDimensions;
@@ -93,14 +100,14 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                     }
                     tag.setTag("path", nodeList);
                 }
-                
+
                 tag.setBoolean("motorized", instance.motorized);
-                if(instance.motorized){
-                	tag.setInteger("fuelLeft", instance.fuelLeft);
-                	tag.setInteger("totalBurnTime", instance.totalBurnTime);
-                	SignalsUtils.writeInventoryToNBT(tag, instance.fuelInv);
+                if(instance.motorized) {
+                    tag.setInteger("fuelLeft", instance.fuelLeft);
+                    tag.setInteger("totalBurnTime", instance.totalBurnTime);
+                    SignalsUtils.writeInventoryToNBT(tag, instance.fuelInv);
                 }
-                
+
                 return tag;
             }
 
@@ -109,6 +116,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                 NBTTagCompound tag = (NBTTagCompound)base;
 
                 instance.destinationStations = tag.getString("destinations");
+                instance.recompileRegexes();
                 instance.curDestinationIndex = tag.getInteger("destIndex");
 
                 if(tag.hasKey("path")) {
@@ -121,12 +129,12 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                 } else {
                     instance.curPath = null;
                 }
-                
+
                 instance.motorized = tag.getBoolean("motorized");
-                if(instance.motorized){
-                	instance.fuelLeft = tag.getInteger("fuelLeft");
-                	instance.totalBurnTime = tag.getInteger("totalBurnTime");
-                	SignalsUtils.readInventoryFromNBT(tag, instance.fuelInv);
+                if(instance.motorized) {
+                    instance.fuelLeft = tag.getInteger("fuelLeft");
+                    instance.totalBurnTime = tag.getInteger("totalBurnTime");
+                    SignalsUtils.readInventoryFromNBT(tag, instance.fuelInv);
                 }
             }
         }, new Callable<CapabilityMinecartDestination>(){
@@ -140,6 +148,34 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
     @Override
     public void setText(int textFieldID, String text){
         destinationStations = text;
+        recompileRegexes();
+    }
+
+    private void recompileRegexes(){
+        String[] destinations = getDestinations();
+        destinationRegexes = new Pattern[destinations.length];
+        invalidDestinations = "";
+        for(int i = 0; i < destinations.length; i++) {
+            try {
+                destinationRegexes[i] = Pattern.compile(destinations[i]);
+            } catch(PatternSyntaxException e) {
+                if(!invalidDestinations.equals("")) {
+                    invalidDestinations += ",";
+                }
+                invalidDestinations += "" + i;
+                destinationRegexes[i] = EMPTY_PATTERN;
+            }
+        }
+    }
+
+    public int[] getInvalidDestinationIndeces(){
+        if(invalidDestinations.equals("")) return new int[0];
+        String[] strings = invalidDestinations.split(",");
+        int[] ints = new int[strings.length];
+        for(int i = 0; i < strings.length; i++) {
+            ints[i] = Integer.parseInt(strings[i]);
+        }
+        return ints;
     }
 
     @Override
@@ -176,14 +212,19 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         }
     }
 
+    public Pattern getCurrentDestinationRegex(){
+        getCurrentDestination();
+        return curDestinationIndex >= 0 ? destinationRegexes[curDestinationIndex] : EMPTY_PATTERN;
+    }
+
     public void setPath(EntityMinecart cart, AStarRailNode path){
         curPath = path;
         nbtLoadedPath = null;
         sendUpdatePacket(cart);
     }
-    
+
     private void sendUpdatePacket(EntityMinecart cart){
-    	NetworkHandler.sendToAll(new PacketUpdateMinecartPath(cart));
+        NetworkHandler.sendToAll(new PacketUpdateMinecartPath(cart));
     }
 
     public AStarRailNode getPath(World world){
@@ -199,166 +240,169 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         }
         return curPath;
     }
-    
+
     public List<BlockPos> getNBTPath(){
-    	return nbtLoadedPath;
+        return nbtLoadedPath;
     }
-    
+
     public void setMotorized(){
-    	motorized = true;
+        motorized = true;
     }
-    
+
     public boolean isMotorized(){
-    	return motorized;
+        return motorized;
     }
-    
+
     /**
      * Tries to use fuel and returns true if succeeded.
      * @return
      */
     public boolean useFuel(EntityMinecart cart){
-    	if(motorized){
-    		if(fuelLeft == 0){
-    			for(int i = 0; i < fuelInv.getSizeInventory(); i++){
-    				ItemStack fuel = fuelInv.getStackInSlot(i);
-    				if(fuel != null){
-        				int fuelValue = TileEntityFurnace.getItemBurnTime(fuel);
-        				if(fuelValue > 0){
-        					fuel.stackSize--;
-        					if(fuel.stackSize <= 0){
-        						fuelInv.setInventorySlotContents(i, fuel.getItem().getContainerItem(fuel));
-        					}
-        					fuelLeft += fuelValue;
-        					totalBurnTime = fuelValue;
-        					break;
-        				}
-        			}
-    			}
-    		}
-    		if(fuelLeft > 0){
-    			fuelLeft--;
-    			NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.SMOKE_LARGE, cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 0, 0, 0), cart.worldObj);
-    			return true;
-    		}
-    	}
-    	return false;
-    }
-    
-    public InventoryBasic getFuelInv(){
-    	return fuelInv;
-    }
-    
-    public int getScaledFuel(int barLength){
-    	return totalBurnTime == 0 ? 0 : barLength * fuelLeft / totalBurnTime;
-    }
-    
-    public void onCartBroken(EntityMinecart cart){
-    	if(motorized && !travelingBetweenDimensions){
-    		motorized = false;
-    		cart.dropItem(ModItems.cartEngine, 1);
-    		for(int i = 0; i < fuelInv.getSizeInventory(); i++){
-    			ItemStack fuel = fuelInv.getStackInSlot(i);
-    			if(fuel != null) cart.entityDropItem(fuel, 0);
-    		}
-    	}
-    	travelingBetweenDimensions = false;
+        if(motorized) {
+            if(fuelLeft == 0) {
+                for(int i = 0; i < fuelInv.getSizeInventory(); i++) {
+                    ItemStack fuel = fuelInv.getStackInSlot(i);
+                    if(fuel != null) {
+                        int fuelValue = TileEntityFurnace.getItemBurnTime(fuel);
+                        if(fuelValue > 0) {
+                            fuel.stackSize--;
+                            if(fuel.stackSize <= 0) {
+                                fuelInv.setInventorySlotContents(i, fuel.getItem().getContainerItem(fuel));
+                            }
+                            fuelLeft += fuelValue;
+                            totalBurnTime = fuelValue;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(fuelLeft > 0) {
+                fuelLeft--;
+                double randX = cart.getPositionVector().xCoord + (cart.worldObj.rand.nextDouble() - 0.5) * 0.5;
+                double randY = cart.getPositionVector().yCoord + (cart.worldObj.rand.nextDouble() - 0.5) * 0.5;
+                double randZ = cart.getPositionVector().zCoord + (cart.worldObj.rand.nextDouble() - 0.5) * 0.5;
+                NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.SMOKE_LARGE, randX, randY, randZ, 0, 0, 0), cart.worldObj);
+                return true;
+            }
+        }
+        return false;
     }
 
-	public void setEngineActive(boolean active) {
-		motorActive = active;
-	}
-	
-	public void onCartUpdate(MinecartUpdateEvent event){
-		EntityMinecart cart = event.getMinecart();
-		if(!cart.worldObj.isRemote){
-			if(isMotorized()){
-				boolean shouldRun = true;
-				EnumFacing cartDir = cart.getAdjustedHorizontalFacing();
-				if(new Vec3d(cart.motionX, cart.motionY, cart.motionZ).lengthVector() < 0.05){
-					shouldRun = false;
-					if(hopperTimer > 0){
-						hopperTimer--;
-					}
-					if(hopperTimer == 0){
-						hopperTimer = extractFuelFromHopper(cart, event.getPos()) ? 8 : 40;
-					}
-				}else{
-					hopperTimer = 0;
-		    		RailWrapper rail = RailCacheManager.getInstance(cart.worldObj).getRail(cart.worldObj, event.getPos());
-		    		
-		    		if(rail == null){
-		    			shouldRun = false;
-		    		}else{
-		    			TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(rail, cartDir.getOpposite());
-			    		shouldRun = signal == null || signal.getLampStatus() != EnumLampStatus.RED;
-		    			if(!shouldRun){
-		    				cart.motionX = 0;
-		    				cart.motionZ = 0;
-		    			}
-		    		}
-				}
-	    		
-	    		if(shouldRun && useFuel(cart)){
-	    			if(!motorActive) NetworkHandler.sendToAllAround(new PacketUpdateMinecartEngineState(cart, true), new NetworkRegistry.TargetPoint(cart.worldObj.provider.getDimension(), cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 64));
-	    			motorActive = true;
-	    			
-	    			double acceleration = 0.03D;
-	    			cart.motionX += cartDir.getFrontOffsetX() * acceleration;
-	    			cart.motionZ += cartDir.getFrontOffsetZ() * acceleration;
-	    			cart.motionX = MathHelper.clamp_double(cart.motionX, -cart.getMaxCartSpeedOnRail(), cart.getMaxCartSpeedOnRail());
-	    			cart.motionZ = MathHelper.clamp_double(cart.motionZ, -cart.getMaxCartSpeedOnRail(), cart.getMaxCartSpeedOnRail());
-	    		}else{
-	    			if(motorActive) NetworkHandler.sendToAllAround(new PacketUpdateMinecartEngineState(cart, true), new NetworkRegistry.TargetPoint(cart.worldObj.provider.getDimension(), cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 64));
-	    			motorActive = false;
-	    		}
-	    	}
-		}else{
-			if(motorActive){
-				cart.worldObj.spawnParticle(EnumParticleTypes.SMOKE_LARGE, cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 0, 0, 0);
-			}
-		}
-	}
-	
-	/**
-	 * 
-	 * @param cart
-	 * @return true if there was a valid hopper (not necessarily if extracted an item)
-	 */
-	private boolean extractFuelFromHopper(EntityMinecart cart, BlockPos pos){
-		boolean foundHopper = false;
-		for(EnumFacing dir : EnumFacing.VALUES){
-			BlockPos neighbor = pos;
-			for(int offsetTimes = 0; offsetTimes < (dir == EnumFacing.UP ? 2 : 1); offsetTimes++){
-				neighbor = neighbor.offset(dir);
-				TileEntity te = cart.worldObj.getTileEntity(neighbor);
-				if(te instanceof TileEntityHopper){
-					EnumFacing hopperDir = (EnumFacing)cart.worldObj.getBlockState(neighbor).getValue(BlockHopper.FACING);
-					if(hopperDir.getOpposite() == dir){
-						TileEntityHopper hopper = (TileEntityHopper)te;
-						for(int i = 0; i < hopper.getSizeInventory(); i++){
-							ItemStack stack = hopper.getStackInSlot(i);
-							if(stack != null && getFuelInv().isItemValidForSlot(0, stack)){
-								InvWrapper invWrapper = new InvWrapper(getFuelInv());
-								ItemStack inserted = stack.copy();
-								inserted.stackSize = 1;
-								ItemStack left = ItemHandlerHelper.insertItemStacked(invWrapper, inserted, false);
-								if(left == null){
-									stack.stackSize--;
-									if(stack.stackSize <= 0){
-										hopper.setInventorySlotContents(i, null);
-									}
-									hopper.markDirty();
-									return true;
-								}
-							}
-						}
-						foundHopper = true;
-					}
-				}
-			}
-		}
-		return foundHopper;
-	}
+    public InventoryBasic getFuelInv(){
+        return fuelInv;
+    }
+
+    public int getScaledFuel(int barLength){
+        return totalBurnTime == 0 ? 0 : barLength * fuelLeft / totalBurnTime;
+    }
+
+    public void onCartBroken(EntityMinecart cart){
+        if(motorized && !travelingBetweenDimensions) {
+            motorized = false;
+            cart.dropItem(ModItems.cartEngine, 1);
+            for(int i = 0; i < fuelInv.getSizeInventory(); i++) {
+                ItemStack fuel = fuelInv.getStackInSlot(i);
+                if(fuel != null) cart.entityDropItem(fuel, 0);
+            }
+        }
+        travelingBetweenDimensions = false;
+    }
+
+    public void setEngineActive(boolean active){
+        motorActive = active;
+    }
+
+    public void onCartUpdate(MinecartUpdateEvent event){
+        EntityMinecart cart = event.getMinecart();
+        if(!cart.worldObj.isRemote) {
+            if(isMotorized()) {
+                boolean shouldRun = true;
+                EnumFacing cartDir = cart.getAdjustedHorizontalFacing();
+                if(new Vec3d(cart.motionX, cart.motionY, cart.motionZ).lengthVector() < 0.05) {
+                    shouldRun = false;
+                    if(hopperTimer > 0) {
+                        hopperTimer--;
+                    }
+                    if(hopperTimer == 0) {
+                        hopperTimer = extractFuelFromHopper(cart, event.getPos()) ? 8 : 40;
+                    }
+                } else {
+                    hopperTimer = 0;
+                    RailWrapper rail = RailCacheManager.getInstance(cart.worldObj).getRail(cart.worldObj, event.getPos());
+
+                    if(rail == null) {
+                        shouldRun = false;
+                    } else {
+                        TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(rail, cartDir.getOpposite());
+                        shouldRun = signal == null || signal.getLampStatus() != EnumLampStatus.RED;
+                        if(!shouldRun) {
+                            cart.motionX = 0;
+                            cart.motionZ = 0;
+                        }
+                    }
+                }
+
+                if(shouldRun && useFuel(cart)) {
+                    if(!motorActive) NetworkHandler.sendToAllAround(new PacketUpdateMinecartEngineState(cart, true), new NetworkRegistry.TargetPoint(cart.worldObj.provider.getDimension(), cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 64));
+                    motorActive = true;
+
+                    double acceleration = 0.03D;
+                    cart.motionX += cartDir.getFrontOffsetX() * acceleration;
+                    cart.motionZ += cartDir.getFrontOffsetZ() * acceleration;
+                    cart.motionX = MathHelper.clamp_double(cart.motionX, -cart.getMaxCartSpeedOnRail(), cart.getMaxCartSpeedOnRail());
+                    cart.motionZ = MathHelper.clamp_double(cart.motionZ, -cart.getMaxCartSpeedOnRail(), cart.getMaxCartSpeedOnRail());
+                } else {
+                    if(motorActive) NetworkHandler.sendToAllAround(new PacketUpdateMinecartEngineState(cart, true), new NetworkRegistry.TargetPoint(cart.worldObj.provider.getDimension(), cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 64));
+                    motorActive = false;
+                }
+            }
+        } else {
+            if(motorActive) {
+                cart.worldObj.spawnParticle(EnumParticleTypes.SMOKE_LARGE, cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 0, 0, 0);
+            }
+        }
+    }
+
+    /**
+     * 
+     * @param cart
+     * @return true if there was a valid hopper (not necessarily if extracted an item)
+     */
+    private boolean extractFuelFromHopper(EntityMinecart cart, BlockPos pos){
+        boolean foundHopper = false;
+        for(EnumFacing dir : EnumFacing.VALUES) {
+            BlockPos neighbor = pos;
+            for(int offsetTimes = 0; offsetTimes < (dir == EnumFacing.UP ? 2 : 1); offsetTimes++) {
+                neighbor = neighbor.offset(dir);
+                TileEntity te = cart.worldObj.getTileEntity(neighbor);
+                if(te instanceof TileEntityHopper) {
+                    EnumFacing hopperDir = cart.worldObj.getBlockState(neighbor).getValue(BlockHopper.FACING);
+                    if(hopperDir.getOpposite() == dir) {
+                        TileEntityHopper hopper = (TileEntityHopper)te;
+                        for(int i = 0; i < hopper.getSizeInventory(); i++) {
+                            ItemStack stack = hopper.getStackInSlot(i);
+                            if(stack != null && getFuelInv().isItemValidForSlot(0, stack)) {
+                                InvWrapper invWrapper = new InvWrapper(getFuelInv());
+                                ItemStack inserted = stack.copy();
+                                inserted.stackSize = 1;
+                                ItemStack left = ItemHandlerHelper.insertItemStacked(invWrapper, inserted, false);
+                                if(left == null) {
+                                    stack.stackSize--;
+                                    if(stack.stackSize <= 0) {
+                                        hopper.setInventorySlotContents(i, null);
+                                    }
+                                    hopper.markDirty();
+                                    return true;
+                                }
+                            }
+                        }
+                        foundHopper = true;
+                    }
+                }
+            }
+        }
+        return foundHopper;
+    }
 
     public static class Provider implements ICapabilitySerializable<NBTBase>{
         private final CapabilityMinecartDestination cap = new CapabilityMinecartDestination();

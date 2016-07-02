@@ -7,7 +7,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
+import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
@@ -155,10 +157,19 @@ public class RailCacheManager{
         NetworkController.getInstance(marker.getWorld()).updateColor((TileEntityStationMarker)null, marker.getPos());
     }
 
-    public Collection<RailWrapper> getStationRails(String stationName){
+    public Collection<RailWrapper> getStationRails(EntityMinecart cart, Pattern destinationRegex){
         Set<RailWrapper> rails = new HashSet<RailWrapper>();
+        Set<String> validNames = new HashSet<String>();
         for(TileEntityStationMarker station : stations) {
-            if(station.getStationName().equalsIgnoreCase(stationName)) {
+            if(station.isCartApplicable(cart, destinationRegex)) {
+                rails.addAll(station.getNeighborRails());
+                validNames.add(station.getStationName());
+            }
+        }
+
+        //Make sure to include stations that don't match themselves, but other stations with the same name do.
+        for(TileEntityStationMarker station : stations) {
+            if(validNames.contains(station.getStationName())) {
                 rails.addAll(station.getNeighborRails());
             }
         }
