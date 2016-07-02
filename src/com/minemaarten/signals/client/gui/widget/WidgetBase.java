@@ -55,7 +55,9 @@ public class WidgetBase implements IGuiWidget{
     public void setTooltipText(String tooltip){
         tooltipText.clear();
         if(tooltip != null && !tooltip.equals("")) {
-            tooltipText.add(tooltip);
+            for(String line : tooltip.split("\\\\n")) {
+                tooltipText.add(line);
+            }
         }
     }
 

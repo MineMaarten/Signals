@@ -11,6 +11,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
+import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.init.ModBlocks;
 import com.minemaarten.signals.init.ModItems;
@@ -41,6 +42,7 @@ public class Signals{
         ModItems.init();
         RecipeRegistrator.init();
         CapabilityMinecartDestination.register();
+        CapabilityDestinationProvider.register();
         MinecraftForge.EVENT_BUS.register(new com.minemaarten.signals.event.EventHandler());
         asmData = event.getAsmData();
     }
@@ -57,6 +59,5 @@ public class Signals{
         proxy.postInit();
         RailManager.getInstance().initializeAPIImplementors(asmData);
     }
-    
 
 }

@@ -42,8 +42,8 @@ public class GuiMinecart extends GuiContainerBase<TileEntity>{
         }
         if(oldFields != null) {
             for(int i = 0; i < oldFields.length && i < stationNameFields.length; i++) {
-            	if(oldFields[i].isFocused()) stationNameFields[i].setText(oldFields[i].getText());
-            	stationNameFields[i].setFocused(oldFields[i].isFocused());
+                if(oldFields[i].isFocused()) stationNameFields[i].setText(oldFields[i].getText());
+                stationNameFields[i].setFocused(oldFields[i].isFocused());
             }
         }
     }
@@ -60,33 +60,40 @@ public class GuiMinecart extends GuiContainerBase<TileEntity>{
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int i, int j){
-    	drawBackLayer();
-    	drawDarkGreyText(guiLeft, guiTop, "signals.gui.cart.schedule");
-    	
-    	String dest = cap.getCurrentDestination();
-    	if(dest.equals("")){
-    		drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.no_destination");
-    	}else{
-    		drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.destination", dest);
-    	}
-    	
-    	if(isMotorized){
-	    	drawVerticalLine(guiLeft + 120, guiTop - 1, guiTop + ySize, 0xFF222222);
-	    	drawDarkGreyText(guiLeft + 120, guiTop, "signals.gui.cart.engine_fuel");
-	    	
-	    	int barSize = 87;
-	    	drawHorizontalLine(guiLeft + 164, guiLeft + 164 + barSize, guiTop + 67, 0xFF222222);
-	    	int fuelSize = cap.getScaledFuel(barSize + 1);
-	    	if(fuelSize > 0) drawHorizontalLine(guiLeft + 164, guiLeft + 164 + fuelSize - 1, guiTop + 67, 0xFFFF0000);
-    	}
-    	
-    	if(cap.getTotalDestinations() > 0){
-	    	int indicatorX = guiLeft + 7;
-	    	int indicatorY = height / 2 - stationNameFields.length * 7 + cap.getDestinationIndex() * 14 - 8;
-	    	drawRect(indicatorX, indicatorY, indicatorX + 106, indicatorY + fontRendererObj.FONT_HEIGHT + 6, 0xFF005500);
-    	}
-    	
-    	super.drawGuiContainerBackgroundLayer(partialTicks, i, j);
+        drawBackLayer();
+        drawDarkGreyText(guiLeft, guiTop, "signals.gui.cart.schedule");
+
+        String dest = cap.getCurrentDestination();
+        if(dest.equals("")) {
+            drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.no_destination");
+        } else {
+            drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.destination", dest);
+        }
+
+        if(isMotorized) {
+            drawVerticalLine(guiLeft + 120, guiTop - 1, guiTop + ySize, 0xFF222222);
+            drawDarkGreyText(guiLeft + 120, guiTop, "signals.gui.cart.engine_fuel");
+
+            int barSize = 87;
+            drawHorizontalLine(guiLeft + 164, guiLeft + 164 + barSize, guiTop + 67, 0xFF222222);
+            int fuelSize = cap.getScaledFuel(barSize + 1);
+            if(fuelSize > 0) drawHorizontalLine(guiLeft + 164, guiLeft + 164 + fuelSize - 1, guiTop + 67, 0xFFFF0000);
+        }
+
+        if(cap.getTotalDestinations() > 0) {
+            drawDestinationRect(cap.getDestinationIndex(), 0xFF005500);
+            for(int invalidDest : cap.getInvalidDestinationIndeces()) {
+                drawDestinationRect(invalidDest, 0xAAFF0000);
+            }
+        }
+
+        super.drawGuiContainerBackgroundLayer(partialTicks, i, j);
+    }
+
+    private void drawDestinationRect(int destinationIndex, int color){
+        int indicatorX = guiLeft + 7;
+        int indicatorY = height / 2 - stationNameFields.length * 7 + destinationIndex * 14 - 8;
+        drawRect(indicatorX, indicatorY, indicatorX + 106, indicatorY + fontRendererObj.FONT_HEIGHT + 6, color);
     }
 
     @Override

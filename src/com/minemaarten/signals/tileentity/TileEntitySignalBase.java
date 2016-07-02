@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRailBase.EnumRailDirection;
@@ -49,9 +50,9 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     private String text = "";
     private String arguments = "";
     private EnumForceMode forceMode = EnumForceMode.NONE;
-    
+
     public enum EnumForceMode{
-    	NONE, FORCED_GREEN_ONCE, FORCED_RED;
+        NONE, FORCED_GREEN_ONCE, FORCED_RED;
     }
 
     public RailWrapper getConnectedRail(){
@@ -92,11 +93,11 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     protected void setLampStatus(EnumLampStatus lampStatus){
-    	if(forceMode == EnumForceMode.FORCED_GREEN_ONCE){
-    		lampStatus = EnumLampStatus.GREEN;
-    	}else if(forceMode == EnumForceMode.FORCED_RED){
-    		lampStatus = EnumLampStatus.RED;
-    	}
+        if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
+            lampStatus = EnumLampStatus.GREEN;
+        } else if(forceMode == EnumForceMode.FORCED_RED) {
+            lampStatus = EnumLampStatus.RED;
+        }
         IBlockState state = getBlockState();
         if(state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
             getWorld().setBlockState(getPos(), state.withProperty(BlockSignalBase.LAMP_STATUS, lampStatus));
@@ -104,27 +105,27 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             if(lampStatus == EnumLampStatus.GREEN) {
                 //Push carts when they're standing still.
                 for(EntityMinecart cart : getNeighborMinecarts()) {
-                	if(new Vec3d(cart.motionX, cart.motionY, cart.motionZ).lengthVector() < 0.01 || EnumFacing.getFacingFromVector((float)cart.motionX, 0, (float)cart.motionZ) == getFacing()){
-	                    cart.motionX += getFacing().getFrontOffsetX() * 0.1;
-	                    cart.motionZ += getFacing().getFrontOffsetZ() * 0.1;
-	                    long start = System.nanoTime();
-	                    AStarRailNode path = routeCart(cart, getFacing(), true);
-	                	if(path != null) updateSwitches(path, cart, true);
-	                    Log.debug((System.nanoTime() - start) / 1000 + "ns");
-                	}
+                    if(new Vec3d(cart.motionX, cart.motionY, cart.motionZ).lengthVector() < 0.01 || EnumFacing.getFacingFromVector((float)cart.motionX, 0, (float)cart.motionZ) == getFacing()) {
+                        cart.motionX += getFacing().getFrontOffsetX() * 0.1;
+                        cart.motionZ += getFacing().getFrontOffsetZ() * 0.1;
+                        long start = System.nanoTime();
+                        AStarRailNode path = routeCart(cart, getFacing(), true);
+                        if(path != null) updateSwitches(path, cart, true);
+                        Log.debug((System.nanoTime() - start) / 1000 + "ns");
+                    }
                 }
             }
         }
     }
 
     public EnumLampStatus getLampStatus(){
-    	if(getWorld() != null){
-    		IBlockState state = getWorld().getBlockState(getPos());
-    		if(state.getBlock() instanceof BlockSignalBase){
-    			return state.getValue(BlockSignalBase.LAMP_STATUS);
-    		}
-    	}
-    	return null;
+        if(getWorld() != null) {
+            IBlockState state = getWorld().getBlockState(getPos());
+            if(state.getBlock() instanceof BlockSignalBase) {
+                return state.getValue(BlockSignalBase.LAMP_STATUS);
+            }
+        }
+        return null;
     }
 
     protected List<EntityMinecart> getNeighborMinecarts(){
@@ -134,18 +135,18 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     protected AStarRailNode routeCart(EntityMinecart cart, EnumFacing cartDir, boolean submitMessages){
         CapabilityMinecartDestination capability = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
         String destination = capability.getCurrentDestination();
+        Pattern destinationRegex = capability.getCurrentDestinationRegex();
         List<PacketUpdateMessage> messages = new ArrayList<PacketUpdateMessage>();
         AStarRailNode path = null;
         if(!destination.isEmpty()) {
             messages.add(new PacketUpdateMessage(this, cart, "signals.message.routing_cart", destination));
             EnumFacing facing = getFacing();
-            // EnumFacing cartDir = EnumFacing.getFacingFromVector((float)cart.motionX, 0, (float)cart.motionZ); //Only update the switches for carts that pass the signal from the right side.
             if(facing == cartDir) {
-                path = DestinationPathFinder.pathfindToDestination(getConnectedRail(), destination, facing);
+                path = DestinationPathFinder.pathfindToDestination(getConnectedRail(), cart, destinationRegex, facing);
                 if(path == null) { //If there's no path
                     messages.add(new PacketUpdateMessage(this, cart, "signals.message.no_path_found"));
-                }else{
-                	messages.add(new PacketUpdateMessage(this, cart, "signals.message.path_found"));
+                } else {
+                    messages.add(new PacketUpdateMessage(this, cart, "signals.message.path_found"));
                 }
             }
         } else {
@@ -160,7 +161,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         capability.setPath(cart, path);
         return path;
     }
-    
+
     protected void updateSwitches(AStarRailNode pathNode, EntityMinecart cart, boolean submitMessages){
         List<PacketUpdateMessage> messages = new ArrayList<PacketUpdateMessage>();
         EnumFacing lastHeading = null;
@@ -234,7 +235,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     @SuppressWarnings("unchecked")
-	protected static <T extends TileEntitySignalBase> T getNeighborSignal(World world, BlockPos pos, Class<T> teClass, EnumFacing blacklistedSignalDir){
+    protected static <T extends TileEntitySignalBase> T getNeighborSignal(World world, BlockPos pos, Class<T> teClass, EnumFacing blacklistedSignalDir){
         for(EnumFacing dir : EnumFacing.HORIZONTALS) {
             BlockPos neighbor = pos.offset(dir);
             TileEntity te = world.getTileEntity(neighbor);
@@ -305,11 +306,11 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     protected abstract void onCartEnteringBlock(EntityMinecart cart);
-    
+
     protected void onCartLeavingBlock(EntityMinecart cart){
-    	if(forceMode == EnumForceMode.FORCED_GREEN_ONCE){
-    		setForceMode(EnumForceMode.NONE);
-    	}
+        if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
+            setForceMode(EnumForceMode.NONE);
+        }
     }
 
     public void updateConnectedSignals(RailWrapper curRail){
@@ -376,65 +377,67 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
 
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt){
-        if (pkt.getTileEntityType() == 0){
-	        nextSignals.clear();
-	        NBTTagList list = pkt.getNbtCompound().getTagList("signals", 10);
-	        for(int i = 0; i < list.tagCount(); i++) {
-	            NBTTagCompound t = list.getCompoundTagAt(i);
-	            BlockPos pos = new BlockPos(t.getInteger("x"), t.getInteger("y"), t.getInteger("z"));
-	            TileEntity te = worldObj.getTileEntity(pos);
-	            if(te instanceof TileEntitySignalBase) nextSignals.add((TileEntitySignalBase)te);
-	        }
-	        
-	        text = pkt.getNbtCompound().getString("text");
-	        arguments = pkt.getNbtCompound().getString("arguments");
+        if(pkt.getTileEntityType() == 0) {
+            nextSignals.clear();
+            NBTTagList list = pkt.getNbtCompound().getTagList("signals", 10);
+            for(int i = 0; i < list.tagCount(); i++) {
+                NBTTagCompound t = list.getCompoundTagAt(i);
+                BlockPos pos = new BlockPos(t.getInteger("x"), t.getInteger("y"), t.getInteger("z"));
+                TileEntity te = worldObj.getTileEntity(pos);
+                if(te instanceof TileEntitySignalBase) nextSignals.add((TileEntitySignalBase)te);
+            }
+
+            text = pkt.getNbtCompound().getString("text");
+            arguments = pkt.getNbtCompound().getString("arguments");
         }
     }
-    
+
     protected void setMessage(String message, Object... arguments){
-    	text = message;
-    	this.arguments = "";
-    	for(int i =0 ; i < arguments.length; i++){
-    		if(i > 0) this.arguments += "\n";
-    		this.arguments += arguments[i].toString();
-    	}
-    	worldObj.notifyBlockUpdate(getPos(), getBlockState(), getBlockState(), 3);
+        text = message;
+        this.arguments = "";
+        for(int i = 0; i < arguments.length; i++) {
+            if(i > 0) this.arguments += "\n";
+            this.arguments += arguments[i].toString();
+        }
+        worldObj.notifyBlockUpdate(getPos(), getBlockState(), getBlockState(), 3);
     }
-    
+
     public String getMessage(){
-    	String[] localizedArguments = arguments.split("\n");
-    	for(int i = 0; i < localizedArguments.length; i++){
-    		localizedArguments[i] = I18n.format(localizedArguments[i]);
-    	}
-    	return I18n.format(text, (Object[])localizedArguments);
+        String[] localizedArguments = arguments.split("\n");
+        for(int i = 0; i < localizedArguments.length; i++) {
+            localizedArguments[i] = I18n.format(localizedArguments[i]);
+        }
+        return I18n.format(text, (Object[])localizedArguments);
     }
-    
+
     public void setForceMode(EnumForceMode forceMode){
-    	this.forceMode = forceMode;
-    	markDirty();
-    	if(forceMode == EnumForceMode.FORCED_GREEN_ONCE){
-    		setLampStatus(EnumLampStatus.GREEN);
-    		setMessage("signals.signal_message.forced_green");
-    	}else if(forceMode == EnumForceMode.FORCED_RED){
-    		setLampStatus(EnumLampStatus.RED);
-    		setMessage("signals.signal_message.forced_red");
-    	}else{
-    		setMessage("");
-    	}
+        this.forceMode = forceMode;
+        markDirty();
+        if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
+            setLampStatus(EnumLampStatus.GREEN);
+            setMessage("signals.signal_message.forced_green");
+        } else if(forceMode == EnumForceMode.FORCED_RED) {
+            setLampStatus(EnumLampStatus.RED);
+            setMessage("signals.signal_message.forced_red");
+        } else {
+            setMessage("");
+        }
     }
-    
+
     public EnumForceMode getForceMode(){
-    	return forceMode;
+        return forceMode;
     }
-    
+
+    @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag){
-    	super.writeToNBT(tag);
-    	tag.setByte("forceMode", (byte) forceMode.ordinal());
-    	return tag;
+        super.writeToNBT(tag);
+        tag.setByte("forceMode", (byte)forceMode.ordinal());
+        return tag;
     }
-    
+
+    @Override
     public void readFromNBT(NBTTagCompound tag){
-    	super.readFromNBT(tag);
-    	forceMode = EnumForceMode.values()[tag.getByte("forceMode")];
+        super.readFromNBT(tag);
+        forceMode = EnumForceMode.values()[tag.getByte("forceMode")];
     }
 }

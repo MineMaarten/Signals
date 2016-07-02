@@ -10,12 +10,14 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 
 import com.minemaarten.signals.inventory.ContainerBase;
+import com.minemaarten.signals.inventory.ContainerItemHandlerDestination;
 import com.minemaarten.signals.inventory.ContainerMinecart;
 import com.minemaarten.signals.inventory.ContainerNetworkController;
+import com.minemaarten.signals.inventory.ContainerSelectDestinationProvider;
 
 public class CommonProxy implements IGuiHandler{
     public enum EnumGuiId{
-        STATION_MARKER, MINECART_DESTINATION, NETWORK_CONTROLLER
+        STATION_MARKER, MINECART_DESTINATION, NETWORK_CONTROLLER, SELECT_DESTINATION_PROVIDER, ITEM_HANDLER_DESTINATION
     }
 
     public void preInit(){}
@@ -43,6 +45,10 @@ public class CommonProxy implements IGuiHandler{
                 return new ContainerMinecart(player.inventory, (EntityMinecart)entity, z == 1);
             case NETWORK_CONTROLLER:
                 return new ContainerNetworkController();
+            case SELECT_DESTINATION_PROVIDER:
+                return new ContainerSelectDestinationProvider(te);
+            case ITEM_HANDLER_DESTINATION:
+                return new ContainerItemHandlerDestination(te);
         }
         throw new IllegalStateException("No Container for gui id: " + ID);
     }

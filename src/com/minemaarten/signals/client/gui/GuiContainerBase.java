@@ -20,6 +20,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import org.apache.commons.lang3.text.WordUtils;
 import org.lwjgl.opengl.GL11;
 
 import com.minemaarten.signals.Signals;
@@ -88,30 +89,30 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
             widget.postRender(i, j, partialTicks);
         }
     }
-    
+
     /**
      * Draws dark gray back layer with inventory spots.
      */
     protected void drawBackLayer(){
-    	GlStateManager.disableTexture2D();
-    	int borderWidth = 1;
-    	drawRect(guiLeft - borderWidth, guiTop - borderWidth, guiLeft + xSize + borderWidth, guiTop + ySize + borderWidth, 0xFF222222);
-    	drawRect(guiLeft, guiTop, guiLeft + xSize, guiTop + ySize, 0xFF333333);
-    	for(Slot slot : inventorySlots.inventorySlots){
-    		drawRect(guiLeft + slot.xDisplayPosition, guiTop + slot.yDisplayPosition, guiLeft + slot.xDisplayPosition + 16, guiTop + slot.yDisplayPosition + 16, 0xFF222222);
-    	}
-    	GlStateManager.enableTexture2D();
+        GlStateManager.disableTexture2D();
+        int borderWidth = 1;
+        drawRect(guiLeft - borderWidth, guiTop - borderWidth, guiLeft + xSize + borderWidth, guiTop + ySize + borderWidth, 0xFF222222);
+        drawRect(guiLeft, guiTop, guiLeft + xSize, guiTop + ySize, 0xFF333333);
+        for(Slot slot : inventorySlots.inventorySlots) {
+            drawRect(guiLeft + slot.xDisplayPosition, guiTop + slot.yDisplayPosition, guiLeft + slot.xDisplayPosition + 16, guiTop + slot.yDisplayPosition + 16, 0xFF222222);
+        }
+        GlStateManager.enableTexture2D();
     }
-    
+
     protected void drawDarkGreyTextCentered(int x, int y, String localizationKey, Object... args){
-    	x -= fontRendererObj.getStringWidth(I18n.format(localizationKey, args)) / 2 + 1;
-    	drawDarkGreyText(x, y, localizationKey, args);
+        x -= fontRendererObj.getStringWidth(I18n.format(localizationKey, args)) / 2 + 1;
+        drawDarkGreyText(x, y, localizationKey, args);
     }
-    
+
     protected void drawDarkGreyText(int x, int y, String localizationKey, Object... args){
-    	String text = I18n.format(localizationKey, args);
-    	drawRect(x, y, x + fontRendererObj.getStringWidth(text) + 3, y + fontRendererObj.FONT_HEIGHT + 3, 0xFF222222);
-    	fontRendererObj.drawString(text, x + 2, y + 2, 0xFFFFFFFF);
+        String text = I18n.format(localizationKey, args);
+        drawRect(x, y, x + fontRendererObj.getStringWidth(text) + 3, y + fontRendererObj.FONT_HEIGHT + 3, 0xFF222222);
+        fontRendererObj.drawString(text, x + 2, y + 2, 0xFFFFFFFF);
     }
 
     protected boolean shouldDrawBackground(){
@@ -156,26 +157,26 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
             if(widget.getBounds().contains(x, y)) widget.addTooltip(x, y, tooltip, Signals.proxy.isSneakingInGui());
         }
 
-        if(tooltip.size() > 0) {
-            drawHoveringString(tooltip, x, y, fontRendererObj);
-            tooltip.clear();
-        }
+        /*  if(tooltip.size() > 0) {
+              drawHoveringString(tooltip, x, y, fontRendererObj);
+              tooltip.clear();
+          }*/
 
-        /* TODO boolean shift = PneumaticCraft.proxy.isSneakingInGui();
-         for(IGuiWidget widget : widgets) {
-             if(widget.getBounds().contains(x, y)) widget.addTooltip(tooltip, shift);
-         }
-         if(!tooltip.isEmpty()) {
-             List<String> localizedTooltip = new ArrayList<String>();
-             for(String line : tooltip) {
-                 String localizedLine = I18n.format(line);
-                 String[] lines = WordUtils.wrap(localizedLine, 50).split(System.getProperty("line.separator"));
-                 for(String locLine : lines) {
-                     localizedTooltip.add(locLine);
-                 }
-             }
-             drawHoveringText(localizedTooltip, x, y, fontRendererObj);
-         }*/
+        /*TODO boolean shift = PneumaticCraft.proxy.isSneakingInGui();
+        for(IGuiWidget widget : widgets) {
+            if(widget.getBounds().contains(x, y)) widget.addTooltip(tooltip, shift);
+        }*/
+        if(!tooltip.isEmpty()) {
+            List<String> localizedTooltip = new ArrayList<String>();
+            for(String line : tooltip) {
+                String localizedLine = I18n.format(line);
+                String[] lines = WordUtils.wrap(localizedLine, 50).split(System.getProperty("line.separator"));
+                for(String locLine : lines) {
+                    localizedTooltip.add(locLine);
+                }
+            }
+            drawHoveringText(localizedTooltip, x, y, fontRendererObj);
+        }
     }
 
     @Override

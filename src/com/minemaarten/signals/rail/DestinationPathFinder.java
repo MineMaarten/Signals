@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.regex.Pattern;
 
+import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 
@@ -74,8 +76,8 @@ public class DestinationPathFinder{
      * @param destination
      * @return Returns the first node starting with a signal (or destination), up to the 'start'.
      */
-    public static AStarRailNode pathfindToDestination(RailWrapper start, String destination, EnumFacing direction){
-        return pathfindToDestination(start, RailCacheManager.getInstance(start.world).getStationRails(destination), direction);
+    public static AStarRailNode pathfindToDestination(RailWrapper start, EntityMinecart cart, Pattern destinationRegex, EnumFacing direction){
+        return pathfindToDestination(start, RailCacheManager.getInstance(start.world).getStationRails(cart, destinationRegex), direction);
     }
 
     /**
