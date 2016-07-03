@@ -99,7 +99,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             lampStatus = EnumLampStatus.RED;
         }
         IBlockState state = getBlockState();
-        if(state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
+        if(state.getPropertyNames().contains(BlockSignalBase.LAMP_STATUS) && state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
             getWorld().setBlockState(getPos(), state.withProperty(BlockSignalBase.LAMP_STATUS, lampStatus));
             NetworkController.getInstance(getWorld()).updateColor(this, getPos());
             if(lampStatus == EnumLampStatus.GREEN) {
@@ -121,7 +121,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     public EnumLampStatus getLampStatus(){
         if(getWorld() != null) {
             IBlockState state = getWorld().getBlockState(getPos());
-            if(state.getBlock() instanceof BlockSignalBase) {
+            if(state.getPropertyNames().contains(BlockSignalBase.LAMP_STATUS)) {
                 return state.getValue(BlockSignalBase.LAMP_STATUS);
             }
         }
