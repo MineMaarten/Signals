@@ -194,6 +194,7 @@ public class RailCacheManager{
 
     public static void syncStationNames(EntityPlayerMP player){
         Set<String> stationNames = new HashSet<String>();
+        stationNames.add("ITEM");
         for(RailCacheManager manager : INSTANCES.values()) {
             for(TileEntityStationMarker station : manager.stations) {
                 if(!station.getStationName().equals("")) stationNames.add(station.getStationName());

@@ -125,7 +125,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
                 return state.getValue(BlockSignalBase.LAMP_STATUS);
             }
         }
-        return null;
+        return EnumLampStatus.YELLOW_BLINKING;
     }
 
     protected List<EntityMinecart> getNeighborMinecarts(){
