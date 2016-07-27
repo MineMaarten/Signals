@@ -21,15 +21,15 @@ public class BlockSignalBase extends BlockBase{
         GREEN(0xFF00FF00), RED(0xFFFF0000), YELLOW(0xFFFFFF00), YELLOW_BLINKING(0xFF999900);
 
         public int color;
-        
+
         private EnumLampStatus(int color){
-        	this.color = color;
+            this.color = color;
         }
-        
+
         @Override
         public String getName(){
             return toString().toLowerCase();
-        } 
+        }
     }
 
     public static PropertyEnum<EnumLampStatus> LAMP_STATUS = PropertyEnum.<EnumLampStatus> create("lamp_status", EnumLampStatus.class);
@@ -39,11 +39,10 @@ public class BlockSignalBase extends BlockBase{
         super(tileClass, name);
     }
 
-    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos)
-    {
+    @Override
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos){
         return new AxisAlignedBB(4 / 16F, 0.0F, 4 / 16F, 12 / 16F, 8 / 16F, 12 / 16F);
     }
-    
 
     @Override
     protected BlockStateContainer createBlockState(){
@@ -66,27 +65,26 @@ public class BlockSignalBase extends BlockBase{
         return getDefaultState().withProperty(FACING, placer.getHorizontalFacing());
     }
 
-
     @Override
     public int getWeakPower(IBlockState state, IBlockAccess worldIn, BlockPos pos, EnumFacing side){
-        if(state.getBlock() != this || state.getValue(LAMP_STATUS) != EnumLampStatus.GREEN ) return 0;
-        TileEntitySignalBase signal = (TileEntitySignalBase) worldIn.getTileEntity(pos);
+        if(!(worldIn instanceof WorldServer) || state.getBlock() != this || state.getValue(LAMP_STATUS) != EnumLampStatus.GREEN) return 0;
+        TileEntitySignalBase signal = (TileEntitySignalBase)worldIn.getTileEntity(pos);
         signal.setWorldObj((WorldServer)worldIn);
-        for(RailWrapper rail : signal.getConnectedRails()){
-        	for(TileEntitySignalBase s : rail.getSignals().values()){
-        		if(s != signal){
-        			if(s.getLampStatus() != EnumLampStatus.GREEN) return 0;
-        		}
-        	}
+        for(RailWrapper rail : signal.getConnectedRails()) {
+            for(TileEntitySignalBase s : rail.getSignals().values()) {
+                if(s != signal) {
+                    if(s.getLampStatus() != EnumLampStatus.GREEN) return 0;
+                }
+            }
         }
         return 15;
     }
-    
+
     /**
      * Can this block provide power. Only wire currently seems to have this change based on its state.
      */
-    public boolean canProvidePower(IBlockState state)
-    {
+    @Override
+    public boolean canProvidePower(IBlockState state){
         return true;
     }
 
