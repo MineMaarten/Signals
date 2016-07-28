@@ -55,8 +55,12 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         NONE, FORCED_GREEN_ONCE, FORCED_RED;
     }
 
+    public BlockPos getNeighborPos(){
+        return getPos().offset(getFacing().rotateYCCW());
+    }
+
     public RailWrapper getConnectedRail(){
-        BlockPos neighborPos = getPos().offset(getFacing().rotateYCCW());
+        BlockPos neighborPos = getNeighborPos();
         RailWrapper rail = RailCacheManager.getInstance(getWorld()).getRail(getWorld(), neighborPos);
         return rail != null && rail.isStraightTrack() && rail.getNeighbors().size() <= 2 ? rail : null;
     }

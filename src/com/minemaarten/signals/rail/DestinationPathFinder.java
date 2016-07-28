@@ -125,13 +125,13 @@ public class DestinationPathFinder{
                 }
                 if(firstSignals.isEmpty()) {
                     Log.debug("No signals left: " + signalWeight);
-                    return bestRoute;
+                    break;
                 }
                 minSignalDistance = getClosestSignal(firstSignals);
                 continue;
             } else {
                 int minBound = minSignalDistance + node.distanceFromStart;
-                if(minBound > bestDistance) return bestRoute; //Branch and bound, return when we can't ever find a better solution in best case.
+                if(minBound > bestDistance) break; //Branch and bound, return when we can't ever find a better solution in best case.
             }
             for(Map.Entry<RailWrapper, EnumFacing> entry : node.rail.getNeighbors().entrySet()) {
                 RailWrapper neighborRail = entry.getKey();
@@ -147,7 +147,17 @@ public class DestinationPathFinder{
                 }
             }
         }
-        Log.debug("Opting for the red signalled route (if available)");
+        //Log.debug("Opting for the red signalled route (if available)");
+
+        //Append the start node, so we have a complete path
+        if(bestRoute != null) {
+            AStarRailNode lastNode = bestRoute;
+            while(lastNode.getNextNode() != null) {
+                lastNode = lastNode.getNextNode();
+            }
+            lastNode.checkImprovementAndUpdate(new AStarRailNode(start, direction.getOpposite(), start));
+        }
+
         return bestRoute;
     }
 
@@ -170,7 +180,7 @@ public class DestinationPathFinder{
             if(entry.getValue() != dir.getOpposite()) {
                 AStarRailNode node = new AStarRailNode(entry.getKey(), entry.getValue(), null);
                 node.distanceFromStart = 0;
-                traversingRails.add(new ImmutablePair(entry.getKey(), node));
+                traversingRails.add(new ImmutablePair<RailWrapper, AStarRailNode>(entry.getKey(), node));
             }
         }
         traversedRails.add(start); //Make sure to consider this block as traversed already, prevents traversing the tracks in reverse direction
@@ -195,7 +205,7 @@ public class DestinationPathFinder{
                             AStarRailNode nextNode = new AStarRailNode(entry.getKey(), entry.getValue(), null);
                             nextNode.checkImprovementAndUpdate(neighbor.getValue());
 
-                            traversingRails.add(new ImmutablePair(entry.getKey(), nextNode));
+                            traversingRails.add(new ImmutablePair<RailWrapper, AStarRailNode>(entry.getKey(), nextNode));
                         }
                     }
                 }

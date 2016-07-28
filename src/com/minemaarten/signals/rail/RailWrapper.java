@@ -68,23 +68,23 @@ public class RailWrapper extends BlockPos{
                 if(neighbor.neighbors != null) neighbor.neighbors.remove(this); //Dereference itself
             }
         }
-        for(TileEntityRailLink railLink : railLinks){
-        	railLink.onLinkedRailInvalidated();
+        for(TileEntityRailLink railLink : railLinks) {
+            railLink.onLinkedRailInvalidated();
         }
         NetworkController.getInstance(world).updateColor((RailWrapper)null, this);
     }
-    
+
     public void link(TileEntityRailLink link){
-    	if(railLinks == Collections.EMPTY_SET){
-    		railLinks = new HashSet<TileEntityRailLink>();
-    	}
-    	railLinks.add(link);
+        if(railLinks == Collections.EMPTY_SET) {
+            railLinks = new HashSet<TileEntityRailLink>();
+        }
+        railLinks.add(link);
     }
-    
+
     public void unlink(TileEntityRailLink link){
-    	if(railLinks != Collections.EMPTY_SET){
-    		railLinks.remove(link);
-    	}
+        if(railLinks != Collections.EMPTY_SET) {
+            railLinks.remove(link);
+        }
     }
 
     public void updateStationCache(){
@@ -121,8 +121,11 @@ public class RailWrapper extends BlockPos{
                     d = d.rotateY(); //Check for signals perpendicular to the rail direction
                     TileEntity te = world.getTileEntity(offset(d));
                     if(te instanceof TileEntitySignalBase) {
-                        if(signals == null) signals = new HashMap<EnumFacing, TileEntitySignalBase>(1); //Be conservative with instantiating, as not many rails usually have a signal.
-                        signals.put(d, (TileEntitySignalBase)te);
+                        TileEntitySignalBase signal = (TileEntitySignalBase)te;
+                        if(signal.getNeighborPos().equals(this)) {
+                            if(signals == null) signals = new HashMap<EnumFacing, TileEntitySignalBase>(1); //Be conservative with instantiating, as not many rails usually have a signal.
+                            signals.put(d, signal);
+                        }
                     }
                 }
             }
@@ -160,19 +163,19 @@ public class RailWrapper extends BlockPos{
                     }
                 }
             }
-            
+
             for(EnumFacing d : EnumFacing.values()) {
                 if(world.isBlockLoaded(offset(d))) {
-                	TileEntity te = world.getTileEntity(offset(d));
-                	if(te instanceof TileEntityRailLink){
-                		RailWrapper linkedNeighbor = ((TileEntityRailLink) te).getLinkedRail();
-                		if(linkedNeighbor != null){
-                			neighbors.put(linkedNeighbor, EnumFacing.DOWN);
-                		}
-                	}
+                    TileEntity te = world.getTileEntity(offset(d));
+                    if(te instanceof TileEntityRailLink) {
+                        RailWrapper linkedNeighbor = ((TileEntityRailLink)te).getLinkedRail();
+                        if(linkedNeighbor != null) {
+                            neighbors.put(linkedNeighbor, EnumFacing.DOWN);
+                        }
+                    }
                 }
             }
-            
+
             this.neighbors = neighbors;
         }
         return neighbors;
