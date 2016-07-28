@@ -44,9 +44,9 @@ public class RailManager{
                     IRail rail = (IRail)clazz.newInstance();
                     for(Block applicableBlock : rail.getApplicableBlocks()) {
                         if(applicableBlock != null) {
-                            Log.warning("IRail \"" + annotatedClass.getClassName() + "\" returned a null block as applicable!");
-                        } else {
                             registerRail(applicableBlock, rail);
+                        } else {
+                            Log.warning("IRail \"" + annotatedClass.getClassName() + "\" returned a null block as applicable!");
                         }
                     }
                     Log.info("Successfully registered the IRail for \"" + annotatedClass.getClassName() + "\".");
