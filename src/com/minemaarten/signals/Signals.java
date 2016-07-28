@@ -22,7 +22,7 @@ import com.minemaarten.signals.proxy.CommonProxy;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.recipe.RecipeRegistrator;
 
-@Mod(modid = Constants.MOD_ID, name = "Signals", dependencies = "required-after:Forge@[10.13.3.1388,);" + "after:Forestry")
+@Mod(modid = Constants.MOD_ID, name = "Signals", acceptedMinecraftVersions = "[1.9.4,]")
 public class Signals{
 
     @SidedProxy(clientSide = "com.minemaarten.signals.proxy.ClientProxy", serverSide = "com.minemaarten.signals.proxy.CommonProxy")
