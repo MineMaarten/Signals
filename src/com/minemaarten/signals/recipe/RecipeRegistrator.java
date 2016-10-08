@@ -21,6 +21,7 @@ public class RecipeRegistrator{
         shaped(new ItemStack(ModItems.railNetworkController), "qgq", "bpb", "qdq", 'q', "gemQuartz", 'g', "dustGlowstone", 'b', Blocks.STONE_BUTTON, 'p', ModBlocks.pathSignal, 'd', "gemDiamond");
         shaped(new ItemStack(ModItems.railConfigurator), "  g", " i ", "i  ", 'i', "ingotIron", 'g', "dyeGreen");
         shapeless(new ItemStack(ModItems.cartEngine), Blocks.FURNACE, Blocks.GOLD_BLOCK);
+        shapeless(new ItemStack(ModBlocks.cartHopper), Blocks.HOPPER, ModBlocks.blockSignal);
     }
 
     private static void shaped(ItemStack output, Object... input){

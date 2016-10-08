@@ -20,8 +20,9 @@ import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.NetworkUtils;
 import com.minemaarten.signals.network.PacketUpdateGui;
 import com.minemaarten.signals.network.SyncedField;
+import com.minemaarten.signals.tileentity.IGUIButtonSensitive;
 
-public class ContainerBase<Tile extends TileEntity> extends Container{
+public class ContainerBase<Tile extends TileEntity> extends Container implements IGUIButtonSensitive{
 
     public Tile te;
     private final List<SyncedField> syncedFields = new ArrayList<SyncedField>();
@@ -78,10 +79,11 @@ public class ContainerBase<Tile extends TileEntity> extends Container{
             }
         }
     }
+
     protected void addPlayerSlots(InventoryPlayer inventoryPlayer, int yOffset){
-    	addPlayerSlots(inventoryPlayer, 8, yOffset);
+        addPlayerSlots(inventoryPlayer, 8, yOffset);
     }
-    
+
     protected void addPlayerSlots(InventoryPlayer inventoryPlayer, int xOffset, int yOffset){
 
         playerSlotsStart = inventorySlots.size();
@@ -135,16 +137,16 @@ public class ContainerBase<Tile extends TileEntity> extends Container{
     /**
      * Source: Buildcraft
      */
-   /* @Override
-    public ItemStack slotClick(int slotNum, int modifier, int mouseButton, EntityPlayer player){
+    /* @Override
+     public ItemStack slotClick(int slotNum, int modifier, int mouseButton, EntityPlayer player){
 
-        Slot slot = slotNum < 0 ? null : (Slot)inventorySlots.get(slotNum);
-        if(slot instanceof IPhantomSlot) {
-            return slotClickPhantom(slot, modifier, mouseButton, player);
-        }
-        return super.slotClick(slotNum, modifier, mouseButton, player);
-    }
-*/
+         Slot slot = slotNum < 0 ? null : (Slot)inventorySlots.get(slotNum);
+         if(slot instanceof IPhantomSlot) {
+             return slotClickPhantom(slot, modifier, mouseButton, player);
+         }
+         return super.slotClick(slotNum, modifier, mouseButton, player);
+     }
+    */
     private ItemStack slotClickPhantom(Slot slot, int mouseButton, int modifier, EntityPlayer player){
 
         ItemStack stack = null;
@@ -227,5 +229,10 @@ public class ContainerBase<Tile extends TileEntity> extends Container{
         phantomStack.stackSize = stackSize;
 
         slot.putStack(phantomStack);
+    }
+
+    @Override
+    public void handleGUIButtonPress(EntityPlayer player, int... data){
+        if(te instanceof IGUIButtonSensitive) ((IGUIButtonSensitive)te).handleGUIButtonPress(player, data);
     }
 }

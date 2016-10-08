@@ -16,6 +16,7 @@ import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.fml.common.discovery.ASMDataTable;
 import net.minecraftforge.fml.common.discovery.ASMDataTable.ASMData;
 
+import com.minemaarten.signals.api.ICartHopperBehaviour;
 import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.api.IRailMapper;
 import com.minemaarten.signals.api.SignalsRail;
@@ -29,6 +30,7 @@ public class RailManager{
     private final List<IRailMapper> railMappers = new ArrayList<IRailMapper>();
     private final Map<Block, IRail> blockToRails = new HashMap<Block, IRail>();
     private final List<IDestinationProvider> destinationProviders = new ArrayList<IDestinationProvider>();
+    private final List<ICartHopperBehaviour<?>> hopperBehaviours = new ArrayList<ICartHopperBehaviour<?>>();
 
     public static RailManager getInstance(){
         return INSTANCE;
@@ -58,6 +60,10 @@ public class RailManager{
                     IDestinationProvider destinationProvider = (IDestinationProvider)clazz.newInstance();
                     destinationProviders.add(destinationProvider);
                     Log.info("Successfully registered the IDestinationProvider for \"" + annotatedClass.getClassName() + "\".");
+                } else if(ICartHopperBehaviour.class.isAssignableFrom(clazz)) {
+                    ICartHopperBehaviour<?> hopperBehaviour = (ICartHopperBehaviour<?>)clazz.newInstance();
+                    hopperBehaviours.add(hopperBehaviour);
+                    Log.info("Successfully registered the ICartHopperBehaviour for \"" + annotatedClass.getClassName() + "\".");
                 } else {
                     Log.error("Annotated class \"" + annotatedClass.getClassName() + "\" is not implementing IRail, IRailMapper nor IDestinationProvider!");
                 }
@@ -112,5 +118,9 @@ public class RailManager{
                 }
             }
         }
+    }
+
+    public List<ICartHopperBehaviour<?>> getHopperBehaviours(){
+        return hopperBehaviours;
     }
 }

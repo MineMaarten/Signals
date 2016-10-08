@@ -7,9 +7,8 @@ import net.minecraft.util.math.Vec3d;
 import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.destinationproviders.DestinationProviderItems;
-import com.minemaarten.signals.tileentity.IGUIButtonSensitive;
 
-public class ContainerItemHandlerDestination extends ContainerBase<TileEntity> implements IGUIButtonSensitive{
+public class ContainerItemHandlerDestination extends ContainerBase<TileEntity>{
 
     private final TileEntity te;
     public DestinationProviderItems provider;

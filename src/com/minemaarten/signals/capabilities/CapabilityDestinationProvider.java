@@ -86,6 +86,15 @@ public class CapabilityDestinationProvider{
         return destinationProviders;
     }
 
+    public <T extends IDestinationProvider> T getProvider(Class<T> type){
+        for(IDestinationProvider provider : destinationProviders) {
+            if(type.isAssignableFrom(provider.getClass())) {
+                return (T)provider;
+            }
+        }
+        return null;
+    }
+
     public boolean isCartApplicable(TileEntity te, EntityMinecart cart, Pattern destinationRegex){
         for(IDestinationProvider provider : destinationProviders) {
             if(provider.isCartApplicable(te, cart, destinationRegex)) {

@@ -1,0 +1,10 @@
+{
+    "variants": {
+       "normal": {
+       		"model": "signals:cart_hopper"
+       },
+       "inventory": [{
+            "model": "signals:cart_hopper"
+        }]
+   }
+}

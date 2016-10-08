@@ -3,6 +3,7 @@ tile.block_signal.name=Block Signal
 tile.path_signal.name=Path Signal
 tile.station_marker.name=Station Marker
 tile.limiter_rail.name=Limiter Rail
+tile.cart_hopper.name=Cart Hopper
 
 item.rail_network_controller.name=Rail Network Controller
 item.cart_engine.name=Cart Engine
@@ -54,3 +55,16 @@ signals.gui.destination_provider.items.check_ore_dictionary=Check Ore Dictionary
 signals.gui.destination_provider.items.ignore_ore_dictionary=Ignore Ore Dictionary\n\nTreats Copper Ore from one mod as a different item as Copper Ore from another mod, for example.
 signals.gui.destination_provider.items.whitelist=Whitelist\n\nOne of the items in the routed cart needs to be considered as the same as the items in this filter inventory.
 signals.gui.destination_provider.items.blacklist=Blacklist\n\nNone of the items in the routed cart are allowed to be considered as the same as the items in this filter inventory.
+
+signals.gui.cart_hopper.emitRedstoneWhen=Emit Redstone when:
+signals.gui.cart_hopper.emitRedstoneWhen.no_activity=No activity
+signals.gui.cart_hopper.emitRedstoneWhen.no_activity.tooltip=Emits as soon as items stop transfering.
+signals.gui.cart_hopper.emitRedstoneWhen.never=Never
+signals.gui.cart_hopper.emitRedstoneWhen.never.tooltip=Never emit a redstone signal.
+signals.gui.cart_hopper.emitRedstoneWhen.cart_full=Cart full
+signals.gui.cart_hopper.emitRedstoneWhen.cart_full.tooltip=Emits as soon as the cart's inventory is full.
+signals.gui.cart_hopper.emitRedstoneWhen.cart_empty=Cart empty
+signals.gui.cart_hopper.emitRedstoneWhen.cart_empty.tooltip=Emits as soon as the cart's inventory is empty.
+signals.gui.cart_hopper.interactWith=Interact with:
+signals.gui.cart_hopper.interactWith.cartInventory=Cart inventory
+signals.gui.cart_hopper.interactWith.cartEngine=Cart Engine

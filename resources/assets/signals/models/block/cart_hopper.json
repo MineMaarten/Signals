@@ -1,0 +1,7 @@
+{
+    "parent": "block/cube_column",
+    "textures": {
+        "side": "signals:blocks/cart_hopper_side",
+       	"end": "signals:blocks/cart_hopper_top_bottom"
+    }
+}

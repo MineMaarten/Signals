@@ -22,6 +22,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 import com.minemaarten.signals.client.ClientEventHandler;
 import com.minemaarten.signals.client.glasses.GlassesHUD;
+import com.minemaarten.signals.client.gui.GuiCartHopper;
 import com.minemaarten.signals.client.gui.GuiItemHandlerDestination;
 import com.minemaarten.signals.client.gui.GuiMinecart;
 import com.minemaarten.signals.client.gui.GuiNetworkController;
@@ -31,6 +32,7 @@ import com.minemaarten.signals.client.render.tileentity.SignalStatusRenderer;
 import com.minemaarten.signals.init.ModBlocks;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.lib.Constants;
+import com.minemaarten.signals.tileentity.TileEntityCartHopper;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
@@ -44,7 +46,7 @@ public class ClientProxy extends CommonProxy{
 
     @Override
     public void init(){
-        for(Block block : new Block[]{ModBlocks.blockSignal, ModBlocks.pathSignal, ModBlocks.stationMarker, ModBlocks.limiterRail/*, ModBlocks.railLink*/}) {
+        for(Block block : new Block[]{ModBlocks.blockSignal, ModBlocks.pathSignal, ModBlocks.stationMarker, ModBlocks.limiterRail, ModBlocks.cartHopper/*, ModBlocks.railLink*/}) {
             Item item = Item.getItemFromBlock(block);
             registerItemModels(item);
         }
@@ -92,6 +94,8 @@ public class ClientProxy extends CommonProxy{
                 return new GuiSelectDestinationProvider(te);
             case ITEM_HANDLER_DESTINATION:
                 return new GuiItemHandlerDestination(te);
+            case CART_HOPPER:
+                return new GuiCartHopper((TileEntityCartHopper)te);
         }
         throw new IllegalStateException("No Gui for gui id: " + ID);
     }

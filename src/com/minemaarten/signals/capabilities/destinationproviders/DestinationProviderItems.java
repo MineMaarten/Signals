@@ -45,13 +45,18 @@ public class DestinationProviderItems implements IDestinationProvider, IGUIButto
             for(int cartSlot = 0; cartSlot < cap.getSlots(); cartSlot++) {
                 ItemStack cartStack = cap.getStackInSlot(cartSlot);
                 if(cartStack != null) {
-                    for(int teSlot = 0; teSlot < inv.getSizeInventory(); teSlot++) {
-                        ItemStack teStack = inv.getStackInSlot(teSlot);
-                        if(teStack != null) {
-                            if(blacklist != areStacksEqual(cartStack, teStack, checkDamage, checkNBT, checkOreDictionary, checkModSimilarity)) return true;
-                        }
-                    }
+                    if(isStackApplicable(cartStack, inv)) return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    public boolean isStackApplicable(ItemStack cartStack, IInventory inv){
+        for(int teSlot = 0; teSlot < inv.getSizeInventory(); teSlot++) {
+            ItemStack teStack = inv.getStackInSlot(teSlot);
+            if(teStack != null) {
+                if(blacklist != areStacksEqual(cartStack, teStack, checkDamage, checkNBT, checkOreDictionary, checkModSimilarity)) return true;
             }
         }
         return false;
