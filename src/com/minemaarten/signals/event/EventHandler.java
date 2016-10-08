@@ -51,18 +51,20 @@ public class EventHandler implements IWorldEventListener{
             ItemStack heldItem = event.getPlayer().getHeldItemMainhand();
             if(heldItem != null) {
                 CapabilityMinecartDestination cap = event.getMinecart().getCapability(CapabilityMinecartDestination.INSTANCE, null);
-                if(heldItem.getItem() == ModItems.cartEngine && !cap.isMotorized()) {
-                    if(!event.getPlayer().isCreative()) {
-                        heldItem.stackSize--;
-                        if(heldItem.stackSize <= 0) event.getPlayer().setHeldItem(EnumHand.MAIN_HAND, null);
+                if(cap != null) {
+                    if(heldItem.getItem() == ModItems.cartEngine && !cap.isMotorized()) {
+                        if(!event.getPlayer().isCreative()) {
+                            heldItem.stackSize--;
+                            if(heldItem.stackSize <= 0) event.getPlayer().setHeldItem(EnumHand.MAIN_HAND, null);
+                        }
+                        cap.setMotorized();
+                        event.getPlayer().addChatMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
+                        event.setCanceled(true);
+                    } else if(heldItem.getItem() == ModItems.railConfigurator) {
+                        RailCacheManager.syncStationNames((EntityPlayerMP)event.getPlayer());
+                        event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), event.getPlayer().worldObj, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
+                        event.setCanceled(true);
                     }
-                    cap.setMotorized();
-                    event.getPlayer().addChatMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
-                    event.setCanceled(true);
-                } else if(heldItem.getItem() == ModItems.railConfigurator) {
-                    RailCacheManager.syncStationNames((EntityPlayerMP)event.getPlayer());
-                    event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), event.getPlayer().worldObj, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
-                    event.setCanceled(true);
                 }
             }
         }
@@ -72,7 +74,7 @@ public class EventHandler implements IWorldEventListener{
     public void onMinecartUpdate(MinecartUpdateEvent event){
         EntityMinecart cart = event.getMinecart();
         CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-        cap.onCartUpdate(event);
+        if(cap != null) cap.onCartUpdate(event);
     }
 
     @SubscribeEvent
@@ -139,7 +141,7 @@ public class EventHandler implements IWorldEventListener{
     public void onEntityRemoved(Entity entityIn){
         if(entityIn instanceof EntityMinecart && !entityIn.worldObj.isRemote) {
             CapabilityMinecartDestination cap = entityIn.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-            cap.onCartBroken((EntityMinecart)entityIn);
+            if(cap != null) cap.onCartBroken((EntityMinecart)entityIn);
         }
     }
 
