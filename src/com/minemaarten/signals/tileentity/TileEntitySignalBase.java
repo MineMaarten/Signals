@@ -260,20 +260,30 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
 
     public static List<EntityMinecart> getMinecarts(World worldObj, final Collection<RailWrapper> railsOnBlock){
         if(railsOnBlock.isEmpty()) return Collections.emptyList();
-        BlockPos.MutableBlockPos min = new BlockPos.MutableBlockPos(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-        BlockPos.MutableBlockPos max = new BlockPos.MutableBlockPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+
+        Set<World> worlds = new HashSet<World>();
         for(RailWrapper pos : railsOnBlock) {
-            min.setPos(Math.min(min.getX(), pos.getX()), Math.min(min.getY(), pos.getY()), Math.min(min.getZ(), pos.getZ()));
-            max.setPos(Math.max(max.getX(), pos.getX()), Math.max(max.getY(), pos.getY()), Math.max(max.getZ(), pos.getZ()));
+            worlds.add(pos.world);
         }
 
-        return worldObj.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(min, max.add(1, 2, 1)), new Predicate<EntityMinecart>(){
-            @Override
-            public boolean apply(EntityMinecart cart){
-                BlockPos cartPos = cart.getPosition();
-                return railsOnBlock.contains(cartPos) || railsOnBlock.contains(cartPos.down());
+        List<EntityMinecart> carts = new ArrayList<EntityMinecart>();
+        for(World world : worlds) {
+            BlockPos.MutableBlockPos min = new BlockPos.MutableBlockPos(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+            BlockPos.MutableBlockPos max = new BlockPos.MutableBlockPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+            for(RailWrapper pos : railsOnBlock) {
+                min.setPos(Math.min(min.getX(), pos.getX()), Math.min(min.getY(), pos.getY()), Math.min(min.getZ(), pos.getZ()));
+                max.setPos(Math.max(max.getX(), pos.getX()), Math.max(max.getY(), pos.getY()), Math.max(max.getZ(), pos.getZ()));
             }
-        });
+
+            carts.addAll(world.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(min, max.add(1, 2, 1)), new Predicate<EntityMinecart>(){
+                @Override
+                public boolean apply(EntityMinecart cart){
+                    BlockPos cartPos = cart.getPosition();
+                    return railsOnBlock.contains(cartPos) || railsOnBlock.contains(cartPos.down());
+                }
+            }));
+        }
+        return carts;
     }
 
     @Override
@@ -297,7 +307,10 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             }
             List<EntityMinecart> carts = getNeighborMinecarts();
             for(EntityMinecart cart : carts) {
-                if(!routedMinecarts.contains(cart)) onCartEnteringBlock(cart);
+                if(!routedMinecarts.contains(cart)) {
+                    cart.timeUntilPortal = 0;
+                    onCartEnteringBlock(cart);
+                }
             }
             for(EntityMinecart cart : routedMinecarts) {
                 if(!carts.contains(cart)) onCartLeavingBlock(cart);

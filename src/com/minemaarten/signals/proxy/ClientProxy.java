@@ -46,7 +46,7 @@ public class ClientProxy extends CommonProxy{
 
     @Override
     public void init(){
-        for(Block block : new Block[]{ModBlocks.blockSignal, ModBlocks.pathSignal, ModBlocks.stationMarker, ModBlocks.limiterRail, ModBlocks.cartHopper/*, ModBlocks.railLink*/}) {
+        for(Block block : new Block[]{ModBlocks.blockSignal, ModBlocks.pathSignal, ModBlocks.stationMarker, ModBlocks.limiterRail, ModBlocks.cartHopper, ModBlocks.railLink}) {
             Item item = Item.getItemFromBlock(block);
             registerItemModels(item);
         }

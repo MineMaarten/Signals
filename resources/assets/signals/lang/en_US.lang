@@ -4,6 +4,7 @@ tile.path_signal.name=Path Signal
 tile.station_marker.name=Station Marker
 tile.limiter_rail.name=Limiter Rail
 tile.cart_hopper.name=Cart Hopper
+tile.rail_link.name=Rail Link
 
 item.rail_network_controller.name=Rail Network Controller
 item.cart_engine.name=Cart Engine

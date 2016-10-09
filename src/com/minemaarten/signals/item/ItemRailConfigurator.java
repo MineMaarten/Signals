@@ -12,6 +12,7 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
@@ -22,6 +23,7 @@ import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.proxy.CommonProxy.EnumGuiId;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
+import com.minemaarten.signals.tileentity.TileEntityRailLink;
 
 public class ItemRailConfigurator extends ItemSignals{
 
@@ -63,7 +65,7 @@ public class ItemRailConfigurator extends ItemSignals{
         return super.onItemRightClick(itemStackIn, worldIn, playerIn, hand);
     }
 
-    /*@Override WIP
+    @Override
     public EnumActionResult onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
         if(!worldIn.isRemote) {
             RailWrapper rail = RailCacheManager.getInstance(worldIn).getRail(worldIn, pos);
@@ -82,7 +84,7 @@ public class ItemRailConfigurator extends ItemSignals{
             }
         }
         return super.onItemUse(stack, playerIn, worldIn, pos, hand, facing, hitX, hitY, hitZ);
-    }*/
+    }
 
     public void setLinkedRail(ItemStack stack, RailWrapper rail){
         if(rail != null) {

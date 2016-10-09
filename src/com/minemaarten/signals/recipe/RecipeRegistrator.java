@@ -22,6 +22,7 @@ public class RecipeRegistrator{
         shaped(new ItemStack(ModItems.railConfigurator), "  g", " i ", "i  ", 'i', "ingotIron", 'g', "dyeGreen");
         shapeless(new ItemStack(ModItems.cartEngine), Blocks.FURNACE, Blocks.GOLD_BLOCK);
         shapeless(new ItemStack(ModBlocks.cartHopper), Blocks.HOPPER, ModBlocks.blockSignal);
+        shapeless(new ItemStack(ModBlocks.railLink), ModBlocks.stationMarker, Blocks.GOLD_BLOCK);
     }
 
     private static void shaped(ItemStack output, Object... input){

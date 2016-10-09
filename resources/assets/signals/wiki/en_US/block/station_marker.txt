@@ -4,7 +4,7 @@ If you give multiple Station Markers the same name, carts that are going to this
 
 Note that when a cart has multiple options to go to, it will try to go to the closes Station Marker. If there is a red signal in the way to this marker, it will try to go a valid Station Marker that green signals.
 
-[crafting{200, 165, key=block/block_signal}]
+[crafting{200, 165, key=block/station_marker}]
 
 [prefix{l}]Configuring a cart schedule[prefix{}]
 Right-click any cart with a Rail Configurator. A window will be shown in which you can configure the schedule of the cart. You can enter multiple names of Station Markers in the world. The cart will then sequentially try to visit these stations. The station the cart is currently heading to is marked green.
