@@ -24,6 +24,7 @@ import com.minemaarten.signals.proxy.CommonProxy.EnumGuiId;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.tileentity.TileEntityRailLink;
+import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class ItemRailConfigurator extends ItemSignals{
 
@@ -60,6 +61,12 @@ public class ItemRailConfigurator extends ItemSignals{
     public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand){
         if(!worldIn.isRemote && playerIn.isSneaking()) {
             RailCacheManager.getInstance(worldIn).onWorldUnload(worldIn);
+            RailCacheManager cacheManager = RailCacheManager.getInstance(worldIn);
+            for(TileEntity te : worldIn.loadedTileEntityList) {
+                if(te instanceof TileEntityStationMarker) {
+                    cacheManager.addStationMarker((TileEntityStationMarker)te);
+                }
+            }
             playerIn.addChatMessage(new TextComponentTranslation("signals.message.clearedCache"));
         }
         return super.onItemRightClick(itemStackIn, worldIn, playerIn, hand);
