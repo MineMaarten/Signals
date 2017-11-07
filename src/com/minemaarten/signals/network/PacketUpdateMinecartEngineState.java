@@ -36,7 +36,7 @@ public class PacketUpdateMinecartEngineState extends AbstractPacket<PacketUpdate
 
     @Override
     public void handleClientSide(EntityPlayer player){
-    	Entity entity = player.worldObj.getEntityByID(entityId);
+    	Entity entity = player.world.getEntityByID(entityId);
     	CapabilityMinecartDestination cap = entity.getCapability(CapabilityMinecartDestination.INSTANCE, null);
     	if(cap != null){
     		cap.setEngineActive(active);

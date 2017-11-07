@@ -12,8 +12,8 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 public class SignalStatusRenderer extends TileEntitySpecialRenderer<TileEntitySignalBase> {
 
 	@Override
-	public void renderTileEntityAt(TileEntitySignalBase te, double x, double y,
-			double z, float partialTicks, int destroyStage) {
+	public void render(TileEntitySignalBase te, double x, double y,
+			double z, float partialTicks, int destroyStage, float alpha) {
 		String message = te.getMessage();
 		if(message.equals("")) return;
 		
@@ -25,7 +25,7 @@ public class SignalStatusRenderer extends TileEntitySpecialRenderer<TileEntitySi
 		GlStateManager.scale(scale, -scale, scale);
 		
 		String[] splitted = WordUtils.wrap(message, 40).split("\r\n");
-		FontRenderer f = Minecraft.getMinecraft().fontRendererObj;
+		FontRenderer f = Minecraft.getMinecraft().fontRenderer;
 		for(int i = 0; i < splitted.length; i++){
 			String line = splitted[i];
 			f.drawString(line, -f.getStringWidth(line) / 2, (i - splitted.length + 1) * (f.FONT_HEIGHT + 1), 0xFFFFFFFF);

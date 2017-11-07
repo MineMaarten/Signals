@@ -4,6 +4,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 
 import com.minemaarten.signals.init.ModBlocks;
+import net.minecraft.item.ItemStack;
 
 public class CreativeTabSignals extends CreativeTabs{
     private static final CreativeTabSignals INSTANCE = new CreativeTabSignals("signals");
@@ -17,8 +18,8 @@ public class CreativeTabSignals extends CreativeTabs{
     }
 
     @Override
-    public Item getTabIconItem(){
-        return Item.getItemFromBlock(ModBlocks.blockSignal);
+    public ItemStack getTabIconItem(){
+        return new ItemStack(ModBlocks.blockSignal);
     }
 
 }

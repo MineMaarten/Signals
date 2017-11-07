@@ -3,9 +3,9 @@ package com.minemaarten.signals.client.gui;
 import java.awt.Point;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Items;
@@ -25,7 +25,7 @@ public class GuiItemHandlerDestination extends GuiContainerBase<TileEntity>{
     public GuiItemHandlerDestination(TileEntity te){
         super(new ContainerItemHandlerDestination(te), null, null);
         DestinationProviderItems p = ((ContainerItemHandlerDestination)inventorySlots).provider;
-        xSize = Math.max(78, Minecraft.getMinecraft().fontRendererObj.getStringWidth(p.getLocalizedName()) + 2);
+        xSize = Math.max(78, Minecraft.getMinecraft().fontRenderer.getStringWidth(p.getLocalizedName()) + 2);
         ySize = 68;
     }
 
@@ -86,30 +86,30 @@ public class GuiItemHandlerDestination extends GuiContainerBase<TileEntity>{
         drawRect(guiLeft, guiTop, guiLeft + xSize, guiTop + 12, 0xFF222222);
         drawDarkGreyTextCentered(guiLeft + xSize / 2, guiTop, p.getLocalizedName());
         super.drawGuiContainerBackgroundLayer(partialTicks, i, j);
-        if(!p.checkDamage) drawRedCross(damageButton.xPosition + 2, damageButton.yPosition + 2);
-        if(!p.checkNBT) drawRedCross(nbtButton.xPosition + 2, nbtButton.yPosition + 2);
-        if(!p.checkModSimilarity) drawRedCross(modButton.xPosition + 2, modButton.yPosition + 2);
-        if(!p.checkOreDictionary) drawRedCross(oreDictButton.xPosition + 2, oreDictButton.yPosition + 2);
+        if(!p.checkDamage) drawRedCross(damageButton.x + 2, damageButton.y + 2);
+        if(!p.checkNBT) drawRedCross(nbtButton.x + 2, nbtButton.y + 2);
+        if(!p.checkModSimilarity) drawRedCross(modButton.x + 2, modButton.y + 2);
+        if(!p.checkOreDictionary) drawRedCross(oreDictButton.x + 2, oreDictButton.y + 2);
     }
 
     private void drawRedCross(int x, int y){
         int size = 16;
         Tessellator tessellator = Tessellator.getInstance();
-        VertexBuffer vertexbuffer = tessellator.getBuffer();
+        BufferBuilder bufferBuilder = tessellator.getBuffer();
         GlStateManager.disableTexture2D();
         GlStateManager.disableDepth();
         GlStateManager.color(1, 0, 0);
-        vertexbuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+        bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
 
-        vertexbuffer.pos(x, y + 1, 0.0D).endVertex();
-        vertexbuffer.pos(x + size - 1, y + size, 0.0D).endVertex();
-        vertexbuffer.pos(x + size, y + size - 1, 0.0D).endVertex();
-        vertexbuffer.pos(x + 1, y, 0.0D).endVertex();
+        bufferBuilder.pos(x, y + 1, 0.0D).endVertex();
+        bufferBuilder.pos(x + size - 1, y + size, 0.0D).endVertex();
+        bufferBuilder.pos(x + size, y + size - 1, 0.0D).endVertex();
+        bufferBuilder.pos(x + 1, y, 0.0D).endVertex();
 
-        vertexbuffer.pos(x, y + size - 1, 0.0D).endVertex();
-        vertexbuffer.pos(x + 1, y + size, 0.0D).endVertex();
-        vertexbuffer.pos(x + size, y + 1, 0.0D).endVertex();
-        vertexbuffer.pos(x + size - 1, y, 0.0D).endVertex();
+        bufferBuilder.pos(x, y + size - 1, 0.0D).endVertex();
+        bufferBuilder.pos(x + 1, y + size, 0.0D).endVertex();
+        bufferBuilder.pos(x + size, y + 1, 0.0D).endVertex();
+        bufferBuilder.pos(x + size - 1, y, 0.0D).endVertex();
 
         tessellator.draw();
         GlStateManager.enableTexture2D();

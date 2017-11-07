@@ -8,9 +8,9 @@ import java.util.Map;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.item.EntityMinecart;
@@ -111,7 +111,7 @@ public class NetworkController{
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         Gui.drawModalRectWithCustomSizedTexture(0, 0, 0, 0, width, height, width, height);
         Tessellator t = Tessellator.getInstance();
-        VertexBuffer buffer = t.getBuffer();
+        BufferBuilder buffer = t.getBuffer();
         for(EntityMinecart cart : world.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(startX, 0, startZ, startX + width, 255, startZ + height))) {
             List<BlockPos> path = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getNBTPath();
             if(path != null) {
@@ -141,7 +141,7 @@ public class NetworkController{
                 double scale = 1 / 4D;
                 GlStateManager.translate(x + 1.5, y, 0);
                 GlStateManager.scale(scale, scale, scale);
-                mc.fontRendererObj.drawString(dest, 0, 0, TEXT_COLOR);
+                mc.fontRenderer.drawString(dest, 0, 0, TEXT_COLOR);
                 GlStateManager.popMatrix();
             }
         }
@@ -154,7 +154,7 @@ public class NetworkController{
                 double scale = 1 / 4D;
                 GlStateManager.translate(x + 2, y, 0);
                 GlStateManager.scale(scale, scale, scale);
-                mc.fontRendererObj.drawString(((TileEntityStationMarker)te).getStationName(), 0, 0, 0xFFFFFF00);
+                mc.fontRenderer.drawString(((TileEntityStationMarker)te).getStationName(), 0, 0, 0xFFFFFF00);
                 GlStateManager.popMatrix();
             }
         }

@@ -65,7 +65,7 @@ public class PacketDescription extends LocationIntPacket<PacketDescription>{
 
         switch(type){
             case TILE_ENTITY:
-                return message.getTileEntity(player.worldObj);
+                return message.getTileEntity(player.world);
         }
         return null;
     }
@@ -73,7 +73,7 @@ public class PacketDescription extends LocationIntPacket<PacketDescription>{
     @Override
     public void handleClientSide(EntityPlayer player){
 
-        if(player.worldObj.isBlockLoaded(pos)) {
+        if(player.world.isBlockLoaded(pos)) {
             Object syncable = getSyncableForType(this, player, type, extraData);
             if(syncable instanceof IDescSynced) {
                 IDescSynced descSynced = (IDescSynced)syncable;

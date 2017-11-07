@@ -36,7 +36,7 @@ public class GuiMinecart extends GuiContainerBase<TileEntity>{
         WidgetComboBox[] oldFields = stationNameFields;
         stationNameFields = new WidgetComboBox[cap.getTotalDestinations() + 1];
         for(int i = 0; i < stationNameFields.length; i++) {
-            stationNameFields[i] = new WidgetComboBox(fontRendererObj, guiLeft + 10, height / 2 - 5 - stationNameFields.length * 7 + i * 14, 100, fontRendererObj.FONT_HEIGHT);
+            stationNameFields[i] = new WidgetComboBox(fontRenderer, guiLeft + 10, height / 2 - 5 - stationNameFields.length * 7 + i * 14, 100, fontRenderer.FONT_HEIGHT);
             stationNameFields[i].setElements(RailCacheManager.getAllStationNames());
             addWidget(stationNameFields[i]);
         }
@@ -93,7 +93,7 @@ public class GuiMinecart extends GuiContainerBase<TileEntity>{
     private void drawDestinationRect(int destinationIndex, int color){
         int indicatorX = guiLeft + 7;
         int indicatorY = height / 2 - stationNameFields.length * 7 + destinationIndex * 14 - 8;
-        drawRect(indicatorX, indicatorY, indicatorX + 106, indicatorY + fontRendererObj.FONT_HEIGHT + 6, color);
+        drawRect(indicatorX, indicatorY, indicatorX + 106, indicatorY + fontRenderer.FONT_HEIGHT + 6, color);
     }
 
     @Override

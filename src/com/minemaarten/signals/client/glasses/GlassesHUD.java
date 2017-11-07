@@ -38,7 +38,7 @@ public class GlassesHUD{
     public void renderTick(TickEvent.RenderTickEvent event){
         if(event.phase == TickEvent.Phase.END) {
             Minecraft mc = FMLClientHandler.instance().getClient();
-            if(mc != null && mc.thePlayer != null) {
+            if(mc != null && mc.player != null) {
                 render2D(event.renderTickTime);
             }
         }
@@ -46,9 +46,9 @@ public class GlassesHUD{
 
     private void render2D(float partialTicks){
         Minecraft minecraft = FMLClientHandler.instance().getClient();
-        EntityPlayer player = minecraft.thePlayer;
-        ItemStack helmetStack = player.inventory.armorInventory[3];
-        if(helmetStack != null && minecraft.inGameHasFocus && helmetStack.getItem() == Items.DIAMOND_HELMET) {
+        EntityPlayer player = minecraft.player;
+        ItemStack helmetStack = player.inventory.armorInventory.get(3);
+        if(!helmetStack.isEmpty() && minecraft.inGameHasFocus && helmetStack.getItem() == Items.DIAMOND_HELMET) {
             ScaledResolution sr = new ScaledResolution(minecraft);
             GL11.glDepthMask(false);
             GL11.glDisable(GL11.GL_CULL_FACE);
@@ -63,7 +63,7 @@ public class GlassesHUD{
             GL11.glEnable(GL11.GL_TEXTURE_2D);
 
             for(int i = 0; i < messages.size(); i++) {
-                minecraft.fontRendererObj.drawString(messages.get(i).localizedMessage, 16, 16 + i * (minecraft.fontRendererObj.FONT_HEIGHT + 1), 0xFF0000);
+                minecraft.fontRenderer.drawString(messages.get(i).localizedMessage, 16, 16 + i * (minecraft.fontRenderer.FONT_HEIGHT + 1), 0xFF0000);
             }
         }
     }

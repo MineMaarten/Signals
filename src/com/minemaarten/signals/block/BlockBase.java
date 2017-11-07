@@ -54,7 +54,7 @@ public class BlockBase extends BlockContainer{
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack heldItem, EnumFacing face, float par7, float par8, float par9){
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing face, float par7, float par8, float par9){
     	if(player.isSneaking() || getGuiID() == null) return false;
         else {
             if(!world.isRemote) {

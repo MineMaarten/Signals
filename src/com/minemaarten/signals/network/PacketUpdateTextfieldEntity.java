@@ -41,7 +41,7 @@ public class PacketUpdateTextfieldEntity extends AbstractPacket<PacketUpdateText
 
     @Override
     public void handleServerSide(EntityPlayer player){
-        Entity entity = player.worldObj.getEntityByID(entityId);
+        Entity entity = player.world.getEntityByID(entityId);
         if(entity instanceof EntityMinecart) {
             entity.getCapability(CapabilityMinecartDestination.INSTANCE, null).setText(textFieldID, text);
         }

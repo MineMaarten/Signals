@@ -52,11 +52,11 @@ public class BlockStationMarker extends BlockBase{
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack heldItem, EnumFacing face, float par7, float par8, float par9){
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing face, float par7, float par8, float par9){
     	if(!world.isRemote) {
             RailCacheManager.syncStationNames((EntityPlayerMP)player);
         }
-        return super.onBlockActivated(world, pos, state, player, hand, heldItem, face, par7, par8, par9);
+        return super.onBlockActivated(world, pos, state, player, hand, face, par7, par8, par9);
     }
 
     @Override
@@ -76,8 +76,8 @@ public class BlockStationMarker extends BlockBase{
     }
 
     @Override
-    public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn) {
-        super.neighborChanged(state, worldIn, pos, blockIn);
+    public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
+        super.neighborChanged(state, worldIn, pos, blockIn, fromPos);
         updateStationState(worldIn, pos, state);
     }
 

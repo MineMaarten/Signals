@@ -6,6 +6,7 @@ import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
@@ -34,35 +35,35 @@ import com.minemaarten.signals.rail.RailManager;
 
 public class EventHandler implements IWorldEventListener{
     @SubscribeEvent
-    public void onCapabilityAttachment(AttachCapabilitiesEvent.Entity event){
-        if(event.getEntity() instanceof EntityMinecart) {
+    public void onCapabilityAttachmentEntity(AttachCapabilitiesEvent<Entity> event){
+        if(event.getObject() instanceof EntityMinecart) {
             event.addCapability(new ResourceLocation(Constants.MOD_ID, "minecartDestinationCapability"), new CapabilityMinecartDestination.Provider());
         }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onCapabilityAttachment(AttachCapabilitiesEvent.TileEntity event){
+    public void onCapabilityAttachmentTile(AttachCapabilitiesEvent<TileEntity> event){
         RailManager.getInstance().onTileEntityCapabilityAttachEvent(event);
     }
 
     @SubscribeEvent
     public void onMinecartInteraction(MinecartInteractEvent event){
-        if(!event.getMinecart().worldObj.isRemote) {
+        if(!event.getMinecart().world.isRemote) {
             ItemStack heldItem = event.getPlayer().getHeldItemMainhand();
-            if(heldItem != null) {
+            if(!heldItem.isEmpty()) {
                 CapabilityMinecartDestination cap = event.getMinecart().getCapability(CapabilityMinecartDestination.INSTANCE, null);
                 if(cap != null) {
                     if(heldItem.getItem() == ModItems.cartEngine && !cap.isMotorized()) {
                         if(!event.getPlayer().isCreative()) {
-                            heldItem.stackSize--;
-                            if(heldItem.stackSize <= 0) event.getPlayer().setHeldItem(EnumHand.MAIN_HAND, null);
+                            heldItem.shrink(1);
+                            if(heldItem.isEmpty()) event.getPlayer().setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
                         }
                         cap.setMotorized();
-                        event.getPlayer().addChatMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
+                        event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
                         event.setCanceled(true);
                     } else if(heldItem.getItem() == ModItems.railConfigurator) {
                         RailCacheManager.syncStationNames((EntityPlayerMP)event.getPlayer());
-                        event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), event.getPlayer().worldObj, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
+                        event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), ((EntityPlayerMP) event.getPlayer()).world, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
                         event.setCanceled(true);
                     }
                 }
@@ -132,14 +133,19 @@ public class EventHandler implements IWorldEventListener{
     @Override
     public void spawnParticle(int particleID, boolean ignoreRange, double xCoord, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int... parameters){}
 
-    @Override
+	@Override
+	public void spawnParticle(int id, boolean ignoreRange, boolean p_190570_3_, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, int... parameters) {
+		
+	}
+
+	@Override
     public void onEntityAdded(Entity entityIn){
 
     }
 
     @Override
     public void onEntityRemoved(Entity entityIn){
-        if(entityIn instanceof EntityMinecart && !entityIn.worldObj.isRemote) {
+        if(entityIn instanceof EntityMinecart && !entityIn.world.isRemote) {
             CapabilityMinecartDestination cap = entityIn.getCapability(CapabilityMinecartDestination.INSTANCE, null);
             if(cap != null) cap.onCartBroken((EntityMinecart)entityIn);
         }

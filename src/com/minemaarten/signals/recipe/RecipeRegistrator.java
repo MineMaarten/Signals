@@ -26,10 +26,10 @@ public class RecipeRegistrator{
     }
 
     private static void shaped(ItemStack output, Object... input){
-        GameRegistry.addRecipe(new ShapedOreRecipe(output, input));
+        //GameRegistry.addRecipe(new ShapedOreRecipe(output, input));
     }
 
     private static void shapeless(ItemStack output, Object... input){
-        GameRegistry.addRecipe(new ShapelessOreRecipe(output, input));
+        //GameRegistry.addRecipe(new ShapelessOreRecipe(output, input));
     }
 }

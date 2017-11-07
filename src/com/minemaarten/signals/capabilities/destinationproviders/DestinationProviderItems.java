@@ -103,7 +103,7 @@ public class DestinationProviderItems implements IDestinationProvider, IGUIButto
 
     @Override
     public void openGui(TileEntity te, EntityPlayer player){
-        player.openGui(Signals.instance, EnumGuiId.ITEM_HANDLER_DESTINATION.ordinal(), player.worldObj, te.getPos().getX(), te.getPos().getY(), te.getPos().getZ());
+        player.openGui(Signals.instance, EnumGuiId.ITEM_HANDLER_DESTINATION.ordinal(), player.world, te.getPos().getX(), te.getPos().getY(), te.getPos().getZ());
     }
 
     @Override

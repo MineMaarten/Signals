@@ -23,12 +23,12 @@ public class ContainerNetworkController extends ContainerBase<TileEntity> implem
 	@Override
 	public void handleGUIButtonPress(EntityPlayer player, int... data) {
 		BlockPos pos = new BlockPos(data[0], 0, data[1]);
-		for(TileEntity te : player.worldObj.getChunkFromBlockCoords(pos).getTileEntityMap().values()){
+		for(TileEntity te : player.world.getChunkFromBlockCoords(pos).getTileEntityMap().values()){
 			if(te.getPos().getX() == pos.getX() && te.getPos().getZ() == pos.getZ()){
 				if(te instanceof TileEntitySignalBase){
 					EnumForceMode forceMode = EnumForceMode.values()[data[2]];
 					((TileEntitySignalBase) te).setForceMode(forceMode);
-					player.addChatComponentMessage(new TextComponentString("Forced " + (forceMode == EnumForceMode.FORCED_RED ? "red" : "green")));
+					player.sendMessage(new TextComponentString("Forced " + (forceMode == EnumForceMode.FORCED_RED ? "red" : "green")));
 				}
 			}
 		}

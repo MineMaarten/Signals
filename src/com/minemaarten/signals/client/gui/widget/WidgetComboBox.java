@@ -51,11 +51,11 @@ public class WidgetComboBox extends WidgetTextField{
         super.postRender(mouseX, mouseY, partialTick);
         if(enabled && isFocused()) {
             List<String> applicableElements = getApplicableElements();
-            drawRect(xPosition - 1, yPosition + height + 1, xPosition + width + 1, yPosition + height + 3 + applicableElements.size() * fontRenderer.FONT_HEIGHT, -6250336);
-            drawRect(xPosition, yPosition + height + 1, xPosition + width, yPosition + height + 2 + applicableElements.size() * fontRenderer.FONT_HEIGHT, -16777216);
+            drawRect(x - 1, y + height + 1, x + width + 1, y + height + 3 + applicableElements.size() * fontRenderer.FONT_HEIGHT, -6250336);
+            drawRect(x, y + height + 1, x + width, y + height + 2 + applicableElements.size() * fontRenderer.FONT_HEIGHT, -16777216);
             for(int i = 0; i < applicableElements.size(); i++) {
                 String element = applicableElements.get(i);
-                fontRenderer.drawStringWithShadow(fontRenderer.trimStringToWidth(element, getWidth()), xPosition + 4, yPosition + height + 2 + i * fontRenderer.FONT_HEIGHT, 14737632);
+                fontRenderer.drawStringWithShadow(fontRenderer.trimStringToWidth(element, getWidth()), x + 4, y + height + 2 + i * fontRenderer.FONT_HEIGHT, 14737632);
             }
         }
     }
@@ -67,7 +67,7 @@ public class WidgetComboBox extends WidgetTextField{
             setFocused(true);
             List<String> applicableElements = getApplicableElements();
             for(int i = 0; i < applicableElements.size(); i++) {
-                if(new Rectangle(xPosition - 1, yPosition + height + 2 + i * fontRenderer.FONT_HEIGHT, width, fontRenderer.FONT_HEIGHT).contains(mouseX, mouseY)) {
+                if(new Rectangle(x - 1, y + height + 2 + i * fontRenderer.FONT_HEIGHT, width, fontRenderer.FONT_HEIGHT).contains(mouseX, mouseY)) {
                     setText(applicableElements.get(i));
                     listener.onKeyTyped(this);
                     setFocused(false);
@@ -84,7 +84,7 @@ public class WidgetComboBox extends WidgetTextField{
 
     @Override
     public Rectangle getBounds(){
-        return enabled && isFocused() ? new Rectangle(xPosition, yPosition, width, height + 2 + getApplicableElements().size() * fontRenderer.FONT_HEIGHT) : super.getBounds();
+        return enabled && isFocused() ? new Rectangle(x, y, width, height + 2 + getApplicableElements().size() * fontRenderer.FONT_HEIGHT) : super.getBounds();
     }
 
     @Override

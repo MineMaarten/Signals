@@ -17,6 +17,6 @@ public class TileEntityBase extends TileEntity {
     }
     
     protected void sendUpdatePacket(){
-    	worldObj.notifyBlockUpdate(getPos(), getBlockState(), getBlockState(), 3);
+    	world.notifyBlockUpdate(getPos(), getBlockState(), getBlockState(), 3);
     }
 }

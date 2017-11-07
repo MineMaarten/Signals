@@ -21,7 +21,7 @@ public class GuiStationMarker extends GuiContainerBase<TileEntityStationMarker>{
     @Override
     public void initGui(){
         super.initGui();
-        stationNameField = new WidgetComboBox(fontRendererObj, width / 2 - 50, height / 2 - 5, 100, fontRendererObj.FONT_HEIGHT);
+        stationNameField = new WidgetComboBox(fontRenderer, width / 2 - 50, height / 2 - 5, 100, fontRenderer.FONT_HEIGHT);
         stationNameField.setElements(RailCacheManager.getAllStationNames());
         addWidget(stationNameField);
     }

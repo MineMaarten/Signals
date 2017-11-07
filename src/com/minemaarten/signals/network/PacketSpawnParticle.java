@@ -46,7 +46,7 @@ public class PacketSpawnParticle extends LocationDoublePacket<PacketSpawnParticl
 
 	@Override
 	public void handleClientSide(EntityPlayer player) {
-		 player.worldObj.spawnParticle(EnumParticleTypes.values()[particleId], x, y, z, dx, dy, dz);		
+		 player.world.spawnParticle(EnumParticleTypes.values()[particleId], x, y, z, dx, dy, dz);
 	}
 
 	@Override

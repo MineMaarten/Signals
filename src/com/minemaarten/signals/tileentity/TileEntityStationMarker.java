@@ -66,7 +66,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
     @Override
     public void invalidate(){
         super.invalidate();
-        if(!worldObj.isRemote) {
+        if(!world.isRemote) {
             updateNeighborRailCache();
             RailCacheManager.getInstance(getWorld()).removeStationMarker(this);
         }
@@ -74,11 +74,11 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
 
     @Override
     public void update(){
-        if(!worldObj.isRemote) {
+        if(!world.isRemote) {
             if(firstTick) {
                 firstTick = false;
                 updateNeighborRailCache();
-                if(!worldObj.isRemote) {
+                if(!world.isRemote) {
                     RailCacheManager.getInstance(getWorld()).addStationMarker(this);
                 }
             }
@@ -87,7 +87,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
     }
 
     public void updateNeighborMinecarts(){
-        for(EntityMinecart cart : TileEntitySignalBase.getMinecarts(worldObj, getNeighborRails())) {
+        for(EntityMinecart cart : TileEntitySignalBase.getMinecarts(world, getNeighborRails())) {
             CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
             if(cap.getCurrentDestinationRegex().matcher(getStationName()).matches()) {
                 cap.nextDestination();

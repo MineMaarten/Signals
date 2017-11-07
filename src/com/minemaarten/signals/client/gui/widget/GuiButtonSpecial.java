@@ -84,27 +84,27 @@ public class GuiButtonSpecial extends GuiButton implements IGuiWidget{
     }
 
     @Override
-    public void drawButton(Minecraft mc, int x, int y){
-        if(thisVisible) super.drawButton(mc, x, y);
+    public void drawButton(Minecraft mc, int x, int y, float partialTicks){
+        if(thisVisible) super.drawButton(mc, x, y, partialTicks);
 
         if(visible) {
             if(renderedStacks != null) {
-                int middleX = xPosition + width / 2;
+                int middleX = x + width / 2;
                 int startX = middleX - renderedStacks.length * 9 + 1;
                 GL11.glEnable(GL12.GL_RESCALE_NORMAL);
                 RenderHelper.enableGUIStandardItemLighting();
                 for(int i = 0; i < renderedStacks.length; i++) {
-                    itemRenderer.renderItemAndEffectIntoGUI(renderedStacks[i], startX + i * 18, yPosition + 2);
+                    itemRenderer.renderItemAndEffectIntoGUI(renderedStacks[i], startX + i * 18, y + 2);
                 }
                 RenderHelper.disableStandardItemLighting();
                 GL11.glDisable(GL12.GL_RESCALE_NORMAL);
             }
             if(resLoc != null) {
                 mc.getTextureManager().bindTexture(resLoc);
-                drawModalRectWithCustomSizedTexture(xPosition + width / 2 - 8, yPosition + 2, 0, 0, 16, 16, 16, 16);
+                drawModalRectWithCustomSizedTexture(x + width / 2 - 8, y + 2, 0, 0, 16, 16, 16, 16);
             }
-            if(enabled && !thisVisible && x >= xPosition && y >= yPosition && x < xPosition + width && y < yPosition + height) {
-                Gui.drawRect(xPosition, yPosition, xPosition + width, yPosition + height, invisibleHoverColor);
+            if(enabled && !thisVisible && x >= x && y >= y && x < x + width && y < y + height) {
+                Gui.drawRect(x, y, x + width, y + height, invisibleHoverColor);
             }
         }
     }
@@ -121,7 +121,7 @@ public class GuiButtonSpecial extends GuiButton implements IGuiWidget{
 
     @Override
     public void render(int mouseX, int mouseY, float partialTick){
-        drawButton(Minecraft.getMinecraft(), mouseX, mouseY);
+        drawButton(Minecraft.getMinecraft(), mouseX, mouseY, partialTick);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class GuiButtonSpecial extends GuiButton implements IGuiWidget{
 
     @Override
     public Rectangle getBounds(){
-        return new Rectangle(xPosition, yPosition, width, height);
+        return new Rectangle(x, y, width, height);
     }
 
     @Override

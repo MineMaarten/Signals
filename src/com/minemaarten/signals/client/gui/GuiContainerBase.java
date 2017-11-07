@@ -99,20 +99,20 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
         drawRect(guiLeft - borderWidth, guiTop - borderWidth, guiLeft + xSize + borderWidth, guiTop + ySize + borderWidth, 0xFF222222);
         drawRect(guiLeft, guiTop, guiLeft + xSize, guiTop + ySize, 0xFF333333);
         for(Slot slot : inventorySlots.inventorySlots) {
-            drawRect(guiLeft + slot.xDisplayPosition, guiTop + slot.yDisplayPosition, guiLeft + slot.xDisplayPosition + 16, guiTop + slot.yDisplayPosition + 16, 0xFF222222);
+            drawRect(guiLeft + slot.xPos, guiTop + slot.yPos, guiLeft + slot.xPos + 16, guiTop + slot.yPos + 16, 0xFF222222);
         }
         GlStateManager.enableTexture2D();
     }
 
     protected void drawDarkGreyTextCentered(int x, int y, String localizationKey, Object... args){
-        x -= fontRendererObj.getStringWidth(I18n.format(localizationKey, args)) / 2 + 1;
+        x -= fontRenderer.getStringWidth(I18n.format(localizationKey, args)) / 2 + 1;
         drawDarkGreyText(x, y, localizationKey, args);
     }
 
     protected void drawDarkGreyText(int x, int y, String localizationKey, Object... args){
         String text = I18n.format(localizationKey, args);
-        drawRect(x, y, x + fontRendererObj.getStringWidth(text) + 3, y + fontRendererObj.FONT_HEIGHT + 3, 0xFF222222);
-        fontRendererObj.drawString(text, x + 2, y + 2, 0xFFFFFFFF);
+        drawRect(x, y, x + fontRenderer.getStringWidth(text) + 3, y + fontRenderer.FONT_HEIGHT + 3, 0xFF222222);
+	    fontRenderer.drawString(text, x + 2, y + 2, 0xFFFFFFFF);
     }
 
     protected boolean shouldDrawBackground(){
@@ -131,9 +131,9 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
         if(getInvNameOffset() != null && te instanceof IInventory) {
             IInventory inv = (IInventory)te;
             String containerName = inv.hasCustomName() ? inv.getName() : I18n.format(inv.getName() + ".name");
-            fontRendererObj.drawString(containerName, xSize / 2 - fontRendererObj.getStringWidth(containerName) / 2 + getInvNameOffset().x, 6 + getInvNameOffset().y, 4210752);
+	        fontRenderer.drawString(containerName, xSize / 2 - fontRenderer.getStringWidth(containerName) / 2 + getInvNameOffset().x, 6 + getInvNameOffset().y, 4210752);
         }
-        if(getInvTextOffset() != null) fontRendererObj.drawString(I18n.format("container.inventory"), 8 + getInvTextOffset().x, ySize - 94 + getInvTextOffset().y, 4210752);
+        if(getInvTextOffset() != null) fontRenderer.drawString(I18n.format("container.inventory"), 8 + getInvTextOffset().x, ySize - 94 + getInvTextOffset().y, 4210752);
     }
 
     protected Point getInvNameOffset(){
@@ -175,7 +175,7 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
                     localizedTooltip.add(locLine);
                 }
             }
-            drawHoveringText(localizedTooltip, x, y, fontRendererObj);
+            drawHoveringText(localizedTooltip, x, y, fontRenderer);
         }
     }
 

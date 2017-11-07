@@ -80,7 +80,7 @@ public class RailCacheManager{
     }
 
     private long getChunkHashFromBlockPos(BlockPos pos){
-        return ChunkPos.chunkXZ2Int(pos.getX() >> 4, pos.getZ() >> 4);
+        return ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4);
     }
 
     /**
@@ -89,11 +89,11 @@ public class RailCacheManager{
      */
     public void onChunkLoad(Chunk chunk){
         for(EnumFacing d : EnumFacing.HORIZONTALS) {
-            ChunkPos intPair = chunk.getChunkCoordIntPair();
+            ChunkPos intPair = chunk.getPos();
             BlockPos offsetBlock = intPair.getBlock(0, 0, 0).offset(d, 16);
             if(chunk.getWorld().isBlockLoaded(offsetBlock)) {
-                Chunk neighbor = chunk.getWorld().getChunkFromChunkCoords(chunk.xPosition + d.getFrontOffsetX(), chunk.zPosition + d.getFrontOffsetZ());
-                Map<BlockPos, RailWrapper> chunkCache = railCache.get(ChunkPos.chunkXZ2Int(neighbor.xPosition, neighbor.zPosition));
+                Chunk neighbor = chunk.getWorld().getChunkFromChunkCoords(chunk.x + d.getFrontOffsetX(), chunk.z + d.getFrontOffsetZ());
+                Map<BlockPos, RailWrapper> chunkCache = railCache.get(ChunkPos.asLong(neighbor.x, neighbor.z));
                 if(chunkCache != null) {
                     if(d.getAxis() == Axis.X) {
                         int borderX = (d.getAxisDirection() == AxisDirection.POSITIVE ? 0 : 15) + offsetBlock.getX();
@@ -113,7 +113,7 @@ public class RailCacheManager{
     }
 
     public void onChunkUnload(Chunk chunk){
-        long chunkHash = ChunkPos.chunkXZ2Int(chunk.xPosition, chunk.zPosition);
+        long chunkHash = ChunkPos.asLong(chunk.x, chunk.z);
         Map<BlockPos, RailWrapper> cache = railCache.get(chunkHash);
         if(cache != null) {
             for(RailWrapper rail : cache.values()) {

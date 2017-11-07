@@ -103,7 +103,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             lampStatus = EnumLampStatus.RED;
         }
         IBlockState state = getBlockState();
-        if(state.getPropertyNames().contains(BlockSignalBase.LAMP_STATUS) && state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
+        if(state.getPropertyKeys().contains(BlockSignalBase.LAMP_STATUS) && state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
             getWorld().setBlockState(getPos(), state.withProperty(BlockSignalBase.LAMP_STATUS, lampStatus));
             NetworkController.getInstance(getWorld()).updateColor(this, getPos());
             if(lampStatus == EnumLampStatus.GREEN) {
@@ -125,7 +125,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     public EnumLampStatus getLampStatus(){
         if(getWorld() != null) {
             IBlockState state = getWorld().getBlockState(getPos());
-            if(state.getPropertyNames().contains(BlockSignalBase.LAMP_STATUS)) {
+            if(state.getPropertyKeys().contains(BlockSignalBase.LAMP_STATUS)) {
                 return state.getValue(BlockSignalBase.LAMP_STATUS);
             }
         }
@@ -133,7 +133,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     protected List<EntityMinecart> getNeighborMinecarts(){
-        return getMinecarts(worldObj, getConnectedRails());
+        return getMinecarts(world, getConnectedRails());
     }
 
     protected AStarRailNode routeCart(EntityMinecart cart, EnumFacing cartDir, boolean submitMessages){
@@ -289,7 +289,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     @Override
     public void invalidate(){
         super.invalidate();
-        if(!worldObj.isRemote) {
+        if(!world.isRemote) {
             RailWrapper neighbor = getConnectedRail();
             if(neighbor != null) neighbor.updateSignalCache();
             NetworkController.getInstance(getWorld()).updateColor((TileEntitySignalBase)null, getPos());
@@ -298,7 +298,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
 
     @Override
     public void update(){
-        if(!worldObj.isRemote) {
+        if(!world.isRemote) {
             if(firstTick) {
                 firstTick = false;
                 RailWrapper neighbor = getConnectedRail();
@@ -400,7 +400,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             for(int i = 0; i < list.tagCount(); i++) {
                 NBTTagCompound t = list.getCompoundTagAt(i);
                 BlockPos pos = new BlockPos(t.getInteger("x"), t.getInteger("y"), t.getInteger("z"));
-                TileEntity te = worldObj.getTileEntity(pos);
+                TileEntity te = world.getTileEntity(pos);
                 if(te instanceof TileEntitySignalBase) nextSignals.add((TileEntitySignalBase)te);
             }
 
@@ -416,7 +416,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             if(i > 0) this.arguments += "\n";
             this.arguments += arguments[i].toString();
         }
-        worldObj.notifyBlockUpdate(getPos(), getBlockState(), getBlockState(), 3);
+        world.notifyBlockUpdate(getPos(), getBlockState(), getBlockState(), 3);
     }
 
     public String getMessage(){

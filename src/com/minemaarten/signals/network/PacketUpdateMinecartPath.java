@@ -38,7 +38,7 @@ public class PacketUpdateMinecartPath extends AbstractPacket<PacketUpdateMinecar
 
 	@Override
 	public void handleClientSide(EntityPlayer player) {
-		Entity entity = player.worldObj.getEntityByID(cartId);
+		Entity entity = player.world.getEntityByID(cartId);
 		if(entity != null){
 			CapabilityMinecartDestination cap = entity.getCapability(CapabilityMinecartDestination.INSTANCE, null);
 			if(cap != null){

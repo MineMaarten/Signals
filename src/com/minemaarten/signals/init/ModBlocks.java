@@ -11,6 +11,7 @@ import com.minemaarten.signals.block.BlockSignalBase;
 import com.minemaarten.signals.block.BlockStationMarker;
 import com.minemaarten.signals.tileentity.TileEntityBlockSignal;
 import com.minemaarten.signals.tileentity.TileEntityPathSignal;
+import net.minecraftforge.registries.GameData;
 
 public class ModBlocks{
     public static Block blockSignal;
@@ -30,8 +31,8 @@ public class ModBlocks{
     }
 
     public static void registerBlock(Block block){
-        GameRegistry.register(block.setRegistryName(block.getUnlocalizedName().substring(5)));
-        GameRegistry.register(new ItemBlock(block).setRegistryName(block.getRegistryName()));
+        GameData.register_impl(block.setRegistryName(block.getUnlocalizedName().substring(5)));
+	    GameData.register_impl(new ItemBlock(block).setRegistryName(block.getRegistryName()));
 
     }
 }

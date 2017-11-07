@@ -104,7 +104,7 @@ public class SignalsUtils {
            NBTTagCompound itemTag = tagList.getCompoundTagAt(i);
            int slot = itemTag.getByte("Slot");
            if(slot >= 0 && slot < stacks.length) {
-               stacks[slot] = ItemStack.loadItemStackFromNBT(itemTag);
+               stacks[slot] = new ItemStack(itemTag);
            }
        }
    }

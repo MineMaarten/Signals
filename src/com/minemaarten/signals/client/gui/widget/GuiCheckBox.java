@@ -6,8 +6,8 @@ import java.util.List;
 
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -22,7 +22,7 @@ public class GuiCheckBox extends Gui implements IGuiWidget{
     public int x, y, color;
     private final int id;
     public String text;
-    public FontRenderer fontRenderer = FMLClientHandler.instance().getClient().fontRendererObj;
+    public FontRenderer fontRenderer = FMLClientHandler.instance().getClient().fontRenderer;
     private List<String> tooltip = new ArrayList<String>();
     private IWidgetListener listener;
 
@@ -53,7 +53,7 @@ public class GuiCheckBox extends Gui implements IGuiWidget{
             } else {
                 GL11.glColor4d(0.8, 0.8, 0.8, 1);
             }
-            VertexBuffer wr = Tessellator.getInstance().getBuffer();
+            BufferBuilder wr = Tessellator.getInstance().getBuffer();
             wr.begin(GL11.GL_LINE_STRIP, DefaultVertexFormats.POSITION);
             wr.pos(x + 2, y + 5, zLevel).endVertex();
             wr.pos(x + 5, y + 7, zLevel).endVertex();

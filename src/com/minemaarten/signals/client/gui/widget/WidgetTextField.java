@@ -65,7 +65,7 @@ public class WidgetTextField extends GuiTextField implements IGuiWidget{
 
     @Override
     public Rectangle getBounds(){
-        return new Rectangle(xPosition, yPosition, width, height);
+        return new Rectangle(x, y, width, height);
     }
 
     @Override

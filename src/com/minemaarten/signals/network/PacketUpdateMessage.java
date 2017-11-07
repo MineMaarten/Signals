@@ -61,7 +61,7 @@ public class PacketUpdateMessage extends LocationIntPacket<PacketUpdateMessage>{
 
     @Override
     public void handleClientSide(EntityPlayer player){
-        GlassesHUD.getInstance().onNewMessage(new GlassesMessage(this, player.worldObj));
+        GlassesHUD.getInstance().onNewMessage(new GlassesMessage(this, player.world));
     }
 
     @Override

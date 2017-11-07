@@ -27,9 +27,9 @@ public class BlockLimiterRail extends BlockRailPowered {
 		if(vecLength > maxSpeed){
 			vecLength = Math.max(vecLength - maxDeceleration, maxSpeed);
 			vec = vec.normalize().scale(vecLength);
-			cart.motionX = vec.xCoord;
-			cart.motionY = vec.yCoord;
-			cart.motionZ = vec.zCoord;
+			cart.motionX = vec.x;
+			cart.motionY = vec.y;
+			cart.motionZ = vec.z;
 		}
 	}
 }

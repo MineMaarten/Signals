@@ -265,8 +265,8 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                     if(fuel != null) {
                         int fuelValue = TileEntityFurnace.getItemBurnTime(fuel);
                         if(fuelValue > 0) {
-                            fuel.stackSize--;
-                            if(fuel.stackSize <= 0) {
+                            fuel.shrink(1);
+                            if(fuel.isEmpty()) {
                                 fuelInv.setInventorySlotContents(i, fuel.getItem().getContainerItem(fuel));
                             }
                             fuelLeft += fuelValue;
@@ -278,10 +278,10 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
             }
             if(fuelLeft > 0) {
                 fuelLeft--;
-                double randX = cart.getPositionVector().xCoord + (cart.worldObj.rand.nextDouble() - 0.5) * 0.5;
-                double randY = cart.getPositionVector().yCoord + (cart.worldObj.rand.nextDouble() - 0.5) * 0.5;
-                double randZ = cart.getPositionVector().zCoord + (cart.worldObj.rand.nextDouble() - 0.5) * 0.5;
-                NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.SMOKE_LARGE, randX, randY, randZ, 0, 0, 0), cart.worldObj);
+                double randX = cart.getPositionVector().x + (cart.world.rand.nextDouble() - 0.5) * 0.5;
+                double randY = cart.getPositionVector().y + (cart.world.rand.nextDouble() - 0.5) * 0.5;
+                double randZ = cart.getPositionVector().z + (cart.world.rand.nextDouble() - 0.5) * 0.5;
+                NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.SMOKE_LARGE, randX, randY, randZ, 0, 0, 0), cart.world);
                 return true;
             }
         }
@@ -314,7 +314,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
 
     public void onCartUpdate(MinecartUpdateEvent event){
         EntityMinecart cart = event.getMinecart();
-        if(!cart.worldObj.isRemote) {
+        if(!cart.world.isRemote) {
             if(isMotorized()) {
                 boolean shouldRun = true;
                 EnumFacing cartDir = cart.getAdjustedHorizontalFacing();
@@ -328,7 +328,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                     }
                 } else {
                     hopperTimer = 0;
-                    RailWrapper rail = RailCacheManager.getInstance(cart.worldObj).getRail(cart.worldObj, event.getPos());
+                    RailWrapper rail = RailCacheManager.getInstance(cart.world).getRail(cart.world, event.getPos());
 
                     if(rail == null) {
                         shouldRun = false;
@@ -343,22 +343,22 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                 }
 
                 if(shouldRun && useFuel(cart)) {
-                    if(!motorActive) NetworkHandler.sendToAllAround(new PacketUpdateMinecartEngineState(cart, true), new NetworkRegistry.TargetPoint(cart.worldObj.provider.getDimension(), cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 64));
+                    if(!motorActive) NetworkHandler.sendToAllAround(new PacketUpdateMinecartEngineState(cart, true), new NetworkRegistry.TargetPoint(cart.world.provider.getDimension(), cart.getPositionVector().x, cart.getPositionVector().y, cart.getPositionVector().z, 64));
                     motorActive = true;
 
                     double acceleration = 0.03D;
                     cart.motionX += cartDir.getFrontOffsetX() * acceleration;
                     cart.motionZ += cartDir.getFrontOffsetZ() * acceleration;
-                    cart.motionX = MathHelper.clamp_double(cart.motionX, -cart.getMaxCartSpeedOnRail(), cart.getMaxCartSpeedOnRail());
-                    cart.motionZ = MathHelper.clamp_double(cart.motionZ, -cart.getMaxCartSpeedOnRail(), cart.getMaxCartSpeedOnRail());
+                    cart.motionX = MathHelper.clamp(cart.motionX, -cart.getMaxCartSpeedOnRail(), cart.getMaxCartSpeedOnRail());
+                    cart.motionZ = MathHelper.clamp(cart.motionZ, -cart.getMaxCartSpeedOnRail(), cart.getMaxCartSpeedOnRail());
                 } else {
-                    if(motorActive) NetworkHandler.sendToAllAround(new PacketUpdateMinecartEngineState(cart, true), new NetworkRegistry.TargetPoint(cart.worldObj.provider.getDimension(), cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 64));
+                    if(motorActive) NetworkHandler.sendToAllAround(new PacketUpdateMinecartEngineState(cart, true), new NetworkRegistry.TargetPoint(cart.world.provider.getDimension(), cart.getPositionVector().x, cart.getPositionVector().y, cart.getPositionVector().z, 64));
                     motorActive = false;
                 }
             }
         } else {
             if(motorActive) {
-                cart.worldObj.spawnParticle(EnumParticleTypes.SMOKE_LARGE, cart.getPositionVector().xCoord, cart.getPositionVector().yCoord, cart.getPositionVector().zCoord, 0, 0, 0);
+                cart.world.spawnParticle(EnumParticleTypes.SMOKE_LARGE, cart.getPositionVector().x, cart.getPositionVector().y, cart.getPositionVector().z, 0, 0, 0);
             }
         }
     }
@@ -374,23 +374,20 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
             BlockPos neighbor = pos;
             for(int offsetTimes = 0; offsetTimes < (dir == EnumFacing.UP ? 2 : 1); offsetTimes++) {
                 neighbor = neighbor.offset(dir);
-                TileEntity te = cart.worldObj.getTileEntity(neighbor);
+                TileEntity te = cart.world.getTileEntity(neighbor);
                 if(te instanceof TileEntityHopper) {
-                    EnumFacing hopperDir = cart.worldObj.getBlockState(neighbor).getValue(BlockHopper.FACING);
+                    EnumFacing hopperDir = cart.world.getBlockState(neighbor).getValue(BlockHopper.FACING);
                     if(hopperDir.getOpposite() == dir) {
                         TileEntityHopper hopper = (TileEntityHopper)te;
                         for(int i = 0; i < hopper.getSizeInventory(); i++) {
                             ItemStack stack = hopper.getStackInSlot(i);
-                            if(stack != null && getFuelInv().isItemValidForSlot(0, stack)) {
+                            if(!stack.isEmpty()&& getFuelInv().isItemValidForSlot(0, stack)) {
                                 InvWrapper invWrapper = new InvWrapper(getFuelInv());
                                 ItemStack inserted = stack.copy();
-                                inserted.stackSize = 1;
+                                inserted.setCount(1);
                                 ItemStack left = ItemHandlerHelper.insertItemStacked(invWrapper, inserted, false);
-                                if(left == null) {
-                                    stack.stackSize--;
-                                    if(stack.stackSize <= 0) {
-                                        hopper.setInventorySlotContents(i, null);
-                                    }
+                                if(left.isEmpty()) {
+                                	stack.shrink(1);
                                     hopper.markDirty();
                                     return true;
                                 }

@@ -19,11 +19,10 @@ public class ItemRailNetworkController extends ItemSignals {
 	}
 	
 	@Override
-	public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn,
-			World worldIn, EntityPlayer playerIn, EnumHand hand) {
+	public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand) {
 		if(!worldIn.isRemote){
 			playerIn.openGui(Signals.instance, CommonProxy.EnumGuiId.NETWORK_CONTROLLER.ordinal(), worldIn, 0, -1, 0);
         }
-		return super.onItemRightClick(itemStackIn, worldIn, playerIn, hand);
+		return super.onItemRightClick( worldIn, playerIn, hand);
 	}
 }

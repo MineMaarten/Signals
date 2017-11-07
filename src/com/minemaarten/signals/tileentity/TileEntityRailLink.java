@@ -55,8 +55,8 @@ public class TileEntityRailLink extends TileEntityBase implements ITickable{
     }
 
     private void updateLinkState(){
-        worldObj.setBlockState(getPos(), worldObj.getBlockState(getPos()).withProperty(BlockRailLink.CONNECTED, linkedRail != null), 2);
-        worldObj.notifyNeighborsOfStateChange(getPos(), getBlockType()); //Guarantee a block update
+        world.setBlockState(getPos(), world.getBlockState(getPos()).withProperty(BlockRailLink.CONNECTED, linkedRail != null), 2);
+	    world.notifyNeighborsOfStateChange(getPos(), getBlockType(), true); //Guarantee a block update
     }
 
     @Override
@@ -85,6 +85,6 @@ public class TileEntityRailLink extends TileEntityBase implements ITickable{
 
     @Override
     public void update(){
-        if(!worldObj.isRemote && worldObj.getTotalWorldTime() % 100 == 0) getLinkedRail();
+        if(!world.isRemote && world.getTotalWorldTime() % 100 == 0) getLinkedRail();
     }
 }

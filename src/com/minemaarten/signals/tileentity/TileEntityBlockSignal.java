@@ -13,12 +13,12 @@ public class TileEntityBlockSignal extends TileEntitySignalBase implements ITick
     @Override
     public void update(){
         super.update();
-        if(!worldObj.isRemote) {
+        if(!world.isRemote) {
         	//setMessage("Standby...");
             RailWrapper neighborRail = getConnectedRail();
             if(neighborRail != null) {
                 Set<RailWrapper> rails = getRailsToNextBlockSection(neighborRail, getFacing());
-                boolean cartOnNextBlock = !getMinecarts(worldObj, rails).isEmpty();
+                boolean cartOnNextBlock = !getMinecarts(world, rails).isEmpty();
                 setLampStatus(cartOnNextBlock ? EnumLampStatus.RED : EnumLampStatus.GREEN);
             } else {
                 setLampStatus(EnumLampStatus.YELLOW_BLINKING);

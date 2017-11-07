@@ -52,14 +52,14 @@ public class GuiNetworkController extends GuiContainerBase<TileEntity>{
     	super.drawGuiContainerBackgroundLayer(partialTicks, i, j);
     	
     	
-    	NetworkController controller = NetworkController.getInstance(mc.theWorld);
+    	NetworkController controller = NetworkController.getInstance(mc.world);
     	GlStateManager.pushMatrix();
     	double scale = Math.min((double)(width - SPACING) / controller.getWidth(), (double)(height - SPACING) / controller.getHeight());
     	//scale = 1;
     	GlStateManager.translate(width/2 - controller.getWidth() * scale / 2, height/2 - controller.getHeight() * scale / 2, 0);
         GlStateManager.scale(scale, scale, scale);
         drawRect(-1, -1, controller.getWidth() + 1, controller.getHeight() + 1, 0xFF111111);
-        controller.render(mc.theWorld);
+        controller.render(mc.world);
     	GlStateManager.popMatrix();
     }
     
@@ -68,7 +68,7 @@ public class GuiNetworkController extends GuiContainerBase<TileEntity>{
     		throws IOException {
     	super.mouseClicked(x, y, button);
     	
-    	NetworkController controller = NetworkController.getInstance(mc.theWorld);
+    	NetworkController controller = NetworkController.getInstance(mc.world);
     	double scale = Math.min((double)(width - SPACING) / controller.getWidth(), (double)(height - SPACING) / controller.getHeight());
     	//scale = 1;
     	double scaledX = x;

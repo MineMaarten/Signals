@@ -34,7 +34,7 @@ public class ItemRailConfigurator extends ItemSignals{
     }
 
     @Override
-    public EnumActionResult onItemUseFirst(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand){
+    public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand){
         if(!world.isRemote) {
             TileEntity te = world.getTileEntity(pos);
             if(te != null) {
@@ -54,11 +54,11 @@ public class ItemRailConfigurator extends ItemSignals{
                 }
             }
         }
-        return super.onItemUseFirst(stack, player, world, pos, side, hitX, hitY, hitZ, hand);
+        return super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand);
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand){
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand){
         if(!worldIn.isRemote && playerIn.isSneaking()) {
             RailCacheManager.getInstance(worldIn).onWorldUnload(worldIn);
             RailCacheManager cacheManager = RailCacheManager.getInstance(worldIn);
@@ -67,35 +67,36 @@ public class ItemRailConfigurator extends ItemSignals{
                     cacheManager.addStationMarker((TileEntityStationMarker)te);
                 }
             }
-            playerIn.addChatMessage(new TextComponentTranslation("signals.message.clearedCache"));
+            playerIn.sendMessage(new TextComponentTranslation("signals.message.clearedCache"));
         }
-        return super.onItemRightClick(itemStackIn, worldIn, playerIn, hand);
+        return super.onItemRightClick(worldIn, playerIn, hand);
     }
 
     @Override
-    public EnumActionResult onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
-        if(!worldIn.isRemote) {
+    public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
+        ItemStack stack = playerIn.getHeldItem(hand);
+    	if(!worldIn.isRemote) {
             RailWrapper rail = RailCacheManager.getInstance(worldIn).getRail(worldIn, pos);
             if(rail != null) {
                 setLinkedRail(stack, rail);
-                playerIn.addChatMessage(new TextComponentString("Pos: " + pos));
+                playerIn.sendMessage(new TextComponentString("Pos: " + pos));
             } else {
                 TileEntity te = worldIn.getTileEntity(pos);
                 if(te instanceof TileEntityRailLink) {
                     rail = getLinkedRail(stack);
                     if(rail != null) {
                         ((TileEntityRailLink)te).setLinkedRail(rail);
-                        playerIn.addChatMessage(new TextComponentString("Linked to " + rail));
+                        playerIn.sendMessage(new TextComponentString("Linked to " + rail));
                     }
                 }
             }
         }
-        return super.onItemUse(stack, playerIn, worldIn, pos, hand, facing, hitX, hitY, hitZ);
+        return super.onItemUse( playerIn, worldIn, pos, hand, facing, hitX, hitY, hitZ);
     }
 
     public void setLinkedRail(ItemStack stack, RailWrapper rail){
         if(rail != null) {
-            NBTTagCompound tag = stack.getSubCompound("linkingRail", true);
+            NBTTagCompound tag = stack.getSubCompound("linkingRail");
             tag.setInteger("x", rail.getX());
             tag.setInteger("y", rail.getY());
             tag.setInteger("z", rail.getZ());
@@ -106,7 +107,7 @@ public class ItemRailConfigurator extends ItemSignals{
     }
 
     public RailWrapper getLinkedRail(ItemStack stack){
-        NBTTagCompound tag = stack.getSubCompound("linkingRail", false);
+        NBTTagCompound tag = stack.getSubCompound("linkingRail");
         if(tag != null) {
             BlockPos pos = new BlockPos(tag.getInteger("x"), tag.getInteger("y"), tag.getInteger("z"));
             World world = DimensionManager.getWorld(tag.getInteger("dim"));

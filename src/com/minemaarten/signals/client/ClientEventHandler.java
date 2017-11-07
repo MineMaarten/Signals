@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
@@ -24,9 +24,9 @@ public class ClientEventHandler{
     @SubscribeEvent
     public void onWorldRender(RenderWorldLastEvent event){
         Tessellator t = Tessellator.getInstance();
-        VertexBuffer wr = t.getBuffer();
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if(player.inventory.getCurrentItem() == null || player.inventory.getCurrentItem().getItem() != ModItems.railConfigurator) return;
+        BufferBuilder wr = t.getBuffer();
+        EntityPlayer player = Minecraft.getMinecraft().player;
+        if(player.inventory.getCurrentItem().isEmpty() || player.inventory.getCurrentItem().getItem() != ModItems.railConfigurator) return;
 
         double playerX = player.prevPosX + (player.posX - player.prevPosX) * event.getPartialTicks();
         double playerY = player.prevPosY + (player.posY - player.prevPosY) * event.getPartialTicks();
@@ -37,7 +37,7 @@ public class ClientEventHandler{
 
         //Iterable<RailWrapper> rails = RailCacheManager.getInstance(player.worldObj).getAllRails();
         GlStateManager.disableTexture2D();
-        List<TileEntity> tes = player.worldObj.loadedTileEntityList;
+        List<TileEntity> tes = player.world.loadedTileEntityList;
         wr.setTranslation(0, 0, 0);
         wr.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
         //for(RailWrapper rail : rails) {
@@ -71,7 +71,7 @@ public class ClientEventHandler{
         GL11.glPopMatrix();
     }
 
-    private void drawBetween(VertexBuffer buffer, BlockPos p1, BlockPos p2, double offset, float r, float g, float b, float alpha){
+    private void drawBetween(BufferBuilder buffer, BlockPos p1, BlockPos p2, double offset, float r, float g, float b, float alpha){
         buffer.pos(p1.getX() + 0.5, p1.getY() + offset, p1.getZ() + 0.5).color(r, g, b, alpha).endVertex();
         buffer.pos(p2.getX() + 0.5, p2.getY() + offset, p2.getZ() + 0.5).color(r, g, b, alpha).endVertex();
     }

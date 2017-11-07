@@ -16,7 +16,7 @@ public abstract class AbstractPacket<REQ extends AbstractPacket> implements IMes
             Signals.proxy.addScheduledTask(new Runnable(){
                 @Override
                 public void run(){
-                    message.handleServerSide(ctx.getServerHandler().playerEntity);
+                    message.handleServerSide(ctx.getServerHandler().player);
                 }
             }, ctx.side == Side.SERVER);
         } else {

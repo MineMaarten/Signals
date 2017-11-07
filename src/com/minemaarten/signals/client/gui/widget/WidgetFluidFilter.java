@@ -3,8 +3,8 @@ package com.minemaarten.signals.client.gui.widget;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.Fluid;
@@ -28,7 +28,7 @@ public class WidgetFluidFilter extends WidgetBase{
                 GL11.glPushMatrix();
                 GL11.glTranslated(x, y, 0);
                 Minecraft.getMinecraft().getTextureManager().bindTexture(icon);
-                VertexBuffer wr = Tessellator.getInstance().getBuffer();
+                BufferBuilder wr = Tessellator.getInstance().getBuffer();
                 wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
                 wr.pos(0, 0, 0).tex(0, 0).endVertex();
                 wr.pos(0, 16, 0).tex(0, 1).endVertex();

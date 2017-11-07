@@ -36,11 +36,11 @@ public class CartHopperBehaviourItems implements ICartHopperBehaviour<IItemHandl
 
         for(int i = 0; i < from.getSlots(); i++) {
             ItemStack extracted = from.extractItem(i, MAX_TRANSFER_RATE - totalExtracted, true);
-            if(extracted != null && passesFilters(extracted, filters)) {
+            if(!extracted.isEmpty() && passesFilters(extracted, filters)) {
                 ItemStack leftover = ItemHandlerHelper.insertItemStacked(to, extracted, false);
-                int leftoverCount = leftover != null ? leftover.stackSize : 0;
+                int leftoverCount = !leftover.isEmpty() ? leftover.getCount() : 0;
 
-                int actuallyExtracted = extracted.stackSize - leftoverCount;
+                int actuallyExtracted = extracted.getCount() - leftoverCount;
                 if(actuallyExtracted > 0) {
                     from.extractItem(i, actuallyExtracted, false);
                     totalExtracted += actuallyExtracted;
@@ -54,7 +54,7 @@ public class CartHopperBehaviourItems implements ICartHopperBehaviour<IItemHandl
     @Override
     public boolean isCartFull(IItemHandler capability){
         for(int i = 0; i < capability.getSlots(); i++) {
-            if(capability.getStackInSlot(i) == null) return false;
+            if(capability.getStackInSlot(i).isEmpty()) return false;
         }
         return true;
     }
@@ -63,7 +63,7 @@ public class CartHopperBehaviourItems implements ICartHopperBehaviour<IItemHandl
     public boolean isCartEmpty(IItemHandler capability, List<Pair<TileEntity, EnumFacing>> filters){
         for(int i = 0; i < capability.getSlots(); i++) {
             ItemStack stack = capability.getStackInSlot(i);
-            if(stack != null && passesFilters(stack, filters)) return false; //If there still is a stack which does pass the given filters.
+            if(!stack.isEmpty() && passesFilters(stack, filters)) return false; //If there still is a stack which does pass the given filters.
         }
         return true;
     }
@@ -80,7 +80,7 @@ public class CartHopperBehaviourItems implements ICartHopperBehaviour<IItemHandl
 
                     if(allInventoriesEmpty) {
                         for(int i = 0; i < inv.getSizeInventory(); i++) {
-                            if(inv.getStackInSlot(i) != null) {
+                            if(!inv.getStackInSlot(i).isEmpty()) {
                                 allInventoriesEmpty = false;
                                 break;
                             }

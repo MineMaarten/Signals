@@ -8,6 +8,7 @@ import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -100,13 +101,13 @@ public class RailManager{
         return null;
     }
 
-    public void onTileEntityCapabilityAttachEvent(AttachCapabilitiesEvent.TileEntity event){
+    public void onTileEntityCapabilityAttachEvent(AttachCapabilitiesEvent<TileEntity> event){
         ICapabilityProvider provider = new CapabilityDestinationProvider.Provider();
         boolean requiresCap = false;
 
         CapabilityDestinationProvider cap = provider.getCapability(CapabilityDestinationProvider.INSTANCE, null);
         for(IDestinationProvider destinationProvider : destinationProviders) {
-            if(destinationProvider.isTileEntityApplicable(event.getTileEntity())) {
+            if(destinationProvider.isTileEntityApplicable(event.getObject())) {
                 try {
                     cap.addDestinationProvider(destinationProvider.getClass().newInstance());
                     if(!requiresCap) {

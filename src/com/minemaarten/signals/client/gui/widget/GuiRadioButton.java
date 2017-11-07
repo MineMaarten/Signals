@@ -7,8 +7,9 @@ import java.util.List;
 
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
+
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.fml.client.FMLClientHandler;
@@ -23,7 +24,7 @@ public class GuiRadioButton extends Gui implements IGuiWidget{
     public int x, y, color;
     private final int id;
     public String text;
-    public FontRenderer fontRenderer = FMLClientHandler.instance().getClient().fontRendererObj;
+    public FontRenderer fontRenderer = FMLClientHandler.instance().getClient().fontRenderer;
     private List<String> tooltip = new ArrayList<String>();
     public List<GuiRadioButton> otherChoices;
     private IWidgetListener listener;
@@ -59,7 +60,7 @@ public class GuiRadioButton extends Gui implements IGuiWidget{
     }
 
     private void drawCircle(int x, int y, int radius, int color){
-        VertexBuffer wr = Tessellator.getInstance().getBuffer();
+        BufferBuilder wr = Tessellator.getInstance().getBuffer();
         float f = (color >> 24 & 255) / 255.0F;
         float f1 = (color >> 16 & 255) / 255.0F;
         float f2 = (color >> 8 & 255) / 255.0F;

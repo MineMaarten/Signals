@@ -8,12 +8,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -56,8 +58,8 @@ public class ClientProxy extends CommonProxy{
     }
 
     private void registerItemModels(Item item){
-        List<ItemStack> stacks = new ArrayList<ItemStack>();
-        item.getSubItems(item, null, stacks);
+	    NonNullList<ItemStack> stacks = NonNullList.create();
+        item.getSubItems(CreativeTabs.SEARCH, stacks);
         for(ItemStack stack : stacks) {
             ResourceLocation resLoc = new ResourceLocation(Constants.MOD_ID, stack.getUnlocalizedName().substring(5));
             ModelBakery.registerItemVariants(item, resLoc);
@@ -67,7 +69,7 @@ public class ClientProxy extends CommonProxy{
 
     @Override
     public EntityPlayer getPlayer(){
-        return Minecraft.getMinecraft().thePlayer;
+        return Minecraft.getMinecraft().player;
     }
 
     @Override

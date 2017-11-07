@@ -22,7 +22,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
     @Override
     public void update(){
         super.update();
-        if(!worldObj.isRemote && pathingTimer-- <= 0 && getForceMode() == EnumForceMode.NONE) {
+        if(!world.isRemote && pathingTimer-- <= 0 && getForceMode() == EnumForceMode.NONE) {
             route();
         }
     }
@@ -34,7 +34,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
             List<EntityMinecart> routingMinecarts = getNeighborMinecarts();
             if(!routingMinecarts.isEmpty()) {
                 Set<RailWrapper> rails = getRailsToNextBlockSection(neighborRail, getFacing());
-                List<EntityMinecart> cartsOnNextBlock = getMinecarts(worldObj, rails);
+                List<EntityMinecart> cartsOnNextBlock = getMinecarts(world, rails);
 
                 //Fall back onto default Block Signal behaviour if there are any carts to be routed without a path. 
                 //This also will fill the routed carts with a path for the next stage.
@@ -94,7 +94,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
     }
 
     private AStarRailNode getStoredPath(EntityMinecart cart){
-        return cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getPath(cart.worldObj);
+        return cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getPath(cart.world);
     }
 
     private List<BlockPos> getToBeTraversedCoordinates(EntityMinecart cart){
