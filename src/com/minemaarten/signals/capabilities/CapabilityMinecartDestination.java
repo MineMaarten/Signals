@@ -262,7 +262,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
             if(fuelLeft == 0) {
                 for(int i = 0; i < fuelInv.getSizeInventory(); i++) {
                     ItemStack fuel = fuelInv.getStackInSlot(i);
-                    if(fuel != null) {
+                    if(!fuel.isEmpty()) {
                         int fuelValue = TileEntityFurnace.getItemBurnTime(fuel);
                         if(fuelValue > 0) {
                             fuel.shrink(1);
