@@ -22,9 +22,9 @@ repositories {
 apply plugin: 'net.minecraftforge.gradle.forge'
 
 project.ext {
-	massive = "0"
-    major = "5"
-    minor = "1"
+	massive = "1"
+    major = "0"
+    minor = "0"
     mcVersion = "1.12.2"
 }
 
