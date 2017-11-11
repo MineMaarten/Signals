@@ -75,7 +75,7 @@ public class ItemRailConfigurator extends ItemSignals{
     @Override
     public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
         ItemStack stack = playerIn.getHeldItem(hand);
-    	if(!worldIn.isRemote) {
+        if(!worldIn.isRemote) {
             RailWrapper rail = RailCacheManager.getInstance(worldIn).getRail(worldIn, pos);
             if(rail != null) {
                 setLinkedRail(stack, rail);
@@ -91,12 +91,12 @@ public class ItemRailConfigurator extends ItemSignals{
                 }
             }
         }
-        return super.onItemUse( playerIn, worldIn, pos, hand, facing, hitX, hitY, hitZ);
+        return super.onItemUse(playerIn, worldIn, pos, hand, facing, hitX, hitY, hitZ);
     }
 
     public void setLinkedRail(ItemStack stack, RailWrapper rail){
         if(rail != null) {
-            NBTTagCompound tag = stack.getSubCompound("linkingRail");
+            NBTTagCompound tag = stack.getOrCreateSubCompound("linkingRail");
             tag.setInteger("x", rail.getX());
             tag.setInteger("y", rail.getY());
             tag.setInteger("z", rail.getZ());
