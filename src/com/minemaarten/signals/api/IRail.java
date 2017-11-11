@@ -12,9 +12,9 @@ import net.minecraft.world.World;
  * Custom rails that extend BlockRailBase should work right off the bat, without requiring to use this API.
  * 
  * When your rail does not extend BlockRailBase, the most straight-forward option is to implement this interface,
- * and annotate the class with {@link SignalsRail}. An instance of the class will be created an registered in the postInit phase.
+ * and annotate the class with {@link Signals}. An instance of the class will be created an registered in the postInit phase.
  * 
- * If more advanced behaviour is required, implement {@link IRailMapper} and again annotate it with {@link SignalsRail}.
+ * If more advanced behaviour is required, implement {@link IRailMapper} and again annotate it with {@link Signals}.
  * 
  * @author Maarten
  *

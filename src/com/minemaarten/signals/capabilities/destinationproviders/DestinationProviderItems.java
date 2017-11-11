@@ -17,14 +17,13 @@ import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
-import com.minemaarten.signals.Signals;
-import com.minemaarten.signals.api.SignalsRail;
+import com.minemaarten.signals.api.Signals;
 import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.proxy.CommonProxy.EnumGuiId;
 import com.minemaarten.signals.tileentity.IGUIButtonSensitive;
 
-@SignalsRail
+@Signals
 public class DestinationProviderItems implements IDestinationProvider, IGUIButtonSensitive{
     @CapabilityInject(IItemHandler.class)
     private static Capability<IItemHandler> ITEM_HANDLER;
@@ -103,7 +102,7 @@ public class DestinationProviderItems implements IDestinationProvider, IGUIButto
 
     @Override
     public void openGui(TileEntity te, EntityPlayer player){
-        player.openGui(Signals.instance, EnumGuiId.ITEM_HANDLER_DESTINATION.ordinal(), player.world, te.getPos().getX(), te.getPos().getY(), te.getPos().getZ());
+        player.openGui(com.minemaarten.signals.Signals.instance, EnumGuiId.ITEM_HANDLER_DESTINATION.ordinal(), player.world, te.getPos().getX(), te.getPos().getY(), te.getPos().getZ());
     }
 
     @Override

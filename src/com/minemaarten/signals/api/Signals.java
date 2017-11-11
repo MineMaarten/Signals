@@ -14,6 +14,6 @@ import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface SignalsRail{
+public @interface Signals{
 
 }

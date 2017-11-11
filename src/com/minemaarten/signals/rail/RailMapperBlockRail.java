@@ -7,9 +7,9 @@ import net.minecraft.world.World;
 
 import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.api.IRailMapper;
-import com.minemaarten.signals.api.SignalsRail;
+import com.minemaarten.signals.api.Signals;
 
-@SignalsRail
+@Signals
 public class RailMapperBlockRail implements IRailMapper{
 
 	private final RailBase RAIL = new RailBase();

@@ -11,9 +11,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import com.minemaarten.signals.api.IRail;
-import com.minemaarten.signals.api.SignalsRail;
+import com.minemaarten.signals.api.Signals;
 
-@SignalsRail
+@Signals
 public class RailBase implements IRail{
     @Override
 	public Block[] getApplicableBlocks() {

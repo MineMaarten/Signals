@@ -10,13 +10,13 @@ import net.minecraft.world.World;
  * With {@link IRail} you are limited to a fixed Block -> IRail mapping. With this interface you can specify for a given position and state,
  * what IRail to return.
  * 
- * Implement this interface and annotate it with {@link SignalsRail}. An instance of this class will be instantiated
+ * Implement this interface and annotate it with {@link Signals}. An instance of this class will be instantiated
  * and registered in the postInit phase.
  */
 public interface IRailMapper{
     /**
      * Return a rail for a given position and state. Return null when the block isn't applicable for your logic.
-     * The returned instance of IRail doesn't have to be registered as well, so no annotation of {@link SignalsRail} is required.
+     * The returned instance of IRail doesn't have to be registered as well, so no annotation of {@link Signals} is required.
      */
     public IRail getRail(World world, BlockPos pos, IBlockState state);
 }

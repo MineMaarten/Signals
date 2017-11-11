@@ -20,7 +20,7 @@ import net.minecraftforge.fml.common.discovery.ASMDataTable.ASMData;
 import com.minemaarten.signals.api.ICartHopperBehaviour;
 import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.api.IRailMapper;
-import com.minemaarten.signals.api.SignalsRail;
+import com.minemaarten.signals.api.Signals;
 import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.lib.Constants;
@@ -38,7 +38,7 @@ public class RailManager{
     }
 
     public void initializeAPIImplementors(ASMDataTable asmData){
-        Set<ASMData> allAnnotatedClasses = asmData.getAll(SignalsRail.class.getName());
+        Set<ASMData> allAnnotatedClasses = asmData.getAll(Signals.class.getName());
         for(ASMData annotatedClass : allAnnotatedClasses) {
             try {
                 Class<?> clazz = Class.forName(annotatedClass.getClassName());

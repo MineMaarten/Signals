@@ -7,11 +7,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 
-import com.minemaarten.signals.api.SignalsRail;
+import com.minemaarten.signals.api.Signals;
 
 /**
  * Allows your TileEntity to act as a provider for destinations when adjacent to a Station Marker.
- * Implement this interface in a separate class, and annotate it with {@link SignalsRail}.
+ * Implement this interface in a separate class, and annotate it with {@link Signals}.
  * Every TileEntity will receive a new instance of this class.
  * @author MineMaarten
  *

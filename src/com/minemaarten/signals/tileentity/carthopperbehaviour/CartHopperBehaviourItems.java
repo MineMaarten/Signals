@@ -14,11 +14,11 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.minemaarten.signals.api.ICartHopperBehaviour;
-import com.minemaarten.signals.api.SignalsRail;
+import com.minemaarten.signals.api.Signals;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.destinationproviders.DestinationProviderItems;
 
-@SignalsRail
+@Signals
 public class CartHopperBehaviourItems implements ICartHopperBehaviour<IItemHandler>{
 
     @CapabilityInject(IItemHandler.class)
