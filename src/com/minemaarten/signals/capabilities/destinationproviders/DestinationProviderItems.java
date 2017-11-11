@@ -43,7 +43,7 @@ public class DestinationProviderItems implements IDestinationProvider, IGUIButto
             IInventory inv = (IInventory)te;
             for(int cartSlot = 0; cartSlot < cap.getSlots(); cartSlot++) {
                 ItemStack cartStack = cap.getStackInSlot(cartSlot);
-                if(cartStack != null) {
+                if(!cartStack.isEmpty()) {
                     if(isStackApplicable(cartStack, inv)) return true;
                 }
             }
@@ -54,7 +54,7 @@ public class DestinationProviderItems implements IDestinationProvider, IGUIButto
     public boolean isStackApplicable(ItemStack cartStack, IInventory inv){
         for(int teSlot = 0; teSlot < inv.getSizeInventory(); teSlot++) {
             ItemStack teStack = inv.getStackInSlot(teSlot);
-            if(teStack != null) {
+            if(!teStack.isEmpty()) {
                 if(blacklist != areStacksEqual(cartStack, teStack, checkDamage, checkNBT, checkOreDictionary, checkModSimilarity)) return true;
             }
         }
@@ -62,8 +62,8 @@ public class DestinationProviderItems implements IDestinationProvider, IGUIButto
     }
 
     public static boolean areStacksEqual(ItemStack stack1, ItemStack stack2, boolean checkMeta, boolean checkNBT, boolean checkOreDict, boolean checkModSimilarity){
-        if(stack1 == null && stack2 == null) return true;
-        if(stack1 == null && stack2 != null || stack1 != null && stack2 == null) return false;
+        if(stack1.isEmpty() && stack2.isEmpty()) return true;
+        if(stack1.isEmpty() && !stack2.isEmpty() || !stack1.isEmpty() && stack2.isEmpty()) return false;
 
         if(checkModSimilarity) {
             ResourceLocation id1 = Item.REGISTRY.getNameForObject(stack1.getItem());
