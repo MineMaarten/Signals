@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "path_signal",
+  "pattern": [
+    "sss", 
+    "srs", 
+    "sds"
+  ],
+  "key": {
+    "s": {
+      "type": "forge:ore_dict",
+      "ore": "ingotGold"
+    },
+    "r": {
+      "type": "forge:ore_dict",
+      "ore": "dyeRed"
+    },
+    "d": {
+      "type": "forge:ore_dict",
+      "ore": "dyeGreen"
+    }
+  },
+  "result": {
+    "item": "signals:path_signal",
+    "count": 8
+  }
+}

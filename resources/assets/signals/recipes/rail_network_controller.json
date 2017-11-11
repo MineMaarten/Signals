@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "qgq", 
+    "bpb", 
+    "qdq"
+  ],
+  "key": {
+    "q": {
+      "type": "forge:ore_dict",
+      "ore": "gemQuartz"
+    },
+    "g": {
+      "type": "forge:ore_dict",
+      "ore": "dustGlowstone"
+    },
+    "b": {
+      "item": "minecraft:stone_button"
+    },
+    "p": {
+      "item": "signals:path_signal"
+    },
+    "d": {
+      "type": "forge:ore_dict",
+      "ore": "gemDiamond"
+    }
+  },
+  "result": {
+    "item": "signals:rail_network_controller"
+  }
+}

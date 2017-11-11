@@ -1,0 +1,27 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "signals:path_signal_from_red_dye",
+      "signals:path_signal_from_redstone",
+      "signals:rail_network_controller"
+    ]
+  },
+  "criteria": {
+    "has_block_signal": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "signals:block_signal"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_block_signal"
+    ]
+  ]
+}

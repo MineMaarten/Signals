@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "signals:rail_link"
+    ]
+  },
+  "criteria": {
+    "has_rail_link": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "signals:station_marker"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_rail_link"
+    ]
+  ]
+}

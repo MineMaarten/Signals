@@ -20,7 +20,6 @@ import com.minemaarten.signals.lib.Versions;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.proxy.CommonProxy;
 import com.minemaarten.signals.rail.RailManager;
-import com.minemaarten.signals.recipe.RecipeRegistrator;
 
 @Mod(modid = Constants.MOD_ID, name = "Signals", acceptedMinecraftVersions = "[1.12.2,]")
 public class Signals{
@@ -40,7 +39,6 @@ public class Signals{
         proxy.preInit();
         ModBlocks.init();
         ModItems.init();
-        RecipeRegistrator.init();
         CapabilityMinecartDestination.register();
         CapabilityDestinationProvider.register();
         MinecraftForge.EVENT_BUS.register(new com.minemaarten.signals.event.EventHandler());

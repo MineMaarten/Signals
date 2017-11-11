@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "signals:station_marker"
+    },
+    {
+      "item": "minecraft:gold_block"
+    }
+  ],
+  "result": {
+    "item": "signals:rail_link"
+  }
+}

@@ -1,6 +1,5 @@
 package com.minemaarten.signals.client.glasses;
 
-import jline.internal.Log;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
@@ -23,13 +22,13 @@ public class GlassesMessage{
         message = I18n.format(message);
         message = message.replaceAll("\\$ROUTER\\$", String.format("(%s, %s, %s)", associatedRouter.getX(), associatedRouter.getY(), associatedRouter.getZ()));
 
-        if(associatedCart != null){
-	        BlockPos cartPos = associatedCart.getPosition();
-	        message = message.replaceAll("\\$CART\\$", String.format("(%s at (%s, %s, %s)", associatedCart.getName(), cartPos.getX(), cartPos.getY(), cartPos.getZ()));
-        }else{
-        	Log.warn("Cart is null!");
+        if(associatedCart != null) {
+            BlockPos cartPos = associatedCart.getPosition();
+            message = message.replaceAll("\\$CART\\$", String.format("(%s at (%s, %s, %s)", associatedCart.getName(), cartPos.getX(), cartPos.getY(), cartPos.getZ()));
+        } else {
+            //Log.warn("Cart is null!");
         }
-        
+
         //Format the args
         for(int i = 0; i < packet.args.length; i++) {
             if(packet.args[i].startsWith("signals.")) {

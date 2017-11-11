@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "signals:cart_engine"
+    ]
+  },
+  "criteria": {
+    "has_cart": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "minecraft:minecart"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_cart"
+    ]
+  ]
+}

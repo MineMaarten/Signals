@@ -4,17 +4,14 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
 
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
-import com.minemaarten.signals.tileentity.IGUITextFieldSensitive;
 
 public class PacketUpdateMinecartEngineState extends AbstractPacket<PacketUpdateMinecartEngineState>{
 
-	private int entityId;
+    private int entityId;
     private boolean active;
-    
+
     public PacketUpdateMinecartEngineState(){}
 
     public PacketUpdateMinecartEngineState(EntityMinecart cart, boolean active){
@@ -36,11 +33,13 @@ public class PacketUpdateMinecartEngineState extends AbstractPacket<PacketUpdate
 
     @Override
     public void handleClientSide(EntityPlayer player){
-    	Entity entity = player.world.getEntityByID(entityId);
-    	CapabilityMinecartDestination cap = entity.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-    	if(cap != null){
-    		cap.setEngineActive(active);
-    	}
+        Entity entity = player.world.getEntityByID(entityId);
+        if(entity != null) {
+            CapabilityMinecartDestination cap = entity.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+            if(cap != null) {
+                cap.setEngineActive(active);
+            }
+        }
     }
 
     @Override

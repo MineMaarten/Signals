@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:furnace"
+    },
+    {
+      "item": "minecraft:gold_block"
+    }
+  ],
+  "result": {
+    "item": "signals:cart_engine"
+  }
+}

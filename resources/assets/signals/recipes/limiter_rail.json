@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+   	"i i", 
+   	"isi", 
+   	"ici"
+  ],
+  "key": {
+    "i": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    },
+    "s": {
+      "item": "minecraft:stick"
+    },
+    "c": {
+      "item": "minecraft:comparator"
+    }
+  },
+  "result": {
+    "item": "signals:limiter_rail",
+    "count": 6
+  }
+}

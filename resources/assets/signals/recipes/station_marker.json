@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " i ", 
+    "ggg", 
+    "iii"
+  ],
+  "key": {
+    "i": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    },
+    "g": {
+      "type": "forge:ore_dict",
+      "ore": "dyeGreen"
+    }
+  },
+  "result": {
+    "item": "signals:station_marker"
+  }
+}
