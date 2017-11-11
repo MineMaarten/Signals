@@ -84,27 +84,27 @@ public class GuiButtonSpecial extends GuiButton implements IGuiWidget{
     }
 
     @Override
-    public void drawButton(Minecraft mc, int x, int y, float partialTicks){
-        if(thisVisible) super.drawButton(mc, x, y, partialTicks);
+    public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks){
+        if(thisVisible) super.drawButton(mc, mouseX, mouseY, partialTicks);
 
         if(visible) {
             if(renderedStacks != null) {
-                int middleX = x + width / 2;
+                int middleX = this.x + width / 2;
                 int startX = middleX - renderedStacks.length * 9 + 1;
                 GL11.glEnable(GL12.GL_RESCALE_NORMAL);
                 RenderHelper.enableGUIStandardItemLighting();
                 for(int i = 0; i < renderedStacks.length; i++) {
-                    itemRenderer.renderItemAndEffectIntoGUI(renderedStacks[i], startX + i * 18, y + 2);
+                    itemRenderer.renderItemAndEffectIntoGUI(renderedStacks[i], startX + i * 18, this.y + 2);
                 }
                 RenderHelper.disableStandardItemLighting();
                 GL11.glDisable(GL12.GL_RESCALE_NORMAL);
             }
             if(resLoc != null) {
                 mc.getTextureManager().bindTexture(resLoc);
-                drawModalRectWithCustomSizedTexture(x + width / 2 - 8, y + 2, 0, 0, 16, 16, 16, 16);
+                drawModalRectWithCustomSizedTexture(this.x + width / 2 - 8, this.y + 2, 0, 0, 16, 16, 16, 16);
             }
-            if(enabled && !thisVisible && x >= x && y >= y && x < x + width && y < y + height) {
-                Gui.drawRect(x, y, x + width, y + height, invisibleHoverColor);
+            if(enabled && !thisVisible && mouseX >= this.x && mouseY >= this.y && mouseX < this.x + width && mouseY < this.y + height) {
+                Gui.drawRect(this.x, this.y, this.x + width, this.y + height, invisibleHoverColor);
             }
         }
     }
