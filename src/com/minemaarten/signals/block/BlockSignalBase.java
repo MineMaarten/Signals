@@ -1,5 +1,8 @@
 package com.minemaarten.signals.block;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
@@ -13,6 +16,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
+import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
@@ -62,7 +66,21 @@ public class BlockSignalBase extends BlockBase{
 
     @Override
     public IBlockState getStateForPlacement(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer){
-        return getDefaultState().withProperty(FACING, placer.getHorizontalFacing());
+        List<EnumFacing> railFacings = new ArrayList<>(4);
+        for(EnumFacing horFacing : EnumFacing.HORIZONTALS) {
+            BlockPos railPos = pos.offset(horFacing);
+            if(RailManager.getInstance().getRail(worldIn, railPos, worldIn.getBlockState(railPos)) != null) {
+                railFacings.add(horFacing);
+            }
+        }
+
+        EnumFacing orientation;
+        if(railFacings.size() == 1) { //When exactly one rail is connecting, connect the signal to the rail
+            orientation = railFacings.get(0).rotateY();
+        } else { //Else, fall back onto player orientation.
+            orientation = placer.getHorizontalFacing();
+        }
+        return getDefaultState().withProperty(FACING, orientation);
     }
 
     @Override
