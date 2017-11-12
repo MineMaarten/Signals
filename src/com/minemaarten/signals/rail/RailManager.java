@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -18,13 +20,16 @@ import net.minecraftforge.fml.common.discovery.ASMDataTable;
 import net.minecraftforge.fml.common.discovery.ASMDataTable.ASMData;
 
 import com.minemaarten.signals.api.ICartHopperBehaviour;
+import com.minemaarten.signals.api.ICartLinker;
 import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.api.IRailMapper;
 import com.minemaarten.signals.api.Signals;
 import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
+import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.lib.Log;
+import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 
 public class RailManager{
     private static final RailManager INSTANCE = new RailManager();
@@ -32,6 +37,7 @@ public class RailManager{
     private final Map<Block, IRail> blockToRails = new HashMap<Block, IRail>();
     private final List<IDestinationProvider> destinationProviders = new ArrayList<IDestinationProvider>();
     private final List<ICartHopperBehaviour<?>> hopperBehaviours = new ArrayList<ICartHopperBehaviour<?>>();
+    private final List<ICartLinker> cartLinkers = new ArrayList<>();
 
     public static RailManager getInstance(){
         return INSTANCE;
@@ -43,6 +49,7 @@ public class RailManager{
             try {
                 Class<?> clazz = Class.forName(annotatedClass.getClassName());
                 Log.info("Found class annotating @SignalRail : " + annotatedClass.getClassName());
+
                 if(IRail.class.isAssignableFrom(clazz)) {
                     IRail rail = (IRail)clazz.newInstance();
                     for(Block applicableBlock : rail.getApplicableBlocks()) {
@@ -53,21 +60,32 @@ public class RailManager{
                         }
                     }
                     Log.info("Successfully registered the IRail for \"" + annotatedClass.getClassName() + "\".");
-                } else if(IRailMapper.class.isAssignableFrom(clazz)) {
+                }
+
+                if(IRailMapper.class.isAssignableFrom(clazz)) {
                     IRailMapper railMapper = (IRailMapper)clazz.newInstance();
                     registerCustomRailMapper(railMapper);
                     Log.info("Successfully registered the IRailMapper for \"" + annotatedClass.getClassName() + "\".");
-                } else if(IDestinationProvider.class.isAssignableFrom(clazz)) {
+                }
+
+                if(IDestinationProvider.class.isAssignableFrom(clazz)) {
                     IDestinationProvider destinationProvider = (IDestinationProvider)clazz.newInstance();
                     destinationProviders.add(destinationProvider);
                     Log.info("Successfully registered the IDestinationProvider for \"" + annotatedClass.getClassName() + "\".");
-                } else if(ICartHopperBehaviour.class.isAssignableFrom(clazz)) {
+                }
+
+                if(ICartHopperBehaviour.class.isAssignableFrom(clazz)) {
                     ICartHopperBehaviour<?> hopperBehaviour = (ICartHopperBehaviour<?>)clazz.newInstance();
                     hopperBehaviours.add(hopperBehaviour);
                     Log.info("Successfully registered the ICartHopperBehaviour for \"" + annotatedClass.getClassName() + "\".");
-                } else {
-                    Log.error("Annotated class \"" + annotatedClass.getClassName() + "\" is not implementing IRail, IRailMapper nor IDestinationProvider!");
                 }
+
+                if(ICartLinker.class.isAssignableFrom(clazz)) {
+                    ICartLinker cartLinker = (ICartLinker)clazz.newInstance();
+                    cartLinkers.add(cartLinker);
+                    Log.info("Successfully registered the ICartLinker for \"" + annotatedClass.getClassName() + "\".");
+                }
+                //Log.error("Annotated class \"" + annotatedClass.getClassName() + "\" is not implementing IRail, IRailMapper nor IDestinationProvider!");
             } catch(ClassNotFoundException e) {
                 e.printStackTrace();
             } catch(IllegalAccessException e) {
@@ -123,5 +141,20 @@ public class RailManager{
 
     public List<ICartHopperBehaviour<?>> getHopperBehaviours(){
         return hopperBehaviours;
+    }
+
+    public boolean areLinked(EntityMinecart cart1, EntityMinecart cart2){
+        return cartLinkers.stream().anyMatch((x) -> x.getLinkedCarts(cart1).contains(cart2));
+    }
+
+    public AStarRailNode getPath(EntityMinecart cart){
+        Stream<EntityMinecart> linkedCarts = cartLinkers.stream().flatMap(cartLinker -> cartLinker.getLinkedCarts(cart).stream());
+        linkedCarts = Stream.concat(Stream.of(cart), linkedCarts).distinct(); //Append the passed cart, just in case.
+
+        return linkedCarts.map(linkedCart -> getStoredPath(linkedCart)).filter(path -> path != null).findFirst().orElse(null);
+    }
+
+    private AStarRailNode getStoredPath(EntityMinecart cart){
+        return cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getPath(cart.world);
     }
 }

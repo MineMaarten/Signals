@@ -1,5 +1,6 @@
 package com.minemaarten.signals.tileentity;
 
+import java.util.List;
 import java.util.Set;
 
 import net.minecraft.entity.item.EntityMinecart;
@@ -14,12 +15,11 @@ public class TileEntityBlockSignal extends TileEntitySignalBase implements ITick
     public void update(){
         super.update();
         if(!world.isRemote) {
-        	//setMessage("Standby...");
             RailWrapper neighborRail = getConnectedRail();
             if(neighborRail != null) {
                 Set<RailWrapper> rails = getRailsToNextBlockSection(neighborRail, getFacing());
-                boolean cartOnNextBlock = !getMinecarts(world, rails).isEmpty();
-                setLampStatus(cartOnNextBlock ? EnumLampStatus.RED : EnumLampStatus.GREEN);
+                List<EntityMinecart> cartsOnNextBlock = getMinecarts(world, rails);
+                updateLampStatusBlockSignal(cartsOnNextBlock);
             } else {
                 setLampStatus(EnumLampStatus.YELLOW_BLINKING);
             }
@@ -28,9 +28,9 @@ public class TileEntityBlockSignal extends TileEntitySignalBase implements ITick
 
     @Override
     protected void onCartEnteringBlock(EntityMinecart cart){
-        if(getLampStatus() == EnumLampStatus.GREEN){
-        	AStarRailNode path = routeCart(cart, getFacing(), true);
-        	if(path != null) updateSwitches(path, cart, true);
+        if(getLampStatus() == EnumLampStatus.GREEN) {
+            AStarRailNode path = routeCart(cart, getFacing(), true);
+            if(path != null) updateSwitches(path, cart, true);
         }
     }
 

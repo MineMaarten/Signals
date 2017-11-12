@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.util.EnumParticleTypes;
@@ -11,11 +12,11 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
-import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
+import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.RailWrapper;
 
 public class TileEntityPathSignal extends TileEntitySignalBase implements ITickable{
@@ -43,16 +44,19 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                 //This also will fill the routed carts with a path for the next stage.
                 for(EntityMinecart routingCart : routingMinecarts) {
                     if(routeCart(routingCart, getFacing(), false) == null) {
-                        setLampStatus(cartsOnNextBlock.isEmpty() ? EnumLampStatus.GREEN : EnumLampStatus.RED);
+                        updateLampStatusBlockSignal(cartsOnNextBlock);
                         setMessage("signals.signal_message.cart_without_destination");
                         Log.debug("[Path Signal] Cart routed without destination. Block signal behaviour.");
                         return;
                     }
                 }
 
+                //ignore carts that are part of the same train
+                cartsOnNextBlock = cartsOnNextBlock.stream().filter(cart -> !isCartLinkedToAny(routingMinecarts, cart)).collect(Collectors.toList());
+
                 //Don't allow the cart to proceed if there are carts on the block without a path.
                 for(EntityMinecart cartOnNextBlock : cartsOnNextBlock) {
-                    if(getStoredPath(cartOnNextBlock) == null) {
+                    if(RailManager.getInstance().getPath(cartOnNextBlock) == null) {
                         setLampStatus(EnumLampStatus.RED);
                         BlockPos pos = cartOnNextBlock.getPosition();
                         setMessage("signals.signal_message.cart_on_track_without_destination", pos.getX(), pos.getY(), pos.getZ());
@@ -96,7 +100,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                 }
                 setLampStatus(EnumLampStatus.GREEN);
 
-                AStarRailNode path = getStoredPath(routingMinecarts.get(0));
+                AStarRailNode path = RailManager.getInstance().getPath(routingMinecarts.get(0));
                 if(path != null) updateSwitches(path, routingMinecarts.get(0), true);
             } else {
                 setMessage("");
@@ -113,12 +117,8 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
         route();
     }
 
-    private AStarRailNode getStoredPath(EntityMinecart cart){
-        return cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getPath(cart.world);
-    }
-
     private List<BlockPos> getToBeTraversedCoordinates(EntityMinecart cart){
-        AStarRailNode path = getStoredPath(cart);
+        AStarRailNode path = RailManager.getInstance().getPath(cart);
         List<BlockPos> coords = new ArrayList<BlockPos>();
         BlockPos cartPos = cart.getPosition();
         boolean returnOnNext = false;

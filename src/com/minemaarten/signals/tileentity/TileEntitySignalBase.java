@@ -40,6 +40,7 @@ import com.minemaarten.signals.rail.DestinationPathFinder;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.NetworkController;
 import com.minemaarten.signals.rail.RailCacheManager;
+import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.RailWrapper;
 
 public abstract class TileEntitySignalBase extends TileEntityBase implements ITickable{
@@ -163,7 +164,12 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             }
         }
         capability.setPath(cart, path);
-        return path;
+
+        if(destination.isEmpty()) { //When this cart is not being routed, rely on its linked carts, if any.
+            return RailManager.getInstance().getPath(cart);
+        } else {
+            return path; //When this cart is supposed to be routed, do not rely on its linked carts.
+        }
     }
 
     protected void updateSwitches(AStarRailNode pathNode, EntityMinecart cart, boolean submitMessages){
@@ -286,6 +292,24 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return carts;
     }
 
+    protected static boolean areLinkedCartsPastTheSignal(List<EntityMinecart> routingCarts, List<EntityMinecart> cartsOnNextBlock){
+        for(EntityMinecart cartOnNextBlock : cartsOnNextBlock) {
+            if(isCartLinkedToAny(routingCarts, cartOnNextBlock)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected static boolean isCartLinkedToAny(List<EntityMinecart> routingCarts, EntityMinecart cart){
+        for(EntityMinecart routingCart : routingCarts) {
+            if(RailManager.getInstance().areLinked(routingCart, cart)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void invalidate(){
         super.invalidate();
@@ -320,6 +344,18 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             RailWrapper neighbor = getConnectedRail();
             if(neighbor != null) updateConnectedSignals(neighbor);
         }
+    }
+
+    protected void updateLampStatusBlockSignal(List<EntityMinecart> cartsOnNextBlock){
+        boolean cartOnNextBlock = !cartsOnNextBlock.isEmpty();
+
+        //If there is a cart on the next block, check if it happens to be part of the same train. If so, still allow the cart to go through.
+        if(cartOnNextBlock) {
+            List<EntityMinecart> routingCarts = getNeighborMinecarts();
+            cartOnNextBlock = !areLinkedCartsPastTheSignal(routingCarts, cartsOnNextBlock);
+        }
+
+        setLampStatus(cartOnNextBlock ? EnumLampStatus.RED : EnumLampStatus.GREEN);
     }
 
     protected abstract void onCartEnteringBlock(EntityMinecart cart);
