@@ -6,12 +6,15 @@ import java.util.List;
 import java.util.Set;
 
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
+import com.minemaarten.signals.network.NetworkHandler;
+import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.RailWrapper;
 
@@ -54,6 +57,14 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                         BlockPos pos = cartOnNextBlock.getPosition();
                         setMessage("signals.signal_message.cart_on_track_without_destination", pos.getX(), pos.getY(), pos.getZ());
                         Log.debug("[Path Signal] Cart on rails without destination. Red signal. Cart: " + cartOnNextBlock.getPosition());
+
+                        for(int i = 0; i < 10; i++) {
+                            double randX = pos.getX() + world.rand.nextDouble();
+                            double randY = pos.getY() + world.rand.nextDouble();
+                            double randZ = pos.getZ() + world.rand.nextDouble();
+                            NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, randX, randY, randZ, 0, 0, 0), world);
+                        }
+
                         return;
                     }
                 }
@@ -72,6 +83,13 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                             BlockPos p = cartOnNextBlock.getPosition();
                             setMessage("signals.signal_message.cart_intersecting_path", p.getX(), p.getY(), p.getZ());
                             Log.debug("[Path Signal] Cart on rails intersecting the path of the routed cart. Red signal. Cart: " + cartOnNextBlock.getPosition());
+
+                            for(int i = 0; i < 10; i++) {
+                                double randX = p.getX() + world.rand.nextDouble();
+                                double randY = p.getY() + world.rand.nextDouble();
+                                double randZ = p.getZ() + world.rand.nextDouble();
+                                NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, randX, randY, randZ, 0, 0, 0), world);
+                            }
                             return;
                         }
                     }
