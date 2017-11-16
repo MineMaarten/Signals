@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,6 +49,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     private boolean firstTick = true;
     private List<EntityMinecart> routedMinecarts = new ArrayList<EntityMinecart>();
     private Set<TileEntitySignalBase> nextSignals = new HashSet<TileEntitySignalBase>();
+    private SignalBlockNode rootSignalNode = new SignalBlockNode(new BlockPos(0, 0, 0));
     private String text = "";
     private String arguments = "";
     private EnumForceMode forceMode = EnumForceMode.NONE;
@@ -92,7 +94,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return getWorld() != null ? getWorld().getBlockState(getPos()) : null;
     }
 
-    protected EnumFacing getFacing(){
+    public EnumFacing getFacing(){
         IBlockState state = getBlockState();
         return state != null && state.getBlock() instanceof BlockSignalBase ? state.getValue(BlockSignalBase.FACING) : EnumFacing.NORTH;
     }
@@ -371,10 +373,18 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         Set<RailWrapper> rails = new HashSet<RailWrapper>();
         Queue<Map.Entry<RailWrapper, EnumFacing>> traversingRails = new LinkedList<Map.Entry<RailWrapper, EnumFacing>>();
         Set<TileEntitySignalBase> signals = new HashSet<TileEntitySignalBase>();
+        Map<RailWrapper, SignalBlockNode> blockNodes = new HashMap<>();
+
+        rootSignalNode = new SignalBlockNode(curRail);
+        blockNodes.put(curRail, rootSignalNode);
 
         for(Map.Entry<RailWrapper, EnumFacing> entry : curRail.getNeighbors().entrySet()) {
             if(entry.getValue() != direction.getOpposite()) {
                 traversingRails.add(entry);
+
+                SignalBlockNode neighborSignalBlockNode = new SignalBlockNode(entry.getKey());
+                rootSignalNode.nextNeighbors.add(neighborSignalBlockNode);
+                blockNodes.put(entry.getKey(), neighborSignalBlockNode);
             }
         }
         rails.add(curRail); //Make sure to consider this block as traversed already, prevents traversing the tracks in reverse direction
@@ -385,16 +395,20 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             TileEntitySignalBase neighborSignal = getNeighborSignal(neighbor.getKey(), neighbor.getValue()); //Find a signal opposing this signal (for like merging splits)
             if(neighborSignal == null) {
                 rails.add(neighbor.getKey());
-                if(neighbor.getKey().getSignals().isEmpty()) {
-                    //    NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, neighbor.getKey().getX() + 0.5, neighbor.getKey().getY() + 0.5, neighbor.getKey().getZ() + 0.5, 0, 0, 0), curRail.world);
+                Map<EnumFacing, TileEntitySignalBase> neighborSignals = neighbor.getKey().getSignals();
+                if(neighborSignals.isEmpty()) {
                     for(Map.Entry<RailWrapper, EnumFacing> entry : neighbor.getKey().getNeighbors().entrySet()) {
                         BlockPos nextNeighbor = entry.getKey();
                         if(!rails.contains(nextNeighbor)) {
                             traversingRails.add(entry);
+
+                            SignalBlockNode neighborSignalBlockNode = new SignalBlockNode(entry.getKey());
+                            blockNodes.get(neighbor.getKey()).nextNeighbors.add(neighborSignalBlockNode);
+                            blockNodes.put(entry.getKey(), neighborSignalBlockNode);
                         }
                     }
                 } else {
-                    signals.add(neighbor.getKey().getSignals().values().iterator().next());
+                    signals.add(neighborSignals.values().iterator().next());
                 }
             }
         }
@@ -423,6 +437,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         }
 
         tag.setTag("signals", list);
+        rootSignalNode.toNBTTagCompound(tag);
         tag.setString("text", text);
         tag.setString("arguments", arguments);
         return new SPacketUpdateTileEntity(getPos(), 0, tag);
@@ -439,6 +454,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
                 TileEntity te = world.getTileEntity(pos);
                 if(te instanceof TileEntitySignalBase) nextSignals.add((TileEntitySignalBase)te);
             }
+            rootSignalNode = new SignalBlockNode(pkt.getNbtCompound());
 
             text = pkt.getNbtCompound().getString("text");
             arguments = pkt.getNbtCompound().getString("arguments");
@@ -461,6 +477,10 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             localizedArguments[i] = I18n.format(localizedArguments[i]);
         }
         return I18n.format(text, (Object[])localizedArguments);
+    }
+
+    public SignalBlockNode getSignalBlockInfo(){
+        return rootSignalNode;
     }
 
     public void setForceMode(EnumForceMode forceMode){
@@ -492,5 +512,40 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     public void readFromNBT(NBTTagCompound tag){
         super.readFromNBT(tag);
         forceMode = EnumForceMode.values()[tag.getByte("forceMode")];
+    }
+
+    public static class SignalBlockNode{
+        public final List<SignalBlockNode> nextNeighbors = new ArrayList<>();
+        public final BlockPos railPos;
+
+        public SignalBlockNode(BlockPos railPos){
+            this.railPos = railPos;
+        }
+
+        public SignalBlockNode(NBTTagCompound tag){
+            railPos = new BlockPos(tag.getInteger("x"), tag.getInteger("y"), tag.getInteger("z"));
+
+            NBTTagList tagList = tag.getTagList("blockNode", 10);
+            for(int i = 0; i < tagList.tagCount(); i++) {
+                NBTTagCompound t = tagList.getCompoundTagAt(i);
+
+                SignalBlockNode neighbor = new SignalBlockNode(t);
+                nextNeighbors.add(neighbor);
+            }
+        }
+
+        private void toNBTTagCompound(NBTTagCompound tag){
+            tag.setInteger("x", railPos.getX());
+            tag.setInteger("y", railPos.getY());
+            tag.setInteger("z", railPos.getZ());
+
+            NBTTagList tagList = new NBTTagList();
+            for(SignalBlockNode neighbor : nextNeighbors) {
+                NBTTagCompound t = new NBTTagCompound();
+                neighbor.toNBTTagCompound(t);
+                tagList.appendTag(t);
+            }
+            tag.setTag("blockNode", tagList);
+        }
     }
 }

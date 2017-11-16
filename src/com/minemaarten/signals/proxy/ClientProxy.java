@@ -1,8 +1,5 @@
 package com.minemaarten.signals.proxy;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelBakery;
@@ -43,6 +40,7 @@ public class ClientProxy extends CommonProxy{
     public void preInit(){
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
         MinecraftForge.EVENT_BUS.register(GlassesHUD.getInstance());
+        MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySignalBase.class, new SignalStatusRenderer());
     }
 
@@ -58,7 +56,7 @@ public class ClientProxy extends CommonProxy{
     }
 
     private void registerItemModels(Item item){
-	    NonNullList<ItemStack> stacks = NonNullList.create();
+        NonNullList<ItemStack> stacks = NonNullList.create();
         item.getSubItems(CreativeTabs.SEARCH, stacks);
         for(ItemStack stack : stacks) {
             ResourceLocation resLoc = new ResourceLocation(Constants.MOD_ID, stack.getUnlocalizedName().substring(5));
