@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import net.minecraft.block.Block;
@@ -97,7 +99,15 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return state != null && state.getBlock() instanceof BlockSignalBase ? state.getValue(BlockSignalBase.FACING) : EnumFacing.NORTH;
     }
 
+    public boolean isValidRoute(AStarRailNode route){
+        return true;
+    }
+
     protected void setLampStatus(EnumLampStatus lampStatus){
+        setLampStatus(lampStatus, () -> getNeighborMinecarts(), cart -> routeCart(cart, getFacing(), true));
+    }
+
+    protected void setLampStatus(EnumLampStatus lampStatus, Supplier<List<EntityMinecart>> neighborMinecartGetter, Function<EntityMinecart, AStarRailNode> pathfinder){
         if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
             lampStatus = EnumLampStatus.GREEN;
         } else if(forceMode == EnumForceMode.FORCED_RED) {
@@ -109,12 +119,13 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             NetworkController.getInstance(getWorld()).updateColor(this, getPos());
             if(lampStatus == EnumLampStatus.GREEN) {
                 //Push carts when they're standing still.
-                for(EntityMinecart cart : getNeighborMinecarts()) {
+                for(EntityMinecart cart : neighborMinecartGetter.get()) {
                     if(new Vec3d(cart.motionX, cart.motionY, cart.motionZ).lengthVector() < 0.01 || EnumFacing.getFacingFromVector((float)cart.motionX, 0, (float)cart.motionZ) == getFacing()) {
                         cart.motionX += getFacing().getFrontOffsetX() * 0.1;
                         cart.motionZ += getFacing().getFrontOffsetZ() * 0.1;
                         long start = System.nanoTime();
-                        AStarRailNode path = routeCart(cart, getFacing(), true);
+
+                        AStarRailNode path = pathfinder.apply(cart);
                         if(path != null) updateSwitches(path, cart, true);
                         Log.debug((System.nanoTime() - start) / 1000 + "ns");
                     }
@@ -346,7 +357,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         }
     }
 
-    protected void updateLampStatusBlockSignal(List<EntityMinecart> cartsOnNextBlock){
+    protected EnumLampStatus getLampStatusBlockSignal(List<EntityMinecart> cartsOnNextBlock){
         boolean cartOnNextBlock = !cartsOnNextBlock.isEmpty();
 
         //If there is a cart on the next block, check if it happens to be part of the same train. If so, still allow the cart to go through.
@@ -355,7 +366,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             cartOnNextBlock = !areLinkedCartsPastTheSignal(routingCarts, cartsOnNextBlock);
         }
 
-        setLampStatus(cartOnNextBlock ? EnumLampStatus.RED : EnumLampStatus.GREEN);
+        return cartOnNextBlock ? EnumLampStatus.RED : EnumLampStatus.GREEN;
     }
 
     protected abstract void onCartEnteringBlock(EntityMinecart cart);
@@ -405,6 +416,10 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         }
     }
 
+    /**
+     * The signals that are not opposing the direction of this signal.
+     * @return
+     */
     public Set<TileEntitySignalBase> getNextSignals(){
         return nextSignals;
     }

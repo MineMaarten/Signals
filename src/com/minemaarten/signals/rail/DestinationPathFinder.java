@@ -26,7 +26,7 @@ public class DestinationPathFinder{
         private AStarRailNode prevNode;
         private final RailWrapper goal;
         private final RailWrapper rail;
-        private final EnumFacing pathDir;
+        public final EnumFacing pathDir;
 
         public AStarRailNode(RailWrapper rail, EnumFacing pathDir, RailWrapper goal){
             this.rail = rail;

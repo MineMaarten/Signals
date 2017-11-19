@@ -43,8 +43,9 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                 //Fall back onto default Block Signal behaviour if there are any carts to be routed without a path. 
                 //This also will fill the routed carts with a path for the next stage.
                 for(EntityMinecart routingCart : routingMinecarts) {
-                    if(routeCart(routingCart, getFacing(), false) == null) {
-                        updateLampStatusBlockSignal(cartsOnNextBlock);
+                    AStarRailNode route = routeCart(routingCart, getFacing(), false);
+                    if(route == null) {
+                        setLampStatus(getLampStatusBlockSignal(cartsOnNextBlock));
                         setMessage("signals.signal_message.cart_without_destination");
                         Log.debug("[Path Signal] Cart routed without destination. Block signal behaviour.");
                         return;
