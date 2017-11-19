@@ -55,7 +55,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
     }
 
     public List<RailWrapper> getNeighborRails(){
-        List<RailWrapper> neighbors = new ArrayList<RailWrapper>(1);
+        List<RailWrapper> neighbors = new ArrayList<>(1);
         for(EnumFacing d : EnumFacing.values()) {
             RailWrapper rail = RailCacheManager.getInstance(getWorld()).getRail(getWorld(), getPos().offset(d));
             if(rail != null) neighbors.add(rail);

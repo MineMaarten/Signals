@@ -41,7 +41,7 @@ public class CommonProxy implements IGuiHandler{
         switch(EnumGuiId.values()[ID]){
             case STATION_MARKER:
             case CART_HOPPER:
-                return new ContainerBase<TileEntity>(te);
+                return new ContainerBase<>(te);
             case MINECART_DESTINATION:
                 return new ContainerMinecart(player.inventory, (EntityMinecart)entity, z == 1);
             case NETWORK_CONTROLLER:

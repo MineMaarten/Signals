@@ -23,7 +23,7 @@ public class GlassesHUD{
         return INSTANCE;
     }
 
-    private final List<GlassesMessage> messages = new LinkedList<GlassesMessage>();
+    private final List<GlassesMessage> messages = new LinkedList<>();
 
     public void onNewMessage(GlassesMessage message){
     	if(message.associatedCart != null){

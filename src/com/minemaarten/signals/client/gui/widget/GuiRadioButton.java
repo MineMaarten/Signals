@@ -25,7 +25,7 @@ public class GuiRadioButton extends Gui implements IGuiWidget{
     private final int id;
     public String text;
     public FontRenderer fontRenderer = FMLClientHandler.instance().getClient().fontRenderer;
-    private List<String> tooltip = new ArrayList<String>();
+    private List<String> tooltip = new ArrayList<>();
     public List<GuiRadioButton> otherChoices;
     private IWidgetListener listener;
 

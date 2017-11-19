@@ -22,7 +22,7 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class RailWrapper extends BlockPos{
-    private static Map<EnumSet<EnumFacing>, EnumRailDirection> DIRS_TO_RAIL_DIR = new HashMap<EnumSet<EnumFacing>, EnumRailDirection>(6);
+    private static Map<EnumSet<EnumFacing>, EnumRailDirection> DIRS_TO_RAIL_DIR = new HashMap<>(6);
 
     static {
         DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumFacing.NORTH, EnumFacing.SOUTH), EnumRailDirection.NORTH_SOUTH);
@@ -76,7 +76,7 @@ public class RailWrapper extends BlockPos{
 
     public void link(TileEntityRailLink link){
         if(railLinks == Collections.EMPTY_SET) {
-            railLinks = new HashSet<TileEntityRailLink>();
+            railLinks = new HashSet<>();
         }
         railLinks.add(link);
     }
@@ -96,13 +96,13 @@ public class RailWrapper extends BlockPos{
             for(EnumFacing d : EnumFacing.values()) {
                 TileEntity te = world.getTileEntity(offset(d));
                 if(te instanceof TileEntityStationMarker) {
-                    if(stationMarkers == null) stationMarkers = new ArrayList<TileEntityStationMarker>(1); //Be conservative with instantiating, as not many rails usually have a station.
+                    if(stationMarkers == null) stationMarkers = new ArrayList<>(1); //Be conservative with instantiating, as not many rails usually have a station.
                     stationMarkers.add((TileEntityStationMarker)te);
                 }
             }
             if(stationMarkers == null) stationMarkers = Collections.emptyList();
         }
-        Set<String> stationNames = new HashSet<String>(stationMarkers.size());
+        Set<String> stationNames = new HashSet<>(stationMarkers.size());
         for(TileEntityStationMarker marker : stationMarkers) {
             stationNames.add(marker.getStationName());
         }
@@ -123,7 +123,7 @@ public class RailWrapper extends BlockPos{
                     if(te instanceof TileEntitySignalBase) {
                         TileEntitySignalBase signal = (TileEntitySignalBase)te;
                         if(signal.getNeighborPos().equals(this)) {
-                            if(signals == null) signals = new HashMap<EnumFacing, TileEntitySignalBase>(1); //Be conservative with instantiating, as not many rails usually have a signal.
+                            if(signals == null) signals = new HashMap<>(1); //Be conservative with instantiating, as not many rails usually have a signal.
                             signals.put(d, signal);
                         }
                     }
@@ -140,7 +140,7 @@ public class RailWrapper extends BlockPos{
 
     public Map<RailWrapper, EnumFacing> getNeighbors(){
         if(neighbors == null) {
-            Map<RailWrapper, EnumFacing> neighbors = new HashMap<RailWrapper, EnumFacing>(6);
+            Map<RailWrapper, EnumFacing> neighbors = new HashMap<>(6);
 
             EnumSet<EnumFacing> validDirs = EnumSet.noneOf(EnumFacing.class);
             for(EnumRailDirection railDir : rail.getValidDirections(world, this, state)) {

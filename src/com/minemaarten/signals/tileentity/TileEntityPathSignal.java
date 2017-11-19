@@ -59,7 +59,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                 }
 
                 //The positions of the track that should be kept free of carts for the carts to be allowed to continue.
-                Set<BlockPos> claimingPositions = new HashSet<BlockPos>();
+                Set<BlockPos> claimingPositions = new HashSet<>();
                 for(EntityMinecart routingCart : routingMinecarts) {
                     claimingPositions.addAll(getToBeTraversedCoordinates(routingCart));
                 }
@@ -101,7 +101,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
 
     private List<BlockPos> getToBeTraversedCoordinates(EntityMinecart cart){
         AStarRailNode path = getStoredPath(cart);
-        List<BlockPos> coords = new ArrayList<BlockPos>();
+        List<BlockPos> coords = new ArrayList<>();
         BlockPos cartPos = cart.getPosition();
         boolean returnOnNext = false;
         while(path != null) {

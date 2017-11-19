@@ -12,7 +12,7 @@ import org.lwjgl.input.Keyboard;
 
 public class WidgetComboBox extends WidgetTextField{
 
-    private final ArrayList<String> elements = new ArrayList<String>();
+    private final ArrayList<String> elements = new ArrayList<>();
     private final FontRenderer fontRenderer;
     private boolean enabled = true;
     private boolean fixedOptions;
@@ -39,7 +39,7 @@ public class WidgetComboBox extends WidgetTextField{
     }
 
     private List<String> getApplicableElements(){
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         for(String element : elements) {
             if(fixedOptions || element.toLowerCase().contains(getText().toLowerCase())) list.add(element);
         }

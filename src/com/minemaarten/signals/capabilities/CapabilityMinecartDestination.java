@@ -120,7 +120,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                 instance.curDestinationIndex = tag.getInteger("destIndex");
 
                 if(tag.hasKey("path")) {
-                    instance.nbtLoadedPath = new ArrayList<BlockPos>();
+                    instance.nbtLoadedPath = new ArrayList<>();
                     NBTTagList nodeList = tag.getTagList("path", 10);
                     for(int i = 0; i < nodeList.tagCount(); i++) {
                         NBTTagCompound nodeTag = nodeList.getCompoundTagAt(i);

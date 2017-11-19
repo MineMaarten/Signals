@@ -87,9 +87,9 @@ public class DestinationPathFinder{
      */
     public static AStarRailNode pathfindToDestination(RailWrapper start, Collection<RailWrapper> goals, EnumFacing direction){
         if(goals.isEmpty()) return null;
-        Queue<AStarRailNode> queue = new PriorityQueue<AStarRailNode>();
-        Set<RailWrapper> traversedRails = new HashSet<RailWrapper>();
-        Map<RailWrapper, AStarRailNode> railMap = new HashMap<RailWrapper, AStarRailNode>();
+        Queue<AStarRailNode> queue = new PriorityQueue<>();
+        Set<RailWrapper> traversedRails = new HashSet<>();
+        Map<RailWrapper, AStarRailNode> railMap = new HashMap<>();
 
         Map<RailWrapper, AStarRailNode> firstSignals = getFirstSignals(start, direction, goals);
         Log.debug("Signals: " + firstSignals.size());
@@ -172,15 +172,15 @@ public class DestinationPathFinder{
     }
 
     private static Map<RailWrapper, AStarRailNode> getFirstSignals(RailWrapper start, EnumFacing dir, Collection<RailWrapper> goals){
-        Map<RailWrapper, AStarRailNode> firstSignals = new HashMap<RailWrapper, AStarRailNode>();
-        Set<RailWrapper> traversedRails = new HashSet<RailWrapper>();
-        Queue<Map.Entry<RailWrapper, AStarRailNode>> traversingRails = new LinkedList<Map.Entry<RailWrapper, AStarRailNode>>();
+        Map<RailWrapper, AStarRailNode> firstSignals = new HashMap<>();
+        Set<RailWrapper> traversedRails = new HashSet<>();
+        Queue<Map.Entry<RailWrapper, AStarRailNode>> traversingRails = new LinkedList<>();
 
         for(Map.Entry<RailWrapper, EnumFacing> entry : start.getNeighbors().entrySet()) {
             if(entry.getValue() != dir.getOpposite()) {
                 AStarRailNode node = new AStarRailNode(entry.getKey(), entry.getValue(), null);
                 node.distanceFromStart = 0;
-                traversingRails.add(new ImmutablePair<RailWrapper, AStarRailNode>(entry.getKey(), node));
+                traversingRails.add(new ImmutablePair<>(entry.getKey(), node));
             }
         }
         traversedRails.add(start); //Make sure to consider this block as traversed already, prevents traversing the tracks in reverse direction
@@ -205,7 +205,7 @@ public class DestinationPathFinder{
                             AStarRailNode nextNode = new AStarRailNode(entry.getKey(), entry.getValue(), null);
                             nextNode.checkImprovementAndUpdate(neighbor.getValue());
 
-                            traversingRails.add(new ImmutablePair<RailWrapper, AStarRailNode>(entry.getKey(), nextNode));
+                            traversingRails.add(new ImmutablePair<>(entry.getKey(), nextNode));
                         }
                     }
                 }

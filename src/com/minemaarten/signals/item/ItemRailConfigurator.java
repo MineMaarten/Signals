@@ -41,7 +41,7 @@ public class ItemRailConfigurator extends ItemSignals{
                 CapabilityDestinationProvider cap = te.getCapability(CapabilityDestinationProvider.INSTANCE, null);
                 if(cap != null) {
                     List<IDestinationProvider> providers = cap.getApplicableDestinationProviders();
-                    List<IDestinationProvider> guiProviders = new ArrayList<IDestinationProvider>();
+                    List<IDestinationProvider> guiProviders = new ArrayList<>();
                     for(IDestinationProvider provider : providers)
                         if(provider.hasGui(te)) guiProviders.add(provider);
                     if(guiProviders.size() > 1) {

@@ -28,10 +28,10 @@ import com.minemaarten.signals.lib.Log;
 
 public class RailManager{
     private static final RailManager INSTANCE = new RailManager();
-    private final List<IRailMapper> railMappers = new ArrayList<IRailMapper>();
-    private final Map<Block, IRail> blockToRails = new HashMap<Block, IRail>();
-    private final List<IDestinationProvider> destinationProviders = new ArrayList<IDestinationProvider>();
-    private final List<ICartHopperBehaviour<?>> hopperBehaviours = new ArrayList<ICartHopperBehaviour<?>>();
+    private final List<IRailMapper> railMappers = new ArrayList<>();
+    private final Map<Block, IRail> blockToRails = new HashMap<>();
+    private final List<IDestinationProvider> destinationProviders = new ArrayList<>();
+    private final List<ICartHopperBehaviour<?>> hopperBehaviours = new ArrayList<>();
 
     public static RailManager getInstance(){
         return INSTANCE;

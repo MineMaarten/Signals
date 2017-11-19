@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 public class WidgetTextField extends GuiTextField implements IGuiWidget{
 
     protected IWidgetListener listener;
-    private final List<String> tooltip = new ArrayList<String>();
+    private final List<String> tooltip = new ArrayList<>();
     private boolean passwordBox;
 
     public WidgetTextField(FontRenderer fontRenderer, int x, int y, int width, int height){
