@@ -37,17 +37,17 @@ public class NetworkHandler{
         INSTANCE.sendTo(message, player);
     }
 
-    public static void sendToAllAround(LocationIntPacket message, World world, double distance){
+    public static void sendToAllAround(LocationIntPacket<?> message, World world, double distance){
 
         sendToAllAround(message, message.getTargetPoint(world, distance));
     }
 
-    public static void sendToAllAround(LocationIntPacket message, World world){
+    public static void sendToAllAround(LocationIntPacket<?> message, World world){
 
         sendToAllAround(message, message.getTargetPoint(world));
     }
 
-    public static void sendToAllAround(LocationDoublePacket message, World world){
+    public static void sendToAllAround(LocationDoublePacket<?> message, World world){
 
         sendToAllAround(message, message.getTargetPoint(world));
     }

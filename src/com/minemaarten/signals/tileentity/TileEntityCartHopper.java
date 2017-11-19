@@ -111,7 +111,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
             }
 
             for(ICartHopperBehaviour hopperBehaviour : RailManager.getInstance().getHopperBehaviours()) {
-                Capability cap = hopperBehaviour.getCapability();
+                Capability<?> cap = hopperBehaviour.getCapability();
                 if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems || managingCart.hasCapability(cap, null)) {
                     Object cart = null;
                     if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems) {

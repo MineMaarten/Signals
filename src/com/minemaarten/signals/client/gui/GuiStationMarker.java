@@ -15,7 +15,7 @@ public class GuiStationMarker extends GuiContainerBase<TileEntityStationMarker>{
     private WidgetComboBox stationNameField;
 
     public GuiStationMarker(TileEntityStationMarker te){
-        super(new ContainerBase(te), te, null);
+        super(new ContainerBase<>(te), te, null);
     }
 
     @Override

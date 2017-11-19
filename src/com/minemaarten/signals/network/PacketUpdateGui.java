@@ -131,7 +131,7 @@ public class PacketUpdateGui extends AbstractPacket<PacketUpdateGui>{
 
         Container container = player.openContainer;
         if(container instanceof ContainerBase) {
-            ((ContainerBase)container).updateField(syncId, value);
+            ((ContainerBase<?>)container).updateField(syncId, value);
         }
     }
 
