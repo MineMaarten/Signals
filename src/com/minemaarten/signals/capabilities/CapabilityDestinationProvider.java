@@ -42,12 +42,7 @@ public class CapabilityDestinationProvider{
                 }
             }
 
-        }, new Callable<CapabilityDestinationProvider>(){
-            @Override
-            public CapabilityDestinationProvider call() throws Exception{
-                return new CapabilityDestinationProvider();
-            }
-        });
+        }, CapabilityDestinationProvider.class);
     }
 
     public static class Provider implements ICapabilitySerializable<NBTBase>{
