@@ -71,7 +71,7 @@ public class ClientEventHandler{
         GL11.glPopMatrix();
     }
 
-    private void drawBetween(BufferBuilder buffer, BlockPos p1, BlockPos p2, double offset, float r, float g, float b, float alpha){
+    private static void drawBetween(BufferBuilder buffer, BlockPos p1, BlockPos p2, double offset, float r, float g, float b, float alpha){
         buffer.pos(p1.getX() + 0.5, p1.getY() + offset, p1.getZ() + 0.5).color(r, g, b, alpha).endVertex();
         buffer.pos(p2.getX() + 0.5, p2.getY() + offset, p2.getZ() + 0.5).color(r, g, b, alpha).endVertex();
     }

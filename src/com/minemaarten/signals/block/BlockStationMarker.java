@@ -26,6 +26,7 @@ public class BlockStationMarker extends BlockBase{
         super(TileEntityStationMarker.class, "station_marker");
     }
 
+    @Override
     public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos)
     {
         return new AxisAlignedBB(4 / 16F, 0.0F, 4 / 16F, 12 / 16F, 16 / 16F, 12 / 16F);

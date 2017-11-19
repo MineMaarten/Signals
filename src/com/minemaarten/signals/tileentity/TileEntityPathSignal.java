@@ -95,11 +95,11 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
         route();
     }
 
-    private AStarRailNode getStoredPath(EntityMinecart cart){
+    private static AStarRailNode getStoredPath(EntityMinecart cart){
         return cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getPath(cart.world);
     }
 
-    private List<BlockPos> getToBeTraversedCoordinates(EntityMinecart cart){
+    private static List<BlockPos> getToBeTraversedCoordinates(EntityMinecart cart){
         AStarRailNode path = getStoredPath(cart);
         List<BlockPos> coords = new ArrayList<BlockPos>();
         BlockPos cartPos = cart.getPosition();

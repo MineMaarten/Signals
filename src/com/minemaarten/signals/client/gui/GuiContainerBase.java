@@ -264,10 +264,12 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
          // this.drawTexturedModalRect(x, y, 0, 0, 16, 16);
      }*/
 
+    @Override
     public int getGuiLeft(){
         return guiLeft;
     }
 
+    @Override
     public int getGuiTop(){
         return guiTop;
     }

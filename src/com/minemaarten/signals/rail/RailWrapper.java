@@ -236,7 +236,8 @@ public class RailWrapper extends BlockPos{
             case ASCENDING_EAST:
             case ASCENDING_WEST:
                 return true;
+            default:
+                return false;
         }
-        return false;
     }
 }
