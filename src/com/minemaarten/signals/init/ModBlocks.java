@@ -2,7 +2,6 @@ package com.minemaarten.signals.init;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemBlock;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 
 import com.minemaarten.signals.block.BlockCartHopper;
 import com.minemaarten.signals.block.BlockLimiterRail;

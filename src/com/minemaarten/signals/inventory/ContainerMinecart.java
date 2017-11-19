@@ -4,14 +4,12 @@ import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
 import net.minecraft.tileentity.TileEntity;
 
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.inventory.slots.SlotInventoryLimiting;
-import com.minemaarten.signals.tileentity.IGUIButtonSensitive;
 
-public class ContainerMinecart extends ContainerBase<TileEntity> implements IGUIButtonSensitive{
+public class ContainerMinecart extends ContainerBase<TileEntity> {
     private final EntityMinecart cart;
     public final boolean isMotorized;
 

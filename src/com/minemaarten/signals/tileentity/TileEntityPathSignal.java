@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
@@ -15,7 +14,7 @@ import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.RailWrapper;
 
-public class TileEntityPathSignal extends TileEntitySignalBase implements ITickable{
+public class TileEntityPathSignal extends TileEntitySignalBase {
 
     private int pathingTimer;
 

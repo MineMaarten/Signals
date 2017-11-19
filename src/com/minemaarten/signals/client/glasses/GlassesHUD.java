@@ -4,17 +4,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.client.FMLClientHandler;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import org.lwjgl.opengl.GL11;
-
-import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 
 public class GlassesHUD{
     private static final GlassesHUD INSTANCE = new GlassesHUD();
@@ -39,17 +35,16 @@ public class GlassesHUD{
         if(event.phase == TickEvent.Phase.END) {
             Minecraft mc = FMLClientHandler.instance().getClient();
             if(mc != null && mc.player != null) {
-                render2D(event.renderTickTime);
+                render2D();
             }
         }
     }
 
-    private void render2D(float partialTicks){
+    private void render2D(){
         Minecraft minecraft = FMLClientHandler.instance().getClient();
         EntityPlayer player = minecraft.player;
         ItemStack helmetStack = player.inventory.armorInventory.get(3);
         if(!helmetStack.isEmpty() && minecraft.inGameHasFocus && helmetStack.getItem() == Items.DIAMOND_HELMET) {
-            ScaledResolution sr = new ScaledResolution(minecraft);
             GL11.glDepthMask(false);
             GL11.glDisable(GL11.GL_CULL_FACE);
             GL11.glDisable(GL11.GL_TEXTURE_2D);

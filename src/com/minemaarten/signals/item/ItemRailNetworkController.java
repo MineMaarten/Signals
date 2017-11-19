@@ -1,15 +1,11 @@
 package com.minemaarten.signals.item;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.registry.GameRegistry;
-
 import com.minemaarten.signals.Signals;
-import com.minemaarten.signals.client.CreativeTabSignals;
 import com.minemaarten.signals.proxy.CommonProxy;
 
 public class ItemRailNetworkController extends ItemSignals {

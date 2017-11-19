@@ -3,13 +3,12 @@ package com.minemaarten.signals.tileentity;
 import java.util.Set;
 
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.util.ITickable;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.RailWrapper;
 
-public class TileEntityBlockSignal extends TileEntitySignalBase implements ITickable{
+public class TileEntityBlockSignal extends TileEntitySignalBase {
     @Override
     public void update(){
         super.update();
