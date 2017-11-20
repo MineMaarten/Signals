@@ -61,6 +61,10 @@ public class DestinationPathFinder{
             return distanceFromStart + (goal != null ? getDistance(goal) : 0); //A*
         }
 
+        public EnumFacing getPathDir(){
+            return pathDir;
+        }
+
         @Override
         public int compareTo(AStarRailNode node){
             return Double.compare(getCost(), node.getCost());
@@ -133,7 +137,7 @@ public class DestinationPathFinder{
                 int minBound = minSignalDistance + node.distanceFromStart;
                 if(minBound > bestDistance) break; //Branch and bound, return when we can't ever find a better solution in best case.
             }
-            for(Map.Entry<RailWrapper, EnumFacing> entry : node.rail.getNeighbors().entrySet()) {
+            for(Map.Entry<RailWrapper, EnumFacing> entry : node.rail.getNeighborsForEntryDir(node.pathDir).entrySet()) {
                 RailWrapper neighborRail = entry.getKey();
                 if(TileEntitySignalBase.getNeighborSignal(neighborRail, entry.getValue().getOpposite()) == null && !traversedRails.contains(neighborRail)) {
                     AStarRailNode neighborNode = railMap.get(neighborRail);
@@ -176,7 +180,7 @@ public class DestinationPathFinder{
         Set<RailWrapper> traversedRails = new HashSet<RailWrapper>();
         Queue<Map.Entry<RailWrapper, AStarRailNode>> traversingRails = new LinkedList<Map.Entry<RailWrapper, AStarRailNode>>();
 
-        for(Map.Entry<RailWrapper, EnumFacing> entry : start.getNeighbors().entrySet()) {
+        for(Map.Entry<RailWrapper, EnumFacing> entry : start.getNeighborsForEntryDir(dir).entrySet()) {
             if(entry.getValue() != dir.getOpposite()) {
                 AStarRailNode node = new AStarRailNode(entry.getKey(), entry.getValue(), null);
                 node.distanceFromStart = 0;
@@ -199,7 +203,7 @@ public class DestinationPathFinder{
             TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(neighbor.getKey(), neighbor.getValue().pathDir.getOpposite());
             if(signal == null) { //If not connected to a signal
                 if(neighbor.getKey().getSignals().size() != 1) {//Try to find a single opposing signal instead.
-                    for(Map.Entry<RailWrapper, EnumFacing> entry : neighbor.getKey().getNeighbors().entrySet()) {
+                    for(Map.Entry<RailWrapper, EnumFacing> entry : neighbor.getKey().getNeighborsForEntryDir(neighbor.getValue().pathDir).entrySet()) {
                         BlockPos nextNeighbor = entry.getKey();
                         if(!traversedRails.contains(nextNeighbor)) {
                             AStarRailNode nextNode = new AStarRailNode(entry.getKey(), entry.getValue(), null);
