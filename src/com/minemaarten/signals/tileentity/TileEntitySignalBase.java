@@ -174,9 +174,9 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
 
     protected void updateSwitches(AStarRailNode pathNode, EntityMinecart cart, boolean submitMessages){
         List<PacketUpdateMessage> messages = new ArrayList<PacketUpdateMessage>();
-        EnumFacing lastHeading = null;
+        EnumFacing lastHeading = pathNode.getPathDir();
         while(pathNode != null) {
-            Map<RailWrapper, EnumFacing> neighbors = pathNode.getRail().getNeighbors();
+            Map<RailWrapper, EnumFacing> neighbors = pathNode.getRail().getNeighborsForEntryDir(lastHeading);
             EnumFacing heading = pathNode.getNextNode() != null ? neighbors.get(pathNode.getNextNode().getRail()) : null;
             if(neighbors.size() > 2 && heading != null && lastHeading != null) { //If on an intersection
                 EnumRailDirection railDir = RailWrapper.getRailDir(EnumSet.of(heading, lastHeading.getOpposite()));
@@ -366,13 +366,17 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         }
     }
 
+    /**
+     * Connected in terms of pathfinding
+     * @param curRail
+     */
     public void updateConnectedSignals(RailWrapper curRail){
         EnumFacing direction = getFacing();
         Set<RailWrapper> rails = new HashSet<RailWrapper>();
         Queue<Map.Entry<RailWrapper, EnumFacing>> traversingRails = new LinkedList<Map.Entry<RailWrapper, EnumFacing>>();
         Set<TileEntitySignalBase> signals = new HashSet<TileEntitySignalBase>();
 
-        for(Map.Entry<RailWrapper, EnumFacing> entry : curRail.getNeighbors().entrySet()) {
+        for(Map.Entry<RailWrapper, EnumFacing> entry : curRail.getNeighborsForEntryDir(direction).entrySet()) {
             if(entry.getValue() != direction.getOpposite()) {
                 traversingRails.add(entry);
             }
@@ -387,7 +391,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
                 rails.add(neighbor.getKey());
                 if(neighbor.getKey().getSignals().isEmpty()) {
                     //    NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, neighbor.getKey().getX() + 0.5, neighbor.getKey().getY() + 0.5, neighbor.getKey().getZ() + 0.5, 0, 0, 0), curRail.world);
-                    for(Map.Entry<RailWrapper, EnumFacing> entry : neighbor.getKey().getNeighbors().entrySet()) {
+                    for(Map.Entry<RailWrapper, EnumFacing> entry : neighbor.getKey().getNeighborsForEntryDir(neighbor.getValue()).entrySet()) {
                         BlockPos nextNeighbor = entry.getKey();
                         if(!rails.contains(nextNeighbor)) {
                             traversingRails.add(entry);
