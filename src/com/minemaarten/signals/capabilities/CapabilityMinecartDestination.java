@@ -28,6 +28,7 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.event.entity.minecart.MinecartUpdateEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
@@ -68,12 +69,13 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
     private int totalBurnTime;
     private int hopperTimer;
 
-    private InventoryBasic fuelInv = new InventoryBasic("cartEngineInv", true, 5){
+    private final InventoryBasic fuelInv = new InventoryBasic("cartEngineInv", true, 5){
         @Override
         public boolean isItemValidForSlot(int index, ItemStack stack){
             return stack == null || TileEntityFurnace.isItemFuel(stack);
         }
     };
+    private final IItemHandler fuelItemHandler = new InvWrapper(fuelInv);
     private boolean motorActive;
     public boolean travelingBetweenDimensions;
 
@@ -292,6 +294,10 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         return fuelInv;
     }
 
+    public IItemHandler getFuelItemHandler() {
+        return fuelItemHandler;
+    }
+
     public int getScaledFuel(int barLength){
         return totalBurnTime == 0 ? 0 : barLength * fuelLeft / totalBurnTime;
     }
@@ -382,10 +388,9 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                         for(int i = 0; i < hopper.getSizeInventory(); i++) {
                             ItemStack stack = hopper.getStackInSlot(i);
                             if(!stack.isEmpty()&& getFuelInv().isItemValidForSlot(0, stack)) {
-                                InvWrapper invWrapper = new InvWrapper(getFuelInv());
                                 ItemStack inserted = stack.copy();
                                 inserted.setCount(1);
-                                ItemStack left = ItemHandlerHelper.insertItemStacked(invWrapper, inserted, false);
+                                ItemStack left = ItemHandlerHelper.insertItemStacked(getFuelItemHandler(), inserted, false);
                                 if(left.isEmpty()) {
                                 	stack.shrink(1);
                                     hopper.markDirty();

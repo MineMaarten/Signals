@@ -3,6 +3,8 @@ package com.minemaarten.signals.tileentity;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,7 +14,7 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.minecraftforge.items.CapabilityItemHandler;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -118,7 +120,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
                         if(managingCart.hasCapability(CapabilityMinecartDestination.INSTANCE, null)) {
                             CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
                             if(destCap.isMotorized()) {
-                                cart = new InvWrapper(destCap.getFuelInv());
+                                cart = destCap.getFuelItemHandler();
                             }
                         }
                         if(cart == null) continue;
@@ -167,5 +169,33 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
                 interactEngine = !interactEngine;
                 break;
         }
+    }
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {
+        if(managingCart != null && capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+            if(interactEngine) {
+                CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+                if(destCap != null && destCap.isMotorized()) return true;
+            } else if(managingCart.hasCapability(capability, null)) {
+                return true;
+            }
+        }
+        return super.hasCapability(capability, facing);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    @Nullable
+    public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing) {
+        if(managingCart != null && capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+            if(interactEngine) {
+                CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+                if(destCap != null && destCap.isMotorized()) return (T) destCap.getFuelItemHandler();
+            } else if(managingCart.hasCapability(capability, null)) {
+                return managingCart.getCapability(capability, null);
+            }
+        }
+        return super.getCapability(capability, facing);
     }
 }
