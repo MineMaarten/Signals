@@ -160,7 +160,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                 destinationRegexes[i] = Pattern.compile(destinations[i]);
             } catch(PatternSyntaxException e) {
                 if(!invalidDestinations.equals("")) {
-                    invalidDestinations += ",";
+                    invalidDestinations += "\n";
                 }
                 invalidDestinations += "" + i;
                 destinationRegexes[i] = EMPTY_PATTERN;
@@ -170,7 +170,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
 
     public int[] getInvalidDestinationIndeces(){
         if(invalidDestinations.equals("")) return new int[0];
-        String[] strings = invalidDestinations.split(",");
+        String[] strings = invalidDestinations.split("\n");
         int[] ints = new int[strings.length];
         for(int i = 0; i < strings.length; i++) {
             ints[i] = Integer.parseInt(strings[i]);
