@@ -172,14 +172,9 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
     }
 
     @Override
-    public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing) {
-        if(managingCart != null && capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-            if(interactEngine) {
-                CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-                if(destCap != null && destCap.isMotorized()) return true;
-            } else if(managingCart.hasCapability(capability, null)) {
-                return true;
-            }
+    public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing){
+        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+            return getCapability(capability, facing) != null;
         }
         return super.hasCapability(capability, facing);
     }
@@ -187,11 +182,11 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
     @SuppressWarnings("unchecked")
     @Override
     @Nullable
-    public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing) {
+    public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing){
         if(managingCart != null && capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
             if(interactEngine) {
                 CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-                if(destCap != null && destCap.isMotorized()) return (T) destCap.getFuelItemHandler();
+                if(destCap != null && destCap.isMotorized()) return (T)destCap.getFuelItemHandler();
             } else if(managingCart.hasCapability(capability, null)) {
                 return managingCart.getCapability(capability, null);
             }
