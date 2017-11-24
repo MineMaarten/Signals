@@ -92,7 +92,7 @@ public class GuiItemHandlerDestination extends GuiContainerBase<TileEntity>{
         if(!p.checkOreDictionary) drawRedCross(oreDictButton.x + 2, oreDictButton.y + 2);
     }
 
-    private void drawRedCross(int x, int y){
+    private static void drawRedCross(int x, int y){
         int size = 16;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();

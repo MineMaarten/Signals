@@ -223,7 +223,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         sendUpdatePacket(cart);
     }
 
-    private void sendUpdatePacket(EntityMinecart cart){
+    private static void sendUpdatePacket(EntityMinecart cart){
         NetworkHandler.sendToAll(new PacketUpdateMinecartPath(cart));
     }
 

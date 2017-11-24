@@ -79,7 +79,7 @@ public class RailCacheManager{
         return null;
     }
 
-    private long getChunkHashFromBlockPos(BlockPos pos){
+    private static long getChunkHashFromBlockPos(BlockPos pos){
         return ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4);
     }
 

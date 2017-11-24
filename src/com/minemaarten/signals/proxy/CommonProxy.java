@@ -50,8 +50,9 @@ public class CommonProxy implements IGuiHandler{
                 return new ContainerSelectDestinationProvider(te);
             case ITEM_HANDLER_DESTINATION:
                 return new ContainerItemHandlerDestination(te);
+            default:
+                throw new IllegalStateException("No Container for gui id: " + ID);
         }
-        throw new IllegalStateException("No Container for gui id: " + ID);
     }
 
     @Override

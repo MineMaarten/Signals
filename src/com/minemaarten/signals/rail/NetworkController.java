@@ -184,7 +184,7 @@ public class NetworkController{
 
     }
 
-    private boolean shouldPlayerGetUpdates(EntityPlayer player){
+    private static boolean shouldPlayerGetUpdates(EntityPlayer player){
         return player.openContainer instanceof ContainerNetworkController;
     }
 

@@ -70,8 +70,9 @@ public class PacketUpdateGui extends AbstractPacket<PacketUpdateGui>{
             case 7:
                 if(!buf.readBoolean()) return null;
                 return new FluidStack(FluidRegistry.getFluid(ByteBufUtils.readUTF8String(buf)), buf.readInt(), ByteBufUtils.readTag(buf));
+            default:
+                throw new IllegalArgumentException("Invalid sync type! " + type);
         }
-        throw new IllegalArgumentException("Invalid sync type! " + type);
     }
 
     public static void writeField(ByteBuf buf, Object value, int type){

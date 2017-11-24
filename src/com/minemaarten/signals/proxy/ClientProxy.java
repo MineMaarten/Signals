@@ -54,7 +54,7 @@ public class ClientProxy extends CommonProxy{
         registerItemModels(ModItems.railConfigurator);
     }
 
-    private void registerItemModels(Item item){
+    private static void registerItemModels(Item item){
 	    NonNullList<ItemStack> stacks = NonNullList.create();
         item.getSubItems(CreativeTabs.SEARCH, stacks);
         for(ItemStack stack : stacks) {
@@ -95,8 +95,9 @@ public class ClientProxy extends CommonProxy{
                 return new GuiItemHandlerDestination(te);
             case CART_HOPPER:
                 return new GuiCartHopper((TileEntityCartHopper)te);
+            default:
+                throw new IllegalStateException("No Gui for gui id: " + ID);
         }
-        throw new IllegalStateException("No Gui for gui id: " + ID);
     }
 
     @Override

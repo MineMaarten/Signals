@@ -66,8 +66,9 @@ public class PacketDescription extends LocationIntPacket<PacketDescription>{
         switch(type){
             case TILE_ENTITY:
                 return message.getTileEntity(player.world);
+            default:
+                return null;
         }
-        return null;
     }
 
     @Override

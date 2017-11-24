@@ -36,6 +36,6 @@ public class GlassesMessage{
             }
         }
 
-        localizedMessage = String.format(message, packet.args);
+        localizedMessage = String.format(message, (Object[])packet.args);
     }
 }
