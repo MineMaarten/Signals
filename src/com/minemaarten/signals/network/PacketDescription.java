@@ -61,7 +61,7 @@ public class PacketDescription extends LocationIntPacket<PacketDescription>{
         extraData = ByteBufUtils.readTag(buf);
     }
 
-    public static Object getSyncableForType(LocationIntPacket message, EntityPlayer player, IDescSynced.Type type, NBTTagCompound extraData){
+    public static Object getSyncableForType(LocationIntPacket<?> message, EntityPlayer player, IDescSynced.Type type, NBTTagCompound extraData){
 
         switch(type){
             case TILE_ENTITY:

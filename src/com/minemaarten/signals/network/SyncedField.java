@@ -27,13 +27,13 @@ public abstract class SyncedField<T> {
         this.te = te;
     }
 
-    public SyncedField setArrayIndex(int arrayIndex){
+    public SyncedField<T> setArrayIndex(int arrayIndex){
 
         this.arrayIndex = arrayIndex;
         return this;
     }
 
-    public SyncedField setLazy(boolean lazy){
+    public SyncedField<T> setLazy(boolean lazy){
 
         this.isLazy = lazy;
         return this;

@@ -8,7 +8,7 @@ import net.minecraftforge.fml.relauncher.Side;
 
 import com.minemaarten.signals.Signals;
 
-public abstract class AbstractPacket<REQ extends AbstractPacket> implements IMessage, IMessageHandler<REQ, REQ>{
+public abstract class AbstractPacket<REQ extends AbstractPacket<REQ>> implements IMessage, IMessageHandler<REQ, REQ>{
 
     @Override
     public REQ onMessage(final REQ message, final MessageContext ctx){
