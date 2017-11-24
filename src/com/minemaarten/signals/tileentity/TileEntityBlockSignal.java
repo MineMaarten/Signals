@@ -6,13 +6,12 @@ import java.util.Map;
 import java.util.Set;
 
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.util.ITickable;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.RailWrapper;
 
-public class TileEntityBlockSignal extends TileEntitySignalBase implements ITickable{
+public class TileEntityBlockSignal extends TileEntitySignalBase{
     private int checkDelay = 0; //Have a delay, because for one tick, the Chain Signal will turn green between a cart leaving the section and an ordinary block signal turning red.
 
     @Override

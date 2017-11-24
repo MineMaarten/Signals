@@ -44,7 +44,7 @@ public class CapabilityDestinationProvider{
 
         }, new Callable<CapabilityDestinationProvider>(){
             @Override
-            public CapabilityDestinationProvider call() throws Exception{
+            public CapabilityDestinationProvider call() {
                 return new CapabilityDestinationProvider();
             }
         });

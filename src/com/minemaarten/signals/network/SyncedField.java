@@ -112,7 +112,7 @@ public abstract class SyncedField<T> {
         }
 
         @Override
-        protected void setValueForArray(Object array, int index, Integer value) throws Exception{
+        protected void setValueForArray(Object array, int index, Integer value) {
 
             ((int[])array)[index] = value;
         }
@@ -133,7 +133,7 @@ public abstract class SyncedField<T> {
         }
 
         @Override
-        protected void setValueForArray(Object array, int index, Float value) throws Exception{
+        protected void setValueForArray(Object array, int index, Float value) {
 
             ((float[])array)[index] = value;
         }
@@ -154,7 +154,7 @@ public abstract class SyncedField<T> {
         }
 
         @Override
-        protected void setValueForArray(Object array, int index, Double value) throws Exception{
+        protected void setValueForArray(Object array, int index, Double value) {
 
             ((double[])array)[index] = value;
         }
@@ -175,7 +175,7 @@ public abstract class SyncedField<T> {
         }
 
         @Override
-        protected void setValueForArray(Object array, int index, Boolean value) throws Exception{
+        protected void setValueForArray(Object array, int index, Boolean value) {
 
             ((boolean[])array)[index] = value;
         }
@@ -196,7 +196,7 @@ public abstract class SyncedField<T> {
         }
 
         @Override
-        protected void setValueForArray(Object array, int index, String value) throws Exception{
+        protected void setValueForArray(Object array, int index, String value) {
 
             ((String[])array)[index] = value;
         }
@@ -217,7 +217,7 @@ public abstract class SyncedField<T> {
         }
 
         @Override
-        protected void setValueForArray(Object array, int index, Byte value) throws Exception{
+        protected void setValueForArray(Object array, int index, Byte value) {
 
             ((byte[])array)[index] = value;
         }
@@ -252,7 +252,7 @@ public abstract class SyncedField<T> {
         }
 
         @Override
-        protected void setValueForArray(Object array, int index, ItemStack value) throws Exception{
+        protected void setValueForArray(Object array, int index, ItemStack value) {
 
             ((ItemStack[])array)[index] = value;
         }
@@ -272,7 +272,7 @@ public abstract class SyncedField<T> {
         }
 
         @Override
-        protected void setValueForArray(Object array, int index, FluidStack value) throws Exception{
+        protected void setValueForArray(Object array, int index, FluidStack value) {
 
             ((FluidTank[])array)[index].setFluid(value);
         }

@@ -1,8 +1,6 @@
 package com.minemaarten.signals.client;
 
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
-
 import com.minemaarten.signals.init.ModBlocks;
 import net.minecraft.item.ItemStack;
 

@@ -139,7 +139,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
             }
         }, new Callable<CapabilityMinecartDestination>(){
             @Override
-            public CapabilityMinecartDestination call() throws Exception{
+            public CapabilityMinecartDestination call() {
                 return new CapabilityMinecartDestination();
             }
         });
