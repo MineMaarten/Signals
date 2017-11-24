@@ -25,7 +25,7 @@ import com.minemaarten.signals.tileentity.IGUIButtonSensitive;
 public class ContainerBase<Tile extends TileEntity> extends Container implements IGUIButtonSensitive{
 
     public Tile te;
-    private final List<SyncedField> syncedFields = new ArrayList<SyncedField>();
+    private final List<SyncedField> syncedFields = new ArrayList<>();
     private boolean firstTick = true;
     private int playerSlotsStart;
 

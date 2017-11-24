@@ -33,9 +33,9 @@ public class NetworkUtils{
      */
 
     public static List<SyncedField> getSyncedFields(Object te, Class<? extends Annotation> searchedAnnotation){
-
-        List<SyncedField> syncedFields = new ArrayList<SyncedField>();
+        List<SyncedField> syncedFields = new ArrayList<>();
         Class<?> examinedClass = te.getClass();
+
         while(examinedClass != null) {
             for(Field field : examinedClass.getDeclaredFields()) {
                 if(field.getAnnotation(searchedAnnotation) != null) {
@@ -50,7 +50,7 @@ public class NetworkUtils{
     private static List<SyncedField> getSyncedFieldsForField(Field field, Object te, Class<? extends Annotation> searchedAnnotation){
 
         boolean isLazy = field.getAnnotation(LazySynced.class) != null;
-        List<SyncedField> syncedFields = new ArrayList<SyncedField>();
+        List<SyncedField> syncedFields = new ArrayList<>();
         SyncedField syncedField = getSyncedFieldForField(field, te);
         if(syncedField != null) {
             syncedFields.add(syncedField.setLazy(isLazy));

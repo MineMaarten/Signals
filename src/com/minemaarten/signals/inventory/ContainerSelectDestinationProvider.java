@@ -14,7 +14,7 @@ import com.minemaarten.signals.tileentity.IGUIButtonSensitive;
 public class ContainerSelectDestinationProvider extends ContainerBase<TileEntity> implements IGUIButtonSensitive{
 
     private final TileEntity te;
-    public final List<IDestinationProvider> guiProviders = new ArrayList<IDestinationProvider>();
+    public final List<IDestinationProvider> guiProviders = new ArrayList<>();
 
     public ContainerSelectDestinationProvider(TileEntity te){
         super(null);

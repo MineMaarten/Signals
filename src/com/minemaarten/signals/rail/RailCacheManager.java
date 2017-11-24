@@ -27,9 +27,9 @@ import com.minemaarten.signals.network.PacketSyncStationNames;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class RailCacheManager{
-    private static Map<Integer, RailCacheManager> INSTANCES = new HashMap<Integer, RailCacheManager>();
-    private final Map<Long, Map<BlockPos, RailWrapper>> railCache = new HashMap<Long, Map<BlockPos, RailWrapper>>(); //Chunk hash to cache (per chunk) mapping.
-    private final Set<TileEntityStationMarker> stations = new HashSet<TileEntityStationMarker>();
+    private static Map<Integer, RailCacheManager> INSTANCES = new HashMap<>();
+    private final Map<Long, Map<BlockPos, RailWrapper>> railCache = new HashMap<>(); //Chunk hash to cache (per chunk) mapping.
+    private final Set<TileEntityStationMarker> stations = new HashSet<>();
     private String[] allStationNames = new String[0];
 
     public static RailCacheManager getInstance(World world){
@@ -65,7 +65,7 @@ public class RailCacheManager{
             RailWrapper rail = new RailWrapper(world, pos);
             if(rail.isRail()) { //A rail isn't cached yet
                 if(cache == null) {
-                    cache = new HashMap<BlockPos, RailWrapper>();
+                    cache = new HashMap<>();
                     railCache.put(chunkHash, cache);
                 }
                 cache.put(pos, rail);
@@ -158,8 +158,8 @@ public class RailCacheManager{
     }
 
     public Collection<RailWrapper> getStationRails(EntityMinecart cart, Pattern destinationRegex){
-        Set<RailWrapper> rails = new HashSet<RailWrapper>();
-        Set<String> validNames = new HashSet<String>();
+        Set<RailWrapper> rails = new HashSet<>();
+        Set<String> validNames = new HashSet<>();
         for(TileEntityStationMarker station : stations) {
             if(station.isCartApplicable(cart, destinationRegex)) {
                 rails.addAll(station.getNeighborRails());
@@ -193,7 +193,7 @@ public class RailCacheManager{
     }
 
     public static void syncStationNames(EntityPlayerMP player){
-        Set<String> stationNames = new HashSet<String>();
+        Set<String> stationNames = new HashSet<>();
         stationNames.add("ITEM");
         for(RailCacheManager manager : INSTANCES.values()) {
             for(TileEntityStationMarker station : manager.stations) {

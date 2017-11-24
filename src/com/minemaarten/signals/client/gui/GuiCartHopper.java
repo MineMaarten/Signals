@@ -14,7 +14,7 @@ public class GuiCartHopper extends GuiContainerBase<TileEntityCartHopper>{
     private GuiButtonSpecial modeButton, engineInteractButton;
 
     public GuiCartHopper(TileEntityCartHopper te){
-        super(new ContainerBase<TileEntityCartHopper>(te), te, null);
+        super(new ContainerBase<>(te), te, null);
         xSize = 110;
         ySize = 68;
     }

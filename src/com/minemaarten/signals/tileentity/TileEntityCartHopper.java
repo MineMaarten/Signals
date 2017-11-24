@@ -107,7 +107,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
             List<Pair<TileEntity, EnumFacing>> filters = Lists.newArrayList();
             for(EnumFacing dir : EnumFacing.HORIZONTALS) {
                 TileEntity filter = getWorld().getTileEntity(getPos().offset(dir));
-                if(filter != null) filters.add(new ImmutablePair<TileEntity, EnumFacing>(filter, dir));
+                if(filter != null) filters.add(new ImmutablePair<>(filter, dir));
             }
 
             for(ICartHopperBehaviour hopperBehaviour : RailManager.getInstance().getHopperBehaviours()) {

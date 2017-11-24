@@ -21,7 +21,7 @@ public class CapabilityDestinationProvider{
     @CapabilityInject(CapabilityDestinationProvider.class)
     public static Capability<CapabilityDestinationProvider> INSTANCE;
 
-    private List<IDestinationProvider> destinationProviders = new ArrayList<IDestinationProvider>();
+    private List<IDestinationProvider> destinationProviders = new ArrayList<>();
 
     public static void register(){
         CapabilityManager.INSTANCE.register(CapabilityDestinationProvider.class, new Capability.IStorage<CapabilityDestinationProvider>(){

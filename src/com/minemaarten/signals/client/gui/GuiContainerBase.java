@@ -35,7 +35,7 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
 
     public final Tile te;
     private final ResourceLocation guiTexture;
-    protected final List<IGuiWidget> widgets = new ArrayList<IGuiWidget>();
+    protected final List<IGuiWidget> widgets = new ArrayList<>();
     private boolean refreshScheduled;
     private boolean hasInit; //Fix for some weird race condition occuring in 1.8 where drawing is called before initGui().
 
@@ -149,7 +149,7 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
         if(!hasInit) return;
         super.drawScreen(x, y, partialTick);
 
-        List<String> tooltip = new ArrayList<String>();
+        List<String> tooltip = new ArrayList<>();
 
         GL11.glColor4d(1, 1, 1, 1);
         GL11.glDisable(GL11.GL_LIGHTING);
@@ -167,7 +167,7 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
             if(widget.getBounds().contains(x, y)) widget.addTooltip(tooltip, shift);
         }*/
         if(!tooltip.isEmpty()) {
-            List<String> localizedTooltip = new ArrayList<String>();
+            List<String> localizedTooltip = new ArrayList<>();
             for(String line : tooltip) {
                 String localizedLine = I18n.format(line);
                 String[] lines = WordUtils.wrap(localizedLine, 50).split(System.getProperty("line.separator"));

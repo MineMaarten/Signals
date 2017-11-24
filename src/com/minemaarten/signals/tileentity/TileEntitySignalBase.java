@@ -48,8 +48,8 @@ import com.minemaarten.signals.rail.RailWrapper;
 public abstract class TileEntitySignalBase extends TileEntityBase implements ITickable{
 
     private boolean firstTick = true;
-    private List<EntityMinecart> routedMinecarts = new ArrayList<EntityMinecart>();
-    private Set<TileEntitySignalBase> nextSignals = new HashSet<TileEntitySignalBase>();
+    private List<EntityMinecart> routedMinecarts = new ArrayList<>();
+    private Set<TileEntitySignalBase> nextSignals = new HashSet<>();
     private String text = "";
     private String arguments = "";
     private EnumForceMode forceMode = EnumForceMode.NONE;
@@ -70,11 +70,11 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
 
     public List<RailWrapper> getConnectedRails(){
         RailWrapper neighbor = getConnectedRail();
-        return neighbor != null ? getConnectedRails(neighbor, getFacing().getOpposite()) : new ArrayList<RailWrapper>();
+        return neighbor != null ? getConnectedRails(neighbor, getFacing().getOpposite()) : new ArrayList<>();
     }
 
     public static List<RailWrapper> getConnectedRails(RailWrapper neighbor, EnumFacing traverseDirection){
-        List<RailWrapper> neighbors = new ArrayList<RailWrapper>();
+        List<RailWrapper> neighbors = new ArrayList<>();
         Block railType = neighbor.state.getBlock();
         for(int i = 0; i < 5 && neighbor != null; i++) {
             neighbors.add(neighbor);
@@ -152,7 +152,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         CapabilityMinecartDestination capability = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
         String destination = capability.getCurrentDestination();
         Pattern destinationRegex = capability.getCurrentDestinationRegex();
-        List<PacketUpdateMessage> messages = new ArrayList<PacketUpdateMessage>();
+        List<PacketUpdateMessage> messages = new ArrayList<>();
         AStarRailNode path = null;
         if(!destination.isEmpty()) {
             messages.add(new PacketUpdateMessage(this, cart, "signals.message.routing_cart", destination));
@@ -184,7 +184,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     protected void updateSwitches(AStarRailNode pathNode, EntityMinecart cart, boolean submitMessages){
-        List<PacketUpdateMessage> messages = new ArrayList<PacketUpdateMessage>();
+        List<PacketUpdateMessage> messages = new ArrayList<>();
         EnumFacing lastHeading = pathNode.getPathDir();
         while(pathNode != null) {
             Map<RailWrapper, EnumFacing> neighbors = pathNode.getRail().getNeighborsForEntryDir(lastHeading);
@@ -214,8 +214,8 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     protected static Set<RailWrapper> getRailsToNextBlockSection(RailWrapper curRail, EnumFacing direction){
-        Set<RailWrapper> rails = new HashSet<RailWrapper>();
-        Queue<Map.Entry<RailWrapper, EnumFacing>> traversingRails = new LinkedList<Map.Entry<RailWrapper, EnumFacing>>();
+        Set<RailWrapper> rails = new HashSet<>();
+        Queue<Map.Entry<RailWrapper, EnumFacing>> traversingRails = new LinkedList<>();
 
         for(Map.Entry<RailWrapper, EnumFacing> entry : curRail.getNeighbors().entrySet()) {
             if(entry.getValue() != direction.getOpposite()) {
@@ -278,12 +278,12 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     public static List<EntityMinecart> getMinecarts(World worldObj, final Collection<RailWrapper> railsOnBlock){
         if(railsOnBlock.isEmpty()) return Collections.emptyList();
 
-        Set<World> worlds = new HashSet<World>();
+        Set<World> worlds = new HashSet<>();
         for(RailWrapper pos : railsOnBlock) {
             worlds.add(pos.world);
         }
 
-        List<EntityMinecart> carts = new ArrayList<EntityMinecart>();
+        List<EntityMinecart> carts = new ArrayList<>();
         for(World world : worlds) {
             BlockPos.MutableBlockPos min = new BlockPos.MutableBlockPos(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
             BlockPos.MutableBlockPos max = new BlockPos.MutableBlockPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
@@ -383,9 +383,9 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
      */
     public void updateConnectedSignals(RailWrapper curRail){
         EnumFacing direction = getFacing();
-        Set<RailWrapper> rails = new HashSet<RailWrapper>();
-        Queue<Map.Entry<RailWrapper, EnumFacing>> traversingRails = new LinkedList<Map.Entry<RailWrapper, EnumFacing>>();
-        Set<TileEntitySignalBase> signals = new HashSet<TileEntitySignalBase>();
+        Set<RailWrapper> rails = new HashSet<>();
+        Queue<Map.Entry<RailWrapper, EnumFacing>> traversingRails = new LinkedList<>();
+        Set<TileEntitySignalBase> signals = new HashSet<>();
 
         for(Map.Entry<RailWrapper, EnumFacing> entry : curRail.getNeighborsForEntryDir(direction).entrySet()) {
             if(entry.getValue() != direction.getOpposite()) {

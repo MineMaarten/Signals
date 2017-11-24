@@ -44,7 +44,7 @@ public class ClientEventHandler{
         //      wr.pos(rail.getX() + 0.5, rail.getY() + 0.5, rail.getZ() + 0.5).color(1F, 1F, 1F, 1F).endVertex();
         //}
 
-        List<TileEntityStationMarker> markers = new ArrayList<TileEntityStationMarker>();
+        List<TileEntityStationMarker> markers = new ArrayList<>();
         for(TileEntity te : tes) {
             if(player.isSneaking() && te instanceof TileEntitySignalBase) {
                 for(TileEntitySignalBase signal : ((TileEntitySignalBase)te).getNextSignals()) {

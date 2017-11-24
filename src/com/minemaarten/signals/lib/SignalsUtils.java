@@ -18,7 +18,7 @@ public class SignalsUtils {
    public static List<String> convertStringIntoList(String text, int maxCharPerLine){
        StringTokenizer tok = new StringTokenizer(text, " ");
        StringBuilder output = new StringBuilder(text.length());
-       List<String> textList = new ArrayList<String>();
+       List<String> textList = new ArrayList<>();
        String color = "";
        int lineLen = 0;
        while(tok.hasMoreTokens()) {
