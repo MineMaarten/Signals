@@ -22,7 +22,7 @@ public class TileEntityChainSignal extends TileEntityBlockSignal{
      * @return
      */
     private boolean isValidRoute(AStarRailNode route, Set<TileEntityChainSignal> traversedSignals){
-        if(route != null) { //If the cart has a route, check the specific signal status
+        if(route != null) { //If the cart has a route, check the signal status of the signals that's on the cart's path
             while(route != null) {
                 TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(route.getRail(), route.pathDir.getOpposite());
                 if(signal == null) { //If not connected to a signal
@@ -46,7 +46,7 @@ public class TileEntityChainSignal extends TileEntityBlockSignal{
                 route = route.getNextNode();
             }
             return true; //When no next signal
-        } else { //When the cart has no route, check for any next signal to be green
+        } else { //When the cart has no route, check for all next signals to be green
             return isValidStatically();
         }
     }
@@ -54,7 +54,7 @@ public class TileEntityChainSignal extends TileEntityBlockSignal{
     @Override
     public boolean isValidStatically(){
         Set<TileEntitySignalBase> signals = getNextSignals();
-        return signals.isEmpty() || signals.stream().anyMatch(x -> x.getLampStatus() != EnumLampStatus.RED);
+        return signals.stream().allMatch(x -> x.getLampStatus() != EnumLampStatus.RED);
     }
 
     @Override
