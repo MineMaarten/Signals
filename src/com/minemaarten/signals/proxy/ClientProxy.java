@@ -45,7 +45,7 @@ public class ClientProxy extends CommonProxy{
 
     @Override
     public void init(){
-        for(Block block : new Block[]{ModBlocks.blockSignal, ModBlocks.pathSignal, ModBlocks.stationMarker, ModBlocks.limiterRail, ModBlocks.cartHopper, ModBlocks.railLink}) {
+        for(Block block : new Block[]{ModBlocks.blockSignal, ModBlocks.pathSignal, ModBlocks.chainSignal, ModBlocks.stationMarker, ModBlocks.limiterRail, ModBlocks.cartHopper, ModBlocks.railLink}) {
             Item item = Item.getItemFromBlock(block);
             registerItemModels(item);
         }
@@ -55,7 +55,7 @@ public class ClientProxy extends CommonProxy{
     }
 
     private static void registerItemModels(Item item){
-	    NonNullList<ItemStack> stacks = NonNullList.create();
+        NonNullList<ItemStack> stacks = NonNullList.create();
         item.getSubItems(CreativeTabs.SEARCH, stacks);
         for(ItemStack stack : stacks) {
             ResourceLocation resLoc = new ResourceLocation(Constants.MOD_ID, stack.getUnlocalizedName().substring(5));
