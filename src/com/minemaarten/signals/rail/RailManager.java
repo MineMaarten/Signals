@@ -38,7 +38,7 @@ public class RailManager{
     private final Map<Block, IRail> blockToRails = new HashMap<>();
     private final List<IDestinationProvider> destinationProviders = new ArrayList<>();
     private final List<ICartHopperBehaviour<?>> hopperBehaviours = new ArrayList<>();
-	private final List<ICartLinker> cartLinkers = new ArrayList<>();
+    private final List<ICartLinker> cartLinkers = new ArrayList<>();
 
     public static RailManager getInstance(){
         return INSTANCE;
@@ -110,8 +110,12 @@ public class RailManager{
         railMappers.add(rail);
     }
 
+    public IRail getRailSimple(Block block){
+        return blockToRails.get(block);
+    }
+
     public IRail getRail(World world, BlockPos pos, IBlockState state){
-        IRail rail = blockToRails.get(state.getBlock());
+        IRail rail = getRailSimple(state.getBlock());
         if(rail != null) return rail;
         for(IRailMapper mapper : railMappers) {
             rail = mapper.getRail(world, pos, state);

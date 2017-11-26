@@ -13,6 +13,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
+import com.minemaarten.signals.event.RailReplacerEventHandler;
 import com.minemaarten.signals.init.ModBlocks;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.lib.Constants;
@@ -42,6 +43,7 @@ public class Signals{
         CapabilityMinecartDestination.register();
         CapabilityDestinationProvider.register();
         MinecraftForge.EVENT_BUS.register(new com.minemaarten.signals.event.EventHandler());
+        MinecraftForge.EVENT_BUS.register(new RailReplacerEventHandler());
         asmData = event.getAsmData();
     }
 
