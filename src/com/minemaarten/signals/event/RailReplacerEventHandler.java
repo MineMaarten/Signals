@@ -32,7 +32,7 @@ public class RailReplacerEventHandler{
                 IRail rail = RailManager.getInstance().getRail(e.getWorld(), e.getPos(), state);
                 if(rail != null && state.getBlock() != railBlock) {
                     EnumRailDirection dir = rail.getDirection(e.getWorld(), e.getPos(), state);
-                    e.getWorld().destroyBlock(e.getPos(), true);
+                    e.getWorld().destroyBlock(e.getPos(), !e.getEntityPlayer().isCreative());
                     List<EntityItem> drops = e.getWorld().getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(e.getPos()));
                     for(EntityItem drop : drops) {
                         drop.setPickupDelay(0);
@@ -40,7 +40,7 @@ public class RailReplacerEventHandler{
                     }
 
                     e.getWorld().setBlockState(e.getPos(), railBlock.getDefaultState());
-                    stack.shrink(1);
+                    if(!e.getEntityPlayer().isCreative()) stack.shrink(1);
 
                     //Set the rail orientation equal to the old rail, if possible.
                     if(railBlock.getShapeProperty().getAllowedValues().contains(dir)) {
