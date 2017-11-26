@@ -202,9 +202,9 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             }
             lastHeading = heading;
             pathNode = pathNode.getNextNode();
-            /*      if(pathNode != null && heading != null && getNeighborSignal(pathNode.getRail(), heading.getOpposite()) != null) {
-                      break;
-                  }*/
+            if(pathNode != null && heading != null && getNeighborSignal(pathNode.getRail(), heading.getOpposite()) != null) {
+                break;
+            }
         }
         if(submitMessages) {
             for(PacketUpdateMessage message : messages) {
