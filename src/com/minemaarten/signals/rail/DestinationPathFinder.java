@@ -11,8 +11,6 @@ import java.util.regex.Pattern;
 
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.world.WorldServer;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
@@ -105,7 +103,7 @@ public class DestinationPathFinder{
 
         while(!queue.isEmpty()) {
             AStarRailNode node = queue.remove(); //Take the node with the highest priority of the queue.
-            if(node.rail.world instanceof WorldServer) ((WorldServer)node.rail.world).spawnParticle(EnumParticleTypes.REDSTONE, node.rail.getX() + 0.5, node.rail.getY() + 0.5, node.rail.getZ() + 0.5, 1, 0, 0, 0, 0D);
+            //if(node.rail.world instanceof WorldServer) ((WorldServer)node.rail.world).spawnParticle(EnumParticleTypes.REDSTONE, node.rail.getX() + 0.5, node.rail.getY() + 0.5, node.rail.getZ() + 0.5, 1, 0, 0, 0, 0D);
             //   else Log.debug("World: " + node.rail.world);
             traversedRails.add(node.rail); //Mark it as traversed so we won't put it on the queue anymore.
 
