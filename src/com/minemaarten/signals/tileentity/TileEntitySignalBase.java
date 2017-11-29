@@ -53,6 +53,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     private String text = "";
     private String arguments = "";
     private EnumForceMode forceMode = EnumForceMode.NONE;
+    private EntityMinecart claimingCart; //The cart that has called dibs on the rail block in front of this signal.
 
     public enum EnumForceMode{
         NONE, FORCED_GREEN_ONCE, FORCED_RED;
@@ -99,7 +100,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return state != null && state.getBlock() instanceof BlockSignalBase ? state.getValue(BlockSignalBase.FACING) : EnumFacing.NORTH;
     }
 
-    public boolean isValidRoute(AStarRailNode route){
+    public boolean isValidRoute(AStarRailNode route, EntityMinecart cart){
         return true;
     }
 
@@ -113,13 +114,21 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         } else if(forceMode == EnumForceMode.FORCED_RED) {
             lampStatus = EnumLampStatus.RED;
         }
+
+        List<EntityMinecart> neighborMinecarts = null;
+        if(lampStatus == EnumLampStatus.GREEN && getClaimingCart() != null) {
+            neighborMinecarts = neighborMinecartGetter.get();
+            lampStatus = neighborMinecarts.contains(getClaimingCart()) ? EnumLampStatus.GREEN : EnumLampStatus.YELLOW;
+        }
+
         IBlockState state = getBlockState();
         if(state.getPropertyKeys().contains(BlockSignalBase.LAMP_STATUS) && state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
             getWorld().setBlockState(getPos(), state.withProperty(BlockSignalBase.LAMP_STATUS, lampStatus));
             NetworkController.getInstance(getWorld()).updateColor(this, getPos());
             if(lampStatus == EnumLampStatus.GREEN) {
                 //Push carts when they're standing still.
-                for(EntityMinecart cart : neighborMinecartGetter.get()) {
+                if(neighborMinecarts == null) neighborMinecarts = neighborMinecartGetter.get();
+                for(EntityMinecart cart : neighborMinecarts) {
                     if(new Vec3d(cart.motionX, cart.motionY, cart.motionZ).lengthVector() < 0.01 || EnumFacing.getFacingFromVector((float)cart.motionX, 0, (float)cart.motionZ) == getFacing()) {
                         cart.motionX += getFacing().getFrontOffsetX() * 0.1;
                         cart.motionZ += getFacing().getFrontOffsetZ() * 0.1;
@@ -375,6 +384,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
             setForceMode(EnumForceMode.NONE);
         }
+        getNextSignals().forEach(signal -> signal.setClaimingCart(null));
     }
 
     /**
@@ -511,5 +521,14 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     public void readFromNBT(NBTTagCompound tag){
         super.readFromNBT(tag);
         forceMode = EnumForceMode.values()[tag.getByte("forceMode")];
+    }
+
+    protected void setClaimingCart(EntityMinecart cart){
+        claimingCart = cart;
+    }
+
+    protected EntityMinecart getClaimingCart(){
+        if(claimingCart != null && claimingCart.isDead) claimingCart = null;
+        return claimingCart;
     }
 }

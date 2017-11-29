@@ -33,7 +33,7 @@ public class TileEntityBlockSignal extends TileEntitySignalBase{
                         if(!routingCarts.isEmpty()) {
                             for(EntityMinecart routingCart : routingCarts) {
                                 AStarRailNode route = routeCart(routingCart, getFacing(), true);
-                                if(!isValidRoute(route)) {
+                                if(!isValidRoute(route, routingCart)) {
                                     break;
                                 }
                                 cartsToPath.put(routingCart, route);
@@ -49,6 +49,7 @@ public class TileEntityBlockSignal extends TileEntitySignalBase{
 
                     lampStatus = isValid ? EnumLampStatus.GREEN : EnumLampStatus.RED;
                     setLampStatus(lampStatus, () -> routingCarts, cart -> cartsToPath.get(cart));
+                    onCartsRoutedAttempt(isValid);
                 } else {
                     checkDelay = 0;
                     setLampStatus(lampStatus);
@@ -60,7 +61,7 @@ public class TileEntityBlockSignal extends TileEntitySignalBase{
     }
 
     @Override
-    public boolean isValidRoute(AStarRailNode route){
+    public boolean isValidRoute(AStarRailNode route, EntityMinecart cart){
         return true;
     }
 
@@ -70,6 +71,10 @@ public class TileEntityBlockSignal extends TileEntitySignalBase{
 
     public boolean shouldDelay(){
         return false;
+    }
+
+    protected void onCartsRoutedAttempt(boolean succeeded){
+
     }
 
     @Override
