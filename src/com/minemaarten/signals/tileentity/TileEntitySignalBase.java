@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -44,6 +45,7 @@ import com.minemaarten.signals.rail.NetworkController;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.RailWrapper;
+import com.minemaarten.signals.rail.SignalsOnRouteIterable.SignalOnRoute;
 
 public abstract class TileEntitySignalBase extends TileEntityBase implements ITickable{
 
@@ -54,6 +56,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     private String arguments = "";
     private EnumForceMode forceMode = EnumForceMode.NONE;
     private EntityMinecart claimingCart; //The cart that has called dibs on the rail block in front of this signal.
+    private UUID claimingCartUUID; //The claiming cart ID loaded from NBT. Will only have a value when just loaded.
 
     public enum EnumForceMode{
         NONE, FORCED_GREEN_ONCE, FORCED_RED;
@@ -95,7 +98,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return getWorld() != null ? getWorld().getBlockState(getPos()) : null;
     }
 
-    protected EnumFacing getFacing(){
+    public EnumFacing getFacing(){
         IBlockState state = getBlockState();
         return state != null && state.getBlock() instanceof BlockSignalBase ? state.getValue(BlockSignalBase.FACING) : EnumFacing.NORTH;
     }
@@ -362,7 +365,10 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             routedMinecarts = carts;
 
             RailWrapper neighbor = getConnectedRail();
-            if(neighbor != null) updateConnectedSignals(neighbor);
+            if(neighbor != null) {
+                updateConnectedSignals(neighbor);
+                updateClaims();
+            }
         }
     }
 
@@ -514,6 +520,12 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     public NBTTagCompound writeToNBT(NBTTagCompound tag){
         super.writeToNBT(tag);
         tag.setByte("forceMode", (byte)forceMode.ordinal());
+
+        EntityMinecart cart = getClaimingCart();
+        if(cart != null) {
+            tag.setLong("ClaimingCartIDMSB", cart.getPersistentID().getMostSignificantBits());
+            tag.setLong("ClaimingCartIDLSB", cart.getPersistentID().getLeastSignificantBits());
+        }
         return tag;
     }
 
@@ -521,6 +533,10 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     public void readFromNBT(NBTTagCompound tag){
         super.readFromNBT(tag);
         forceMode = EnumForceMode.values()[tag.getByte("forceMode")];
+
+        if(tag.hasKey("ClaimingCartIDMSB")) {
+            claimingCartUUID = new UUID(tag.getLong("ClaimingCartIDMSB"), tag.getLong("ClaimingCartIDLSB"));
+        }
     }
 
     protected void setClaimingCart(EntityMinecart cart){
@@ -528,7 +544,37 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     protected EntityMinecart getClaimingCart(){
+        if(claimingCartUUID != null) {
+            List<EntityMinecart> carts = getWorld().getEntities(EntityMinecart.class, cart -> cart.getUniqueID().equals(claimingCartUUID));
+            claimingCart = carts.isEmpty() ? null : carts.get(0);
+            claimingCartUUID = null;
+        }
+
         if(claimingCart != null && claimingCart.isDead) claimingCart = null;
         return claimingCart;
+    }
+
+    /**
+     * Makes sure that signals don't get stuck getting claimed by carts that will not use this claim.
+     * This should mostly be handled by {@link TileEntitySignalBase#onCartLeavingBlock(EntityMinecart)} , but will sometimes not be enough.
+     */
+    private void updateClaims(){
+        if(getWorld().getTotalWorldTime() % 100 == 0) {
+            EntityMinecart cart = getClaimingCart();
+            if(cart != null) {
+                AStarRailNode route = RailManager.getInstance().getPath(cart);
+                if(route == null) {
+                    setClaimingCart(null);
+                } else {
+                    for(SignalOnRoute signalOnRoute : route.getSignalsOnRoute()) {
+                        if(!signalOnRoute.opposite) {
+                            if(signalOnRoute.signal.getNextSignals().contains(this)) return;
+                        }
+                    }
+
+                    setClaimingCart(null);
+                }
+            }
+        }
     }
 }

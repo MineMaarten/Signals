@@ -13,6 +13,7 @@ import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.util.EnumFacing;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
+import com.minemaarten.signals.rail.SignalsOnRouteIterable.SignalOnRoute;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
 public class DestinationPathFinder{
@@ -69,6 +70,10 @@ public class DestinationPathFinder{
 
         private double getDistance(RailWrapper rail){
             return Math.sqrt(this.rail.distanceSq(rail));
+        }
+
+        public Iterable<SignalOnRoute> getSignalsOnRoute(){
+            return new SignalsOnRouteIterable(this);
         }
     }
 
