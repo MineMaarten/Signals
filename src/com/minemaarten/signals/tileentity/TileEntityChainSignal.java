@@ -10,6 +10,7 @@ import net.minecraft.entity.item.EntityMinecart;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
+import com.minemaarten.signals.rail.SignalsOnRouteIterable.SignalOnRoute;
 
 public class TileEntityChainSignal extends TileEntityBlockSignal{
     private List<TileEntitySignalBase> signalsToBeClaimed = Collections.emptyList();
@@ -32,33 +33,25 @@ public class TileEntityChainSignal extends TileEntityBlockSignal{
      */
     private boolean isValidRoute(AStarRailNode route, Set<TileEntityChainSignal> traversedSignals, List<TileEntitySignalBase> signalsToBeClaimed, EntityMinecart cart){
         if(route != null) { //If the cart has a route, check the signal status of the signals that's on the cart's path
-            while(route != null) {
-                TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(route.getRail(), route.pathDir);
-                if(signal == null) { //If not connected to a signal
-                    if(route.getRail().getSignals().size() == 1) {//Try to find a single opposing signal instead.
-                        return true;
-                    }
-                } else { //When connected to a signal
+            for(SignalOnRoute signalOnRoute : route.getSignalsOnRoute()) {
+                TileEntitySignalBase signal = signalOnRoute.signal;
+                if(signalOnRoute.opposite) {
+                    return true;
+                } else { //When connected to a signal pointing in the right direction
                     if(signal.getClaimingCart() != null && signal.getClaimingCart() != cart) return false; //Another cart has claimed the signal block.
 
                     EnumLampStatus nextSignalLampStatus = signal.getLampStatus();
                     if(signal != this && nextSignalLampStatus == EnumLampStatus.RED) return false;
 
                     if(signal instanceof TileEntityChainSignal) {
-                        //if(signalsToBeClaimed.isEmpty() || signalsToBeClaimed.get(signalsToBeClaimed.size() - 1) instanceof TileEntityChainSignal)
                         signalsToBeClaimed.addAll(signal.getNextSignals());
 
                         TileEntityChainSignal chainSignal = (TileEntityChainSignal)signal;
-                        if(traversedSignals.add(chainSignal)) {
-                            return chainSignal.isValidRoute(route.getNextNode(), traversedSignals, signalsToBeClaimed, cart);
-                        }
-                    } else if(nextSignalLampStatus != EnumLampStatus.RED) {
-                        return true;
+                        if(!traversedSignals.add(chainSignal)) return false;
+                    } else {
+                        return nextSignalLampStatus != EnumLampStatus.RED;
                     }
-                    return false;
                 }
-
-                route = route.getNextNode();
             }
             return true; //When no next signal
         } else { //When the cart has no route, check for all next signals to be green
