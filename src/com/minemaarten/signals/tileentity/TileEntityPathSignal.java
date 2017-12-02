@@ -7,9 +7,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
@@ -119,7 +117,6 @@ public class TileEntityPathSignal extends TileEntitySignalBase{
             AStarRailNode node = reversedRoute.pop();
 
             coords.add(node.getRail());
-            node.showDebug(cart.getTags().contains("cart1") ? EnumFacing.UP.getDirectionVec() : Vec3i.NULL_VECTOR);
 
             if(returnOnNext) return coords;
             if(node.getRail().equals(cartPos)) returnOnNext = true;
