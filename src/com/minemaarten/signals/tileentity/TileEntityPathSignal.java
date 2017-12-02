@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3i;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
@@ -14,7 +17,7 @@ import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.RailWrapper;
 
-public class TileEntityPathSignal extends TileEntitySignalBase {
+public class TileEntityPathSignal extends TileEntitySignalBase{
 
     private int pathingTimer;
 
@@ -100,14 +103,26 @@ public class TileEntityPathSignal extends TileEntitySignalBase {
 
     private static List<BlockPos> getToBeTraversedCoordinates(EntityMinecart cart){
         AStarRailNode path = getStoredPath(cart);
-        List<BlockPos> coords = new ArrayList<BlockPos>();
+        List<BlockPos> coords = new ArrayList<>();
         BlockPos cartPos = cart.getPosition();
         boolean returnOnNext = false;
-        while(path != null) {
-            coords.add(path.getRail());
+
+        if(path != null) path = path.getNextNode();
+
+        Stack<AStarRailNode> reversedRoute = new Stack<>();
+        for(; path != null; path = path.getNextNode()) {
+            if(path.getSignal(null) != null) break;
+            reversedRoute.push(path);
+        }
+
+        while(!reversedRoute.isEmpty()) {
+            AStarRailNode node = reversedRoute.pop();
+
+            coords.add(node.getRail());
+            node.showDebug(cart.getTags().contains("cart1") ? EnumFacing.UP.getDirectionVec() : Vec3i.NULL_VECTOR);
+
             if(returnOnNext) return coords;
-            if(path.getRail().equals(cartPos)) returnOnNext = true;
-            path = path.getNextNode();
+            if(node.getRail().equals(cartPos)) returnOnNext = true;
         }
         return coords;
     }

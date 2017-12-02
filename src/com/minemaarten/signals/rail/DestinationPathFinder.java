@@ -11,6 +11,9 @@ import java.util.regex.Pattern;
 
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.WorldServer;
 
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.rail.SignalsOnRouteIterable.SignalOnRoute;
@@ -74,6 +77,21 @@ public class DestinationPathFinder{
 
         public Iterable<SignalOnRoute> getSignalsOnRoute(){
             return new SignalsOnRouteIterable(this);
+        }
+
+        public TileEntitySignalBase getSignal(EnumFacing blacklistedDir){
+            return TileEntitySignalBase.getNeighborSignal(getRail(), blacklistedDir);
+        }
+
+        public void showDebug(){
+            showDebug(Vec3i.NULL_VECTOR);
+        }
+
+        public void showDebug(Vec3i offset){
+            if(rail.world instanceof WorldServer) {
+                Vec3i pos = rail.add(offset);
+                ((WorldServer)rail.world).spawnParticle(EnumParticleTypes.REDSTONE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 1, 0, 0, 0, 0D);
+            }
         }
     }
 

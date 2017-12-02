@@ -36,7 +36,7 @@ public class SignalsOnRouteIterable implements Iterable<SignalOnRoute>{
             private Iterator<SignalOnRoute> gotoNextSignal(){
                 curSignal = null;
                 while(curNode != null) {
-                    TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(curNode.getRail(), null);
+                    TileEntitySignalBase signal = curNode.getSignal(null);
                     if(signal != null) {
                         curSignal = new SignalOnRoute(signal, signal.getFacing() == curNode.pathDir);
                         curNode = curNode.getNextNode(); //Already hop to the next node for the next iteration.
