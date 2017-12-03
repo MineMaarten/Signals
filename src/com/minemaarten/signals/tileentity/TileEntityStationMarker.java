@@ -13,6 +13,9 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.ITickable;
 
+import org.apache.commons.lang3.Validate;
+
+import com.minemaarten.signals.api.access.IStationMarker;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.network.GuiSynced;
@@ -21,10 +24,11 @@ import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
 
-public class TileEntityStationMarker extends TileEntityBase implements ITickable, IGUITextFieldSensitive{
+public class TileEntityStationMarker extends TileEntityBase implements ITickable, IGUITextFieldSensitive,
+        IStationMarker{
     private static int nextId;
     @GuiSynced
-    private String stationName;
+    private String stationName = "";
     private boolean firstTick = true;
 
     public TileEntityStationMarker(){
@@ -44,8 +48,18 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
         stationName = compound.getString("stationName");
     }
 
+    @Override
     public String getStationName(){
         return stationName;
+    }
+
+    @Override
+    public void setStationName(String stationName){
+        Validate.notNull(stationName);
+
+        this.stationName = stationName;
+        markDirty();
+        sendUpdatePacket();
     }
 
     private void updateNeighborRailCache(){
@@ -97,9 +111,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
 
     @Override
     public void setText(int textFieldID, String text){
-        stationName = text;
-        markDirty();
-        sendUpdatePacket();
+        setStationName(text);
     }
 
     @Override
