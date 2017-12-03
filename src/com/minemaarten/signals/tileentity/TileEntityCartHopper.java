@@ -16,22 +16,21 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.items.CapabilityItemHandler;
 
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.minemaarten.signals.api.ICartHopperBehaviour;
+import com.minemaarten.signals.api.access.ICartHopper;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.tileentity.carthopperbehaviour.CartHopperBehaviourItems;
 
-public class TileEntityCartHopper extends TileEntityBase implements ITickable, IGUIButtonSensitive{
-    public enum HopperMode{
-        CART_FULL, CART_EMPTY, NO_ACTIVITY, NEVER
-    }
+public class TileEntityCartHopper extends TileEntityBase implements ITickable, IGUIButtonSensitive, ICartHopper{
 
     @GuiSynced
     private HopperMode hopperMode = HopperMode.CART_FULL;
@@ -88,12 +87,25 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
         return pushedLastTick;
     }
 
+    @Override
     public HopperMode getHopperMode(){
         return hopperMode;
     }
 
-    public boolean interactsWithEngine(){
+    @Override
+    public void setHopperMode(HopperMode hopperMode){
+        Validate.notNull(hopperMode);
+        this.hopperMode = hopperMode;
+    }
+
+    @Override
+    public boolean isInteractingWithEngine(){
         return interactEngine;
+    }
+
+    @Override
+    public void setInteractingWithEngine(boolean interactWithEngine){
+        this.interactEngine = interactWithEngine;
     }
 
     private void pushCart(){

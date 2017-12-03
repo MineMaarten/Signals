@@ -4,10 +4,10 @@ import java.awt.Point;
 
 import net.minecraft.client.resources.I18n;
 
+import com.minemaarten.signals.api.access.ICartHopper.HopperMode;
 import com.minemaarten.signals.client.gui.widget.GuiButtonSpecial;
 import com.minemaarten.signals.inventory.ContainerBase;
 import com.minemaarten.signals.tileentity.TileEntityCartHopper;
-import com.minemaarten.signals.tileentity.TileEntityCartHopper.HopperMode;
 
 public class GuiCartHopper extends GuiContainerBase<TileEntityCartHopper>{
 
@@ -41,7 +41,7 @@ public class GuiCartHopper extends GuiContainerBase<TileEntityCartHopper>{
         modeButton.displayString = I18n.format("signals.gui.cart_hopper.emitRedstoneWhen." + hopperMode.toString().toLowerCase());
         modeButton.setTooltipText(I18n.format("signals.gui.cart_hopper.emitRedstoneWhen." + hopperMode.toString().toLowerCase() + ".tooltip"));
 
-        boolean interactEngine = te.interactsWithEngine();
+        boolean interactEngine = te.isInteractingWithEngine();
         engineInteractButton.displayString = I18n.format("signals.gui.cart_hopper.interactWith." + (interactEngine ? "cartEngine" : "cartInventory"));
     }
 
