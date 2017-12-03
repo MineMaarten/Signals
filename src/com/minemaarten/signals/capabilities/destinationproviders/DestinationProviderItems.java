@@ -18,13 +18,13 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.oredict.OreDictionary;
 
 import com.minemaarten.signals.api.Signals;
-import com.minemaarten.signals.api.tileentity.IDestinationProvider;
+import com.minemaarten.signals.api.access.IDestinationProviderItems;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.proxy.CommonProxy.EnumGuiId;
 import com.minemaarten.signals.tileentity.IGUIButtonSensitive;
 
 @Signals
-public class DestinationProviderItems implements IDestinationProvider, IGUIButtonSensitive{
+public class DestinationProviderItems implements IDestinationProviderItems, IGUIButtonSensitive{
     @CapabilityInject(IItemHandler.class)
     private static Capability<IItemHandler> ITEM_HANDLER;
 
@@ -145,5 +145,55 @@ public class DestinationProviderItems implements IDestinationProvider, IGUIButto
         checkNBT = (packetData & 4) > 0;
         checkModSimilarity = (packetData & 2) > 0;
         checkOreDictionary = (packetData & 1) > 0;
+    }
+
+    @Override
+    public void useBlacklist(boolean useBlacklist){
+        blacklist = useBlacklist;
+    }
+
+    @Override
+    public boolean isUsingBlacklist(){
+        return blacklist;
+    }
+
+    @Override
+    public void checkDamage(boolean checkDamage){
+        this.checkDamage = checkDamage;
+    }
+
+    @Override
+    public boolean isCheckingDamage(){
+        return checkDamage;
+    }
+
+    @Override
+    public void checkNBT(boolean checkNBT){
+        this.checkNBT = checkNBT;
+    }
+
+    @Override
+    public boolean isCheckingNBT(){
+        return checkNBT;
+    }
+
+    @Override
+    public void checkModSimilarity(boolean checkModSimilarity){
+        this.checkModSimilarity = checkModSimilarity;
+    }
+
+    @Override
+    public boolean isCheckingModSimilarity(){
+        return checkModSimilarity;
+    }
+
+    @Override
+    public void checkOreDictionary(boolean checkOreDictionary){
+        this.checkOreDictionary = checkOreDictionary;
+    }
+
+    @Override
+    public boolean isCheckingOreDictionary(){
+        return checkOreDictionary;
     }
 }

@@ -1,6 +1,11 @@
 package com.minemaarten.signals.api.access;
 
+import java.util.List;
+
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.tileentity.TileEntity;
+
+import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 
 /**
  * Main entry point for accessing Signals information from (Tile)Entities in the world.
@@ -30,4 +35,26 @@ import net.minecraft.entity.item.EntityMinecart;
  */
 public interface ISignalsAccessor{
     public IDestinationAccessor getDestinationAccessor(EntityMinecart cart);
+
+    /**
+     * Gets the destination providers from a given tile entity.
+     * For IItemHandlers this is {@link IDestinationProviderItems}
+     * @param te
+     * @return
+     */
+    public List<IDestinationProvider> getDestinationProviders(TileEntity te);
+
+    /**
+     * Helper method for retrieving the items destination provider.
+     * @param te
+     * @return the items destination provider, or null, if not applicable for this TileEntity.
+     */
+    public default IDestinationProviderItems getDestinationProviderItem(TileEntity te){
+        for(IDestinationProvider d : getDestinationProviders(te)) {
+            if(d instanceof IDestinationProviderItems) {
+                return (IDestinationProviderItems)d;
+            }
+        }
+        return null;
+    }
 }
