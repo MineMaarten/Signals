@@ -148,7 +148,7 @@ public class RailWrapper extends BlockPos{
      */
     public Map<RailWrapper, EnumFacing> getNeighborsForEntryDir(EnumFacing entryDir){
         getNeighbors(); //Build the cache
-        if(entryDir == null) return allNeighbors;
+        if(entryDir == null || entryDir == EnumFacing.DOWN) return allNeighbors;
         Map<RailWrapper, EnumFacing> exits = exitsForEntries.get(entryDir);
         if(exits == null) {
             new Throwable(String.format("NullPointer for Entry dir: %s, pos: %s", entryDir, this)).printStackTrace();

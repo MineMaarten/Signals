@@ -1,6 +1,10 @@
 package com.minemaarten.signals.api.access;
 
+import java.util.Collection;
+
 import javax.annotation.Nonnull;
+
+import org.apache.commons.lang3.Validate;
 
 /**
  * A way to modify the destinations in carts, retrieve this for a given cart using {@link ISignalsAccessor}.
@@ -20,6 +24,23 @@ public interface IDestinationAccessor{
     public void setDestinations(@Nonnull String... destinations);
 
     /**
+     * See {@link IDestinationAccessor#setDestinations(String...)}
+     * @param destinations
+     */
+    public default void setDestinations(@Nonnull Collection<String> destinations){
+        Validate.notNull(destinations);
+        setDestinations(destinations.toArray(new String[destinations.size()]));
+    }
+
+    public @Nonnull String[] getDestinations();
+
+    /**
+     * Returns the indeces of destinations which have an invalid regex.
+     * @return
+     */
+    public @Nonnull int[] getInvalidDestinationIndeces();
+
+    /**
      * Gets the total amount of destinations configured
      * @return
      */
@@ -29,7 +50,7 @@ public interface IDestinationAccessor{
      * Get the currently selected destination string.
      * @return The currently selected destination. "" if no destinations are configured for this cart.
      */
-    public String getCurrentDestination();
+    public @Nonnull String getCurrentDestination();
 
     /**
      * Get the currently selected destination index (the index of the array from setDestinations())

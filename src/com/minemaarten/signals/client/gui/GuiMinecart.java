@@ -23,6 +23,7 @@ public class GuiMinecart extends GuiDestinations<CapabilityMinecartDestination>{
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int i, int j){
         super.drawGuiContainerBackgroundLayer(partialTicks, i, j);
+        drawDarkGreyText(guiLeft, guiTop, "signals.gui.cart.schedule");
 
         if(isMotorized) {
             drawVerticalLine(guiLeft + 120, guiTop - 1, guiTop + ySize, 0xFF222222);

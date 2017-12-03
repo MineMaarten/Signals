@@ -54,20 +54,25 @@ public abstract class GuiDestinations<DestinationAccessor extends IDestinationAc
         return null;
     }
 
+    protected boolean showDestination(){
+        return true;
+    }
+
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int i, int j){
         drawBackLayer();
-        drawDarkGreyText(guiLeft, guiTop, "signals.gui.cart.schedule");
 
-        String dest = destinationAccessor.getCurrentDestination();
-        if(dest.equals("")) {
-            drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.no_destination");
-        } else {
-            drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.destination", dest);
+        if(showDestination()) {
+            String dest = destinationAccessor.getCurrentDestination();
+            if(dest.equals("")) {
+                drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.no_destination");
+            } else {
+                drawDarkGreyTextCentered(guiLeft + 60, guiTop + ySize - 18, "signals.gui.cart.destination", dest);
+            }
         }
 
         if(destinationAccessor.getTotalDestinations() > 0) {
-            drawDestinationRect(destinationAccessor.getDestinationIndex(), 0xFF005500);
+            if(showDestination()) drawDestinationRect(destinationAccessor.getDestinationIndex(), 0xFF005500);
             for(int invalidDest : destinationAccessor.getInvalidDestinationIndeces()) {
                 drawDestinationRect(invalidDest, 0xAAFF0000);
             }
@@ -99,7 +104,6 @@ public abstract class GuiDestinations<DestinationAccessor extends IDestinationAc
         super.onKeyTyped(widget);
 
         destinationAccessor.setDestinations(getDestinations());
-        // NetworkHandler.sendToServer(new PacketUpdateTextfieldEntity(cart, 0));
     }
 
     private List<String> getDestinations(){
