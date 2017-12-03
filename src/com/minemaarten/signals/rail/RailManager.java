@@ -14,16 +14,19 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.fml.common.discovery.ASMDataTable;
 import net.minecraftforge.fml.common.discovery.ASMDataTable.ASMData;
 
+import com.minemaarten.signals.SignalsAccessor;
 import com.minemaarten.signals.api.ICartHopperBehaviour;
 import com.minemaarten.signals.api.ICartLinker;
 import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.api.IRailMapper;
 import com.minemaarten.signals.api.Signals;
+import com.minemaarten.signals.api.access.SignalsAccessorProvidingEvent;
 import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
@@ -86,6 +89,7 @@ public class RailManager{
                     cartLinkers.add(cartLinker);
                     Log.info("Successfully registered the ICartLinker for \"" + annotatedClass.getClassName() + "\".");
                 }
+
                 //Log.error("Annotated class \"" + annotatedClass.getClassName() + "\" is not implementing IRail, IRailMapper nor IDestinationProvider!");
             } catch(ClassNotFoundException e) {
                 e.printStackTrace();
@@ -97,6 +101,8 @@ public class RailManager{
                 e.printStackTrace();
             }
         }
+
+        MinecraftForge.EVENT_BUS.post(new SignalsAccessorProvidingEvent(new SignalsAccessor()));
     }
 
     private void registerRail(Block railBlock, IRail rail){

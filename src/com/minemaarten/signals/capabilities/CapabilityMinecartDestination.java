@@ -32,6 +32,10 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+
+import com.minemaarten.signals.api.access.IDestinationAccessor;
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.lib.SignalsUtils;
@@ -46,7 +50,7 @@ import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.tileentity.IGUITextFieldSensitive;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
-public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
+public class CapabilityMinecartDestination implements IGUITextFieldSensitive, IDestinationAccessor{
     @CapabilityInject(CapabilityMinecartDestination.class)
     public static Capability<CapabilityMinecartDestination> INSTANCE;
     private static final Pattern EMPTY_PATTERN = Pattern.compile("");
@@ -141,7 +145,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
             }
         }, new Callable<CapabilityMinecartDestination>(){
             @Override
-            public CapabilityMinecartDestination call() {
+            public CapabilityMinecartDestination call(){
                 return new CapabilityMinecartDestination();
             }
         });
@@ -150,6 +154,14 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
     @Override
     public void setText(int textFieldID, String text){
         destinationStations = text;
+        recompileRegexes();
+    }
+
+    @Override
+    public void setDestinations(String... destinations){
+        Validate.noNullElements(destinations, "The destinations array contains null at position %d");
+
+        destinationStations = StringUtils.joinWith("\n", (Object[])destinations);
         recompileRegexes();
     }
 
@@ -168,6 +180,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                 destinationRegexes[i] = EMPTY_PATTERN;
             }
         }
+        getCurrentDestination(); //Update to a valid destination index.
     }
 
     public int[] getInvalidDestinationIndeces(){
@@ -193,24 +206,34 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         return destinationStations.equals("") ? new String[0] : destinationStations.split("\n");
     }
 
+    @Override
     public int getTotalDestinations(){
         return getDestinations().length;
     }
 
+    @Override
     public String getCurrentDestination(){
         String[] destinations = getDestinations();
         if(curDestinationIndex >= destinations.length || curDestinationIndex == -1) nextDestination();
         return curDestinationIndex >= 0 ? destinations[curDestinationIndex] : "";
     }
 
+    @Override
     public int getDestinationIndex(){
         return curDestinationIndex;
     }
 
     public void nextDestination(){
+        setCurrentDestinationIndex(curDestinationIndex + 1);
+    }
+
+    @Override
+    public void setCurrentDestinationIndex(int index){
         String[] destinations = getDestinations();
-        if(++curDestinationIndex >= destinations.length) {
+        if(index >= destinations.length || index < 0) {
             curDestinationIndex = destinations.length > 0 ? 0 : -1;
+        } else {
+            curDestinationIndex = index;
         }
     }
 
@@ -294,7 +317,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         return fuelInv;
     }
 
-    public IItemHandler getFuelItemHandler() {
+    public IItemHandler getFuelItemHandler(){
         return fuelItemHandler;
     }
 
@@ -387,12 +410,12 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                         TileEntityHopper hopper = (TileEntityHopper)te;
                         for(int i = 0; i < hopper.getSizeInventory(); i++) {
                             ItemStack stack = hopper.getStackInSlot(i);
-                            if(!stack.isEmpty()&& getFuelInv().isItemValidForSlot(0, stack)) {
+                            if(!stack.isEmpty() && getFuelInv().isItemValidForSlot(0, stack)) {
                                 ItemStack inserted = stack.copy();
                                 inserted.setCount(1);
                                 ItemStack left = ItemHandlerHelper.insertItemStacked(getFuelItemHandler(), inserted, false);
                                 if(left.isEmpty()) {
-                                	stack.shrink(1);
+                                    stack.shrink(1);
                                     hopper.markDirty();
                                     return true;
                                 }
