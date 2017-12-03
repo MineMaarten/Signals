@@ -328,7 +328,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
     public void onCartBroken(EntityMinecart cart){
         if(motorized && !travelingBetweenDimensions) {
             motorized = false;
-            cart.dropItem(ModItems.cartEngine, 1);
+            cart.dropItem(ModItems.CART_ENGINE, 1);
             for(int i = 0; i < fuelInv.getSizeInventory(); i++) {
                 ItemStack fuel = fuelInv.getStackInSlot(i);
                 if(fuel != null) cart.entityDropItem(fuel, 0);

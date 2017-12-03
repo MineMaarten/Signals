@@ -14,22 +14,22 @@ import com.minemaarten.signals.tileentity.TileEntityChainSignal;
 import com.minemaarten.signals.tileentity.TileEntityPathSignal;
 
 public class ModBlocks{
-    public static Block blockSignal;
-    public static Block pathSignal;
-    public static Block chainSignal;
-    public static Block stationMarker;
-    public static Block railLink;
-    public static Block limiterRail;
-    public static Block cartHopper;
+    public static Block BLOCK_SIGNAL;
+    public static Block PATH_SIGNAL;
+    public static Block CHAIN_SIGNAL;
+    public static Block STATION_MARKER;
+    public static Block RAIL_LINK;
+    public static Block LIMITER_RAIL;
+    public static Block CART_HOPPER;
 
     public static void init(){
-        blockSignal = new BlockSignalBase(TileEntityBlockSignal.class, "block_signal");
-        pathSignal = new BlockSignalBase(TileEntityPathSignal.class, "path_signal");
-        chainSignal = new BlockSignalBase(TileEntityChainSignal.class, "chain_signal");
-        stationMarker = new BlockStationMarker();
-        railLink = new BlockRailLink();
-        limiterRail = new BlockLimiterRail();
-        cartHopper = new BlockCartHopper();
+        BLOCK_SIGNAL = new BlockSignalBase(TileEntityBlockSignal.class, "block_signal");
+        PATH_SIGNAL = new BlockSignalBase(TileEntityPathSignal.class, "path_signal");
+        CHAIN_SIGNAL = new BlockSignalBase(TileEntityChainSignal.class, "chain_signal");
+        STATION_MARKER = new BlockStationMarker();
+        RAIL_LINK = new BlockRailLink();
+        LIMITER_RAIL = new BlockLimiterRail();
+        CART_HOPPER = new BlockCartHopper();
     }
 
     public static void registerBlock(Block block){

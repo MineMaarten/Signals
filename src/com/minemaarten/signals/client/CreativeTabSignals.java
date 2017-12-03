@@ -17,7 +17,7 @@ public class CreativeTabSignals extends CreativeTabs{
 
     @Override
     public ItemStack getTabIconItem(){
-        return new ItemStack(ModBlocks.blockSignal);
+        return new ItemStack(ModBlocks.BLOCK_SIGNAL);
     }
 
 }

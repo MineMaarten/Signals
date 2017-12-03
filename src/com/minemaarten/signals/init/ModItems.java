@@ -7,13 +7,13 @@ import com.minemaarten.signals.item.ItemRailConfigurator;
 import com.minemaarten.signals.item.ItemRailNetworkController;
 
 public class ModItems{
-    public static Item railConfigurator;
-    public static Item railNetworkController;
-    public static Item cartEngine;
+    public static Item RAIL_CONFIGURATOR;
+    public static Item RAIL_NETWORK_CONTROLLER;
+    public static Item CART_ENGINE;
 
     public static void init(){
-        railConfigurator = new ItemRailConfigurator();
-        railNetworkController = new ItemRailNetworkController();
-        cartEngine = new ItemCartEngine();
+        RAIL_CONFIGURATOR = new ItemRailConfigurator();
+        RAIL_NETWORK_CONTROLLER = new ItemRailNetworkController();
+        CART_ENGINE = new ItemCartEngine();
     }
 }

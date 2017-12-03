@@ -45,13 +45,13 @@ public class ClientProxy extends CommonProxy{
 
     @Override
     public void init(){
-        for(Block block : new Block[]{ModBlocks.blockSignal, ModBlocks.pathSignal, ModBlocks.chainSignal, ModBlocks.stationMarker, ModBlocks.limiterRail, ModBlocks.cartHopper, ModBlocks.railLink}) {
+        for(Block block : new Block[]{ModBlocks.BLOCK_SIGNAL, ModBlocks.PATH_SIGNAL, ModBlocks.CHAIN_SIGNAL, ModBlocks.STATION_MARKER, ModBlocks.LIMITER_RAIL, ModBlocks.CART_HOPPER, ModBlocks.RAIL_LINK}) {
             Item item = Item.getItemFromBlock(block);
             registerItemModels(item);
         }
-        registerItemModels(ModItems.railNetworkController);
-        registerItemModels(ModItems.cartEngine);
-        registerItemModels(ModItems.railConfigurator);
+        registerItemModels(ModItems.RAIL_NETWORK_CONTROLLER);
+        registerItemModels(ModItems.CART_ENGINE);
+        registerItemModels(ModItems.RAIL_CONFIGURATOR);
     }
 
     private static void registerItemModels(Item item){

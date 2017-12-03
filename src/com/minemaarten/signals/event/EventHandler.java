@@ -53,7 +53,7 @@ public class EventHandler implements IWorldEventListener{
             if(!heldItem.isEmpty()) {
                 CapabilityMinecartDestination cap = event.getMinecart().getCapability(CapabilityMinecartDestination.INSTANCE, null);
                 if(cap != null) {
-                    if(heldItem.getItem() == ModItems.cartEngine && !cap.isMotorized()) {
+                    if(heldItem.getItem() == ModItems.CART_ENGINE && !cap.isMotorized()) {
                         if(!event.getPlayer().isCreative()) {
                             heldItem.shrink(1);
                             if(heldItem.isEmpty()) event.getPlayer().setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
@@ -61,7 +61,7 @@ public class EventHandler implements IWorldEventListener{
                         cap.setMotorized();
                         event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
                         event.setCanceled(true);
-                    } else if(heldItem.getItem() == ModItems.railConfigurator) {
+                    } else if(heldItem.getItem() == ModItems.RAIL_CONFIGURATOR) {
                         RailCacheManager.syncStationNames((EntityPlayerMP)event.getPlayer());
                         event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), ((EntityPlayerMP) event.getPlayer()).world, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
                         event.setCanceled(true);
