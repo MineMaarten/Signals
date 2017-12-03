@@ -22,13 +22,18 @@ The hopper will try to transfer any item from the input inventory into the Chest
 [prefix{l}]Filtering [prefix{}]
 Optionally you can attach inventories to the sides of the Cart Hopper, which act as filter. By default the items in the input inventory need to match any item of the filter inventories to be transfered. This can be configured by right-clicking the inventory with a Rail Configurator.
 
-[prefix{l}]Redstone behaviour[prefix{}]
+[prefix{l}]Redstone emission[prefix{}]
 You can change when carts are allowed to continue on their way by right-clicking the Cart Hopper. You can toggle between the following modes:
 
 No activity - Emits a redstone signal as soon as items stop transfering.
 Never - Never emit a redstone signal.
 Cart full - Emits a redstone signal as soon as the cart's inventory is full.
 Cart empty - Emits a redstone signal as soon as the cart's inventory is empty.
+
+Redstone will only be emitted to the top and bottom of the block.
+
+[prefix{l}]Applying redstone[prefix{}]
+By applying redstone to a side of the Cart Hopper, the hopper will stop transfering items and it will emit redstone to the top/and bottom, allowing carts to pass through.
 
 [prefix{l}]Targeting a Cart Engine inventory[prefix{}]
 A Cart Hopper is a perfect way to manage fuel you want to insert into a Cart's Cart Engine. By right-clicking the Cart Hopper and toggling the interaction behaviour to 'Cart Engine', items will only be transfered between the inventory and the Cart Engine.

@@ -73,7 +73,19 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
                 managingCartId = null;
             }
 
-            boolean shouldPush = tryTransfer(RailCacheManager.getInstance(getWorld()).getRail(getWorld(), getPos().up()) != null);
+            boolean extract = RailCacheManager.getInstance(getWorld()).getRail(getWorld(), getPos().up()) != null;
+            updateManagingCart(new AxisAlignedBB(extract ? getPos().up() : getPos().down()));
+
+            boolean shouldPush;
+            if(managingCart != null) {
+                if(isDisabled()) {
+                    shouldPush = true;
+                } else {
+                    shouldPush = tryTransfer(extract);
+                }
+            } else {
+                shouldPush = false;
+            }
             if(shouldPush && !pushedLastTick) pushCart();
             boolean notifyNeighbors = shouldPush != pushedLastTick;
             pushedLastTick = shouldPush;
@@ -81,6 +93,13 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
                 getWorld().notifyNeighborsOfStateChange(getPos(), getBlockType(), true);
             }
         }
+    }
+
+    private boolean isDisabled(){
+        for(EnumFacing facing : EnumFacing.HORIZONTALS) {
+            if(getWorld().getRedstonePower(pos.offset(facing), facing) > 0) return true;
+        }
+        return false;
     }
 
     public boolean emitsRedstone(){
@@ -115,39 +134,35 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private boolean tryTransfer(boolean extract){
-        updateManagingCart(new AxisAlignedBB(extract ? getPos().up() : getPos().down()));
-        if(managingCart != null) {
-            boolean active = false, empty = false, full = false;
-            List<Pair<TileEntity, EnumFacing>> filters = Lists.newArrayList();
-            for(EnumFacing dir : EnumFacing.HORIZONTALS) {
-                TileEntity filter = getWorld().getTileEntity(getPos().offset(dir));
-                if(filter != null) filters.add(new ImmutablePair<>(filter, dir));
-            }
-
-            for(ICartHopperBehaviour hopperBehaviour : RailManager.getInstance().getHopperBehaviours()) {
-                Capability<?> cap = hopperBehaviour.getCapability();
-                if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems || managingCart.hasCapability(cap, null)) {
-                    Object cart = null;
-                    if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems) {
-                        if(managingCart.hasCapability(CapabilityMinecartDestination.INSTANCE, null)) {
-                            CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-                            if(destCap.isMotorized()) {
-                                cart = destCap.getFuelItemHandler();
-                            }
-                        }
-                        if(cart == null) continue;
-                    } else {
-                        cart = managingCart.getCapability(cap, null);
-                    }
-                    Object te = getCapabilityAt(cap, extract ? EnumFacing.DOWN : EnumFacing.UP);
-                    if(te != null && hopperBehaviour.tryTransfer(extract ? cart : te, extract ? te : cart, filters)) active = true;
-                    if(hopperMode == HopperMode.CART_EMPTY && hopperBehaviour.isCartEmpty(cart, filters)) empty = true;
-                    if(hopperMode == HopperMode.CART_FULL && hopperBehaviour.isCartFull(cart)) full = true;
-                }
-            }
-            return hopperMode == HopperMode.NO_ACTIVITY ? !active : empty || full;
+        boolean active = false, empty = false, full = false;
+        List<Pair<TileEntity, EnumFacing>> filters = Lists.newArrayList();
+        for(EnumFacing dir : EnumFacing.HORIZONTALS) {
+            TileEntity filter = getWorld().getTileEntity(getPos().offset(dir));
+            if(filter != null) filters.add(new ImmutablePair<>(filter, dir));
         }
-        return false;
+
+        for(ICartHopperBehaviour hopperBehaviour : RailManager.getInstance().getHopperBehaviours()) {
+            Capability<?> cap = hopperBehaviour.getCapability();
+            if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems || managingCart.hasCapability(cap, null)) {
+                Object cart = null;
+                if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems) {
+                    if(managingCart.hasCapability(CapabilityMinecartDestination.INSTANCE, null)) {
+                        CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+                        if(destCap.isMotorized()) {
+                            cart = destCap.getFuelItemHandler();
+                        }
+                    }
+                    if(cart == null) continue;
+                } else {
+                    cart = managingCart.getCapability(cap, null);
+                }
+                Object te = getCapabilityAt(cap, extract ? EnumFacing.DOWN : EnumFacing.UP);
+                if(te != null && hopperBehaviour.tryTransfer(extract ? cart : te, extract ? te : cart, filters)) active = true;
+                if(hopperMode == HopperMode.CART_EMPTY && hopperBehaviour.isCartEmpty(cart, filters)) empty = true;
+                if(hopperMode == HopperMode.CART_FULL && hopperBehaviour.isCartFull(cart)) full = true;
+            }
+        }
+        return hopperMode == HopperMode.NO_ACTIVITY ? !active : empty || full;
     }
 
     private void updateManagingCart(AxisAlignedBB aabb){

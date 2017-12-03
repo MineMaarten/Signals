@@ -1,5 +1,7 @@
 package com.minemaarten.signals.block;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -21,13 +23,16 @@ public class BlockCartHopper extends BlockBase{
 
     @Override
     public int getWeakPower(IBlockState state, IBlockAccess worldIn, BlockPos pos, EnumFacing side){
+        if(side != EnumFacing.UP && side != EnumFacing.DOWN) return 0;
         TileEntityCartHopper cartHopper = (TileEntityCartHopper)worldIn.getTileEntity(pos);
         return cartHopper.emitsRedstone() ? 15 : 0;
     }
 
-    /**
-     * Can this block provide power. Only wire currently seems to have this change based on its state.
-     */
+    @Override
+    public boolean canConnectRedstone(IBlockState state, IBlockAccess world, BlockPos pos, @Nullable EnumFacing side){
+        return side == EnumFacing.UP || side == EnumFacing.DOWN;
+    }
+
     @Override
     public boolean canProvidePower(IBlockState state){
         return true;
