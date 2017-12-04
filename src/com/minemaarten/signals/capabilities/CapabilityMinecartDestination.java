@@ -317,7 +317,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         return fuelInv;
     }
 
-    public IItemHandler getFuelItemHandler(){
+    public IItemHandler getEngineItemHandler(){
         return fuelItemHandler;
     }
 
@@ -413,7 +413,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                             if(!stack.isEmpty() && getFuelInv().isItemValidForSlot(0, stack)) {
                                 ItemStack inserted = stack.copy();
                                 inserted.setCount(1);
-                                ItemStack left = ItemHandlerHelper.insertItemStacked(getFuelItemHandler(), inserted, false);
+                                ItemStack left = ItemHandlerHelper.insertItemStacked(getEngineItemHandler(), inserted, false);
                                 if(left.isEmpty()) {
                                     stack.shrink(1);
                                     hopper.markDirty();
