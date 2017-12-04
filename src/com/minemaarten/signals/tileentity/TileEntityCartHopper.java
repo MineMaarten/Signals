@@ -147,12 +147,10 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
                 Object cart = null;
                 if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems) {
                     if(managingCart.hasCapability(CapabilityMinecartDestination.INSTANCE, null)) {
-                        CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-                        if(destCap.isMotorized()) {
-                            cart = destCap.getEngineItemHandler();
-                        }
+                        cart = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getEngineItemHandler();
+                    } else {
+                        continue;
                     }
-                    if(cart == null) continue;
                 } else {
                     cart = managingCart.getCapability(cap, null);
                 }
@@ -213,7 +211,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
         if(managingCart != null && capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
             if(interactEngine) {
                 CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-                if(destCap != null && destCap.isMotorized()) return (T)destCap.getEngineItemHandler();
+                if(destCap != null) return (T)destCap.getEngineItemHandler();
             } else if(managingCart.hasCapability(capability, null)) {
                 return managingCart.getCapability(capability, null);
             }

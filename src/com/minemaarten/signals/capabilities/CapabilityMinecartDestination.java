@@ -38,6 +38,7 @@ import org.apache.commons.lang3.Validate;
 import com.minemaarten.signals.api.access.IDestinationAccessor;
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.init.ModItems;
+import com.minemaarten.signals.inventory.EngineItemHandler;
 import com.minemaarten.signals.lib.SignalsUtils;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
@@ -80,6 +81,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         }
     };
     private final IItemHandler fuelItemHandler = new InvWrapper(fuelInv);
+    private IItemHandler engineItemHandler = new EngineItemHandler(this, fuelItemHandler);
     private boolean motorActive;
     public boolean travelingBetweenDimensions;
 
@@ -272,6 +274,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
 
     public void setMotorized(){
         motorized = true;
+        engineItemHandler = fuelItemHandler;
     }
 
     public boolean isMotorized(){
@@ -318,7 +321,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
     }
 
     public IItemHandler getEngineItemHandler(){
-        return fuelItemHandler;
+        return engineItemHandler;
     }
 
     public int getScaledFuel(int barLength){
