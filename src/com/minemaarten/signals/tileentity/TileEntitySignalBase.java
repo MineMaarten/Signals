@@ -108,7 +108,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     protected void setLampStatus(EnumLampStatus lampStatus){
-        setLampStatus(lampStatus, () -> getNeighborMinecarts(), cart -> routeCart(cart, getFacing(), true));
+        setLampStatus(lampStatus, this::getNeighborMinecarts, cart -> routeCart(cart, getFacing(), true));
     }
 
     protected void setLampStatus(EnumLampStatus lampStatus, Supplier<List<EntityMinecart>> neighborMinecartGetter, Function<EntityMinecart, AStarRailNode> pathfinder){
@@ -304,12 +304,9 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
                 max.setPos(Math.max(max.getX(), pos.getX()), Math.max(max.getY(), pos.getY()), Math.max(max.getZ(), pos.getZ()));
             }
 
-            carts.addAll(world.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(min, max.add(1, 2, 1)), new Predicate<EntityMinecart>(){
-                @Override
-                public boolean apply(EntityMinecart cart){
-                    BlockPos cartPos = cart.getPosition();
-                    return railsOnBlock.contains(cartPos) || railsOnBlock.contains(cartPos.down());
-                }
+            carts.addAll(world.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(min, max.add(1, 2, 1)), cart -> {
+                BlockPos cartPos = cart.getPosition();
+                return railsOnBlock.contains(cartPos) || railsOnBlock.contains(cartPos.down());
             }));
         }
         return carts;

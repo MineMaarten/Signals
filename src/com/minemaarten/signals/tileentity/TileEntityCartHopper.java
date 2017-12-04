@@ -63,12 +63,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
     public void update(){
         if(!getWorld().isRemote) {
             if(managingCartId != null) {
-                List<EntityMinecart> carts = getWorld().getEntities(EntityMinecart.class, new Predicate<EntityMinecart>(){
-                    @Override
-                    public boolean apply(EntityMinecart input){
-                        return input.getPersistentID().equals(managingCartId);
-                    }
-                });
+                List<EntityMinecart> carts = getWorld().getEntities(EntityMinecart.class, input -> input.getPersistentID().equals(managingCartId));
                 managingCart = carts.isEmpty() ? null : carts.get(0);
                 managingCartId = null;
             }
