@@ -6,6 +6,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 
 import com.minemaarten.signals.proxy.CommonProxy.EnumGuiId;
 import com.minemaarten.signals.tileentity.TileEntityCartHopper;
@@ -36,5 +37,15 @@ public class BlockCartHopper extends BlockBase{
     @Override
     public boolean canProvidePower(IBlockState state){
         return true;
+    }
+
+    @Override
+    public boolean hasComparatorInputOverride(IBlockState state){
+        return true;
+    }
+
+    @Override
+    public int getComparatorInputOverride(IBlockState state, World world, BlockPos pos){
+        return ((TileEntityCartHopper)world.getTileEntity(pos)).getComparatorInputOverride();
     }
 }

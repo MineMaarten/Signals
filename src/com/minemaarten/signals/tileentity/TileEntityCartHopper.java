@@ -7,6 +7,8 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -25,6 +27,7 @@ import com.google.common.collect.Lists;
 import com.minemaarten.signals.api.ICartHopperBehaviour;
 import com.minemaarten.signals.api.access.ICartHopper;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
+import com.minemaarten.signals.init.ModBlocks;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailManager;
@@ -40,6 +43,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
     private EntityMinecart managingCart;
     private UUID managingCartId;
     private boolean pushedLastTick;
+    private int lastComparatorInputOverride;
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag){
@@ -91,6 +95,11 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
             pushedLastTick = shouldPush;
             if(notifyNeighbors) {
                 getWorld().notifyNeighborsOfStateChange(getPos(), getBlockType(), true);
+            }
+            int comparatorInputOverride = getComparatorInputOverride();
+            if(lastComparatorInputOverride != comparatorInputOverride) {
+                world.updateComparatorOutputLevel(pos, ModBlocks.CART_HOPPER);
+                lastComparatorInputOverride = comparatorInputOverride;
             }
         }
     }
@@ -219,5 +228,17 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
             }
         }
         return super.getCapability(capability, facing);
+    }
+
+    public int getComparatorInputOverride(){
+        if(interactEngine && managingCart != null) {
+            CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+            if(destCap != null && destCap.isMotorized()) {
+                return Container.calcRedstoneFromInventory(destCap.getFuelInv());
+            }
+        } else if(managingCart instanceof IInventory) {
+            return Container.calcRedstoneFromInventory((IInventory)managingCart);
+        }
+        return 0;
     }
 }
