@@ -81,7 +81,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         }
     };
     private final IItemHandler fuelItemHandler = new InvWrapper(fuelInv);
-    private IItemHandler engineItemHandler = new EngineItemHandler(this, fuelItemHandler);
+    private final IItemHandler engineItemHandler = new EngineItemHandler(this, fuelItemHandler);
     private boolean motorActive;
     public boolean travelingBetweenDimensions;
 
@@ -275,7 +275,6 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
 
     public void setMotorized(){
         motorized = true;
-        engineItemHandler = fuelItemHandler;
     }
 
     public boolean isMotorized(){
@@ -322,7 +321,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
     }
 
     public IItemHandler getEngineItemHandler(){
-        return engineItemHandler;
+        return motorized ? engineItemHandler : fuelItemHandler;
     }
 
     public int getScaledFuel(int barLength){
