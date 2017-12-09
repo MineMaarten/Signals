@@ -44,6 +44,7 @@ public class Signals{
         ModItems.init();
         CapabilityMinecartDestination.register();
         CapabilityDestinationProvider.register();
+        MinecraftForge.EVENT_BUS.register(proxy);
         MinecraftForge.EVENT_BUS.register(new com.minemaarten.signals.event.EventHandler());
         MinecraftForge.EVENT_BUS.register(new RailReplacerEventHandler());
         BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(ModItems.TICKET, new BehaviorDispenseTicket());

@@ -17,8 +17,11 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.client.ClientEventHandler;
@@ -56,9 +59,13 @@ public class ClientProxy extends CommonProxy{
         registerItemModels(ModItems.RAIL_NETWORK_CONTROLLER);
         registerItemModels(ModItems.CART_ENGINE);
         registerItemModels(ModItems.RAIL_CONFIGURATOR);
+    }
 
+    @SubscribeEvent
+    public void onModelRegistration(ModelRegistryEvent event){
         for(int i = 0; i <= 4; i++) {
-            registerItemModel(new ItemStack(ModItems.TICKET, 1, i), i == 0 ? "" : "_" + i);
+            ModelResourceLocation location = new ModelResourceLocation(new ResourceLocation("signals:ticket"), "inventory_" + i);
+            ModelLoader.setCustomModelResourceLocation(ModItems.TICKET, i, location);
         }
     }
 

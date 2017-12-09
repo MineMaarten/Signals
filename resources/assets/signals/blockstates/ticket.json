@@ -1,0 +1,17 @@
+{
+    "forge_marker": 1,
+    "defaults": {
+        "textures": {
+            "layer0": "signals:items/ticket_0"
+        },
+        "model": "forge:item-layer",
+        "transform": "forge:default-item"
+    },
+    "variants": {
+        "inventory_0": [{"textures": { "layer0": "signals:items/ticket_0" }}],
+        "inventory_1": [{"textures": { "layer0": "signals:items/ticket_1" }}],
+        "inventory_2": [{"textures": { "layer0": "signals:items/ticket_2" }}],
+        "inventory_3": [{"textures": { "layer0": "signals:items/ticket_3" }}],
+        "inventory_4": [{"textures": { "layer0": "signals:items/ticket_4" }}]        
+    }
+}
