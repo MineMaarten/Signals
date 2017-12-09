@@ -82,6 +82,11 @@ public class ItemTicket extends ItemSignals{
         super.addInformation(stack, world, curInfo, flag);
     }
 
+    @Override
+    public int getMetadata(ItemStack stack){
+        return Math.min(getDestinations(stack).size(), 4);
+    }
+
     private static void appendDestination(ItemStack stack, String destination){
         List<String> newDestinations = Lists.newArrayList(getDestinations(stack));
         newDestinations.add(destination);
@@ -89,7 +94,6 @@ public class ItemTicket extends ItemSignals{
     }
 
     public static void setDestinations(ItemStack stack, List<String> destinations){
-        stack.setItemDamage(Math.min(4, destinations.size()));
         if(destinations.isEmpty()) {
             stack.removeSubCompound("destinations");
         } else {
