@@ -185,6 +185,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         getCurrentDestination(); //Update to a valid destination index.
     }
 
+    @Override
     public int[] getInvalidDestinationIndeces(){
         if(invalidDestinations.equals("")) return new int[0];
         String[] strings = invalidDestinations.split(",");
@@ -321,7 +322,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
     }
 
     public IItemHandler getEngineItemHandler(){
-        return motorized ? engineItemHandler : fuelItemHandler;
+        return motorized ? fuelItemHandler : engineItemHandler;
     }
 
     public int getScaledFuel(int barLength){
