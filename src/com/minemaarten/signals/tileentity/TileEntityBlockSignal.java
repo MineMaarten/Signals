@@ -48,7 +48,7 @@ public class TileEntityBlockSignal extends TileEntitySignalBase{
                     }
 
                     lampStatus = isValid ? EnumLampStatus.GREEN : EnumLampStatus.RED;
-                    setLampStatus(lampStatus, () -> routingCarts, cart -> cartsToPath.get(cart));
+                    setLampStatus(lampStatus, () -> routingCarts, cartsToPath::get);
                     onCartsRoutedAttempt(isValid);
                 } else {
                     checkDelay = 0;

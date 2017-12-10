@@ -1,5 +1,6 @@
 package com.minemaarten.signals;
 
+import net.minecraft.block.BlockDispenser;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -13,6 +14,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
+import com.minemaarten.signals.dispenser.BehaviorDispenseTicket;
 import com.minemaarten.signals.event.RailReplacerEventHandler;
 import com.minemaarten.signals.init.ModBlocks;
 import com.minemaarten.signals.init.ModItems;
@@ -42,8 +44,10 @@ public class Signals{
         ModItems.init();
         CapabilityMinecartDestination.register();
         CapabilityDestinationProvider.register();
+        MinecraftForge.EVENT_BUS.register(proxy);
         MinecraftForge.EVENT_BUS.register(new com.minemaarten.signals.event.EventHandler());
         MinecraftForge.EVENT_BUS.register(new RailReplacerEventHandler());
+        BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(ModItems.TICKET, new BehaviorDispenseTicket());
         asmData = event.getAsmData();
     }
 

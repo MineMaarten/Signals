@@ -13,18 +13,12 @@ public abstract class AbstractPacket<REQ extends AbstractPacket<REQ>> implements
     @Override
     public REQ onMessage(final REQ message, final MessageContext ctx){
         if(ctx.side == Side.SERVER) {
-            Signals.proxy.addScheduledTask(new Runnable(){
-                @Override
-                public void run(){
-                    message.handleServerSide(ctx.getServerHandler().player);
-                }
+            Signals.proxy.addScheduledTask(() -> {
+                message.handleServerSide(ctx.getServerHandler().player);
             }, ctx.side == Side.SERVER);
         } else {
-            Signals.proxy.addScheduledTask(new Runnable(){
-                @Override
-                public void run(){
-                    message.handleClientSide(Signals.proxy.getPlayer());
-                }
+            Signals.proxy.addScheduledTask(() -> {
+                message.handleClientSide(Signals.proxy.getPlayer());
             }, ctx.side == Side.SERVER);
         }
         return null;

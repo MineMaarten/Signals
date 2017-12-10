@@ -38,6 +38,7 @@ import org.apache.commons.lang3.Validate;
 import com.minemaarten.signals.api.access.IDestinationAccessor;
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.init.ModItems;
+import com.minemaarten.signals.inventory.EngineItemHandler;
 import com.minemaarten.signals.lib.SignalsUtils;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
@@ -80,6 +81,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         }
     };
     private final IItemHandler fuelItemHandler = new InvWrapper(fuelInv);
+    private final IItemHandler engineItemHandler = new EngineItemHandler(this, fuelItemHandler);
     private boolean motorActive;
     public boolean travelingBetweenDimensions;
 
@@ -143,12 +145,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                     SignalsUtils.readInventoryFromNBT(tag, instance.fuelInv);
                 }
             }
-        }, new Callable<CapabilityMinecartDestination>(){
-            @Override
-            public CapabilityMinecartDestination call(){
-                return new CapabilityMinecartDestination();
-            }
-        });
+        }, CapabilityMinecartDestination::new);
     }
 
     @Override
@@ -183,6 +180,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         getCurrentDestination(); //Update to a valid destination index.
     }
 
+    @Override
     public int[] getInvalidDestinationIndeces(){
         if(invalidDestinations.equals("")) return new int[0];
         String[] strings = invalidDestinations.split(",");
@@ -202,7 +200,8 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         return getDestinations()[index];
     }
 
-    private String[] getDestinations(){
+    @Override
+    public String[] getDestinations(){
         return destinationStations.equals("") ? new String[0] : destinationStations.split("\n");
     }
 
@@ -317,8 +316,8 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         return fuelInv;
     }
 
-    public IItemHandler getFuelItemHandler(){
-        return fuelItemHandler;
+    public IItemHandler getEngineItemHandler(){
+        return motorized ? fuelItemHandler : engineItemHandler;
     }
 
     public int getScaledFuel(int barLength){
@@ -413,7 +412,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                             if(!stack.isEmpty() && getFuelInv().isItemValidForSlot(0, stack)) {
                                 ItemStack inserted = stack.copy();
                                 inserted.setCount(1);
-                                ItemStack left = ItemHandlerHelper.insertItemStacked(getFuelItemHandler(), inserted, false);
+                                ItemStack left = ItemHandlerHelper.insertItemStacked(getEngineItemHandler(), inserted, false);
                                 if(left.isEmpty()) {
                                     stack.shrink(1);
                                     hopper.markDirty();

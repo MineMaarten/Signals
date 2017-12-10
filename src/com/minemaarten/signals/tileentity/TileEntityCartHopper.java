@@ -67,12 +67,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
     public void update(){
         if(!getWorld().isRemote) {
             if(managingCartId != null) {
-                List<EntityMinecart> carts = getWorld().getEntities(EntityMinecart.class, new Predicate<EntityMinecart>(){
-                    @Override
-                    public boolean apply(EntityMinecart input){
-                        return input.getPersistentID().equals(managingCartId);
-                    }
-                });
+                List<EntityMinecart> carts = getWorld().getEntities(EntityMinecart.class, input -> input.getPersistentID().equals(managingCartId));
                 managingCart = carts.isEmpty() ? null : carts.get(0);
                 managingCartId = null;
             }
@@ -156,12 +151,10 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
                 Object cart = null;
                 if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems) {
                     if(managingCart.hasCapability(CapabilityMinecartDestination.INSTANCE, null)) {
-                        CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-                        if(destCap.isMotorized()) {
-                            cart = destCap.getFuelItemHandler();
-                        }
+                        cart = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getEngineItemHandler();
+                    } else {
+                        continue;
                     }
-                    if(cart == null) continue;
                 } else {
                     cart = managingCart.getCapability(cap, null);
                 }
@@ -222,7 +215,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
         if(managingCart != null && capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
             if(interactEngine) {
                 CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-                if(destCap != null && destCap.isMotorized()) return (T)destCap.getFuelItemHandler();
+                if(destCap != null) return (T)destCap.getEngineItemHandler();
             } else if(managingCart.hasCapability(capability, null)) {
                 return managingCart.getCapability(capability, null);
             }

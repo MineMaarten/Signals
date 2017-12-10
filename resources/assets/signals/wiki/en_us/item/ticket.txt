@@ -1,0 +1,13 @@
+A Ticket can store a list of destinations. Destinations can be configured in the following ways:
+
+1. By right-clicking the ticket, a GUI opens up in which the destinations can be entered.
+2. By right-clicking a Station Marker, the Station Marker's name will be appended as destination to the Ticket.
+3. By shift-right-clicking a Minecart with the Ticket, the destinations from the Minecart will be copied to the Ticket.
+4. By shift-right-clicking the Ticket in the air, the Ticket's destinations will be cleared.
+
+By right-clicking a Minecart with the Ticket, the Minecart will be configured with the destinations stored on the Ticket. The ticket is not consumed in the process.
+
+[prefix{l}]Dispenser[prefix{}]
+When a Ticket is placed in a Dispenser, it will set the destinations of any Minecarts in front of the Dispenser, when fired. The Ticket is not consumed in the process.
+
+[crafting{200, 230, key=item/ticket}]
