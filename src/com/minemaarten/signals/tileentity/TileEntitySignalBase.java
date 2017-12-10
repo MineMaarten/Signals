@@ -32,7 +32,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import com.google.common.base.Predicate;
 import com.minemaarten.signals.block.BlockSignalBase;
 import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
@@ -400,7 +399,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         Queue<Map.Entry<RailWrapper, EnumFacing>> traversingRails = new LinkedList<>();
         Set<TileEntitySignalBase> signals = new HashSet<>();
 
-        for(Map.Entry<RailWrapper, EnumFacing> entry : curRail.getNeighborsForEntryDir(direction).entrySet()) {
+        for(Map.Entry<RailWrapper, EnumFacing> entry : curRail.getNeighbors().entrySet()) {
             if(entry.getValue() != direction.getOpposite()) {
                 traversingRails.add(entry);
             }
