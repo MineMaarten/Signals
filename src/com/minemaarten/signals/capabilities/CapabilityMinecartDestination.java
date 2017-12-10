@@ -145,12 +145,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                     SignalsUtils.readInventoryFromNBT(tag, instance.fuelInv);
                 }
             }
-        }, new Callable<CapabilityMinecartDestination>(){
-            @Override
-            public CapabilityMinecartDestination call(){
-                return new CapabilityMinecartDestination();
-            }
-        });
+        }, CapabilityMinecartDestination::new);
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -155,14 +156,14 @@ public class RailManager{
     }
 
     public boolean areLinked(EntityMinecart cart1, EntityMinecart cart2){
-        return cartLinkers.stream().anyMatch((x) -> x.getLinkedCarts(cart1).contains(cart2));
+        return cartLinkers.stream().anyMatch(x -> x.getLinkedCarts(cart1).contains(cart2));
     }
 
     public AStarRailNode getPath(EntityMinecart cart){
         Stream<EntityMinecart> linkedCarts = cartLinkers.stream().flatMap(cartLinker -> cartLinker.getLinkedCarts(cart).stream());
         linkedCarts = Stream.concat(Stream.of(cart), linkedCarts).distinct(); //Append the passed cart, just in case.
 
-        return linkedCarts.map(linkedCart -> getStoredPath(linkedCart)).filter(path -> path != null).findFirst().orElse(null);
+        return linkedCarts.map(this::getStoredPath).filter(Objects::nonNull).findFirst().orElse(null);
     }
 
     private AStarRailNode getStoredPath(EntityMinecart cart){
