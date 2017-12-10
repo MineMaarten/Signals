@@ -20,8 +20,8 @@ In your build.gradle, add:
 		}
 	}
 
-	dependencies{
-		compile "signals:Signals-1.12.2:1.1.0-1:userdev"
+	dependencies {
+		deobfCompile "signals:Signals-1.12.2:1.1.0-1:universal"
 	}
 
 It should be clear that the version number used in the 'compile' is an example, to see which versions you can use, go to http://maven.k-4u.nl/signals/
