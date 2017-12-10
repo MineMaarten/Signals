@@ -24,7 +24,7 @@ In your build.gradle, add:
 		deobfCompile "signals:Signals-1.12.2:1.1.0-1:universal"
 	}
 
-It should be clear that the version number used in the 'compile' is an example, to see which versions you can use, go to http://maven.k-4u.nl/signals/
+It should be clear that the version number used in the 'deobfCompile' is an example, to see which versions you can use, go to http://maven.k-4u.nl/signals/
 
 The com.minemaarten.signals.api.* package should contain everything you need. If you are missing something, feel free to open an issue requesting an API hook.
 
