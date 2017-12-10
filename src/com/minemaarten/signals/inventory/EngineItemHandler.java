@@ -17,35 +17,25 @@ public class EngineItemHandler implements IItemHandler{
 
     @Override
     public int getSlots(){
-        if(cap.isMotorized()) return onceInstalled.getSlots();
-        return 1;
+        return cap.isMotorized() ? onceInstalled.getSlots() : 1;
     }
-
-    private static final ItemStack EMPTY_ENGINE_STACK = new ItemStack(ModItems.CART_ENGINE, 0);
 
     @Override
     public ItemStack getStackInSlot(int slot){
-        if(cap.isMotorized()) return onceInstalled.getStackInSlot(slot);
-        return EMPTY_ENGINE_STACK;
+        return cap.isMotorized() ? onceInstalled.getStackInSlot(slot) : ItemStack.EMPTY;
     }
 
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate){
         if(cap.isMotorized()) return onceInstalled.insertItem(slot, stack, simulate);
 
-        if(stack.isEmpty()) return ItemStack.EMPTY;
-
-        if(slot != 0 || stack.getItem() != ModItems.CART_ENGINE) return stack;
+        if(stack.isEmpty() || slot != 0 || stack.getItem() != ModItems.CART_ENGINE) return stack;
 
         if(!simulate) cap.setMotorized();
 
-        if(stack.getCount() == 1) {
-            return ItemStack.EMPTY;
-        } else {
-            stack = stack.copy();
-            stack.shrink(1);
-            return stack;
-        }
+        stack = stack.copy();
+        stack.shrink(1);
+        return stack;
     }
 
     @Override
