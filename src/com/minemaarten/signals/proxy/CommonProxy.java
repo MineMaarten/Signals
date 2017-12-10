@@ -3,6 +3,7 @@ package com.minemaarten.signals.proxy;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -17,7 +18,7 @@ import com.minemaarten.signals.inventory.ContainerSelectDestinationProvider;
 
 public class CommonProxy implements IGuiHandler{
     public enum EnumGuiId{
-        STATION_MARKER, MINECART_DESTINATION, NETWORK_CONTROLLER, SELECT_DESTINATION_PROVIDER, ITEM_HANDLER_DESTINATION, CART_HOPPER
+        STATION_MARKER, MINECART_DESTINATION, NETWORK_CONTROLLER, SELECT_DESTINATION_PROVIDER, ITEM_HANDLER_DESTINATION, CART_HOPPER, TICKET_DESTINATION
     }
 
     public void preInit(){}
@@ -50,6 +51,13 @@ public class CommonProxy implements IGuiHandler{
                 return new ContainerSelectDestinationProvider(te);
             case ITEM_HANDLER_DESTINATION:
                 return new ContainerItemHandlerDestination(te);
+            case TICKET_DESTINATION:
+                return new Container(){
+                    @Override
+                    public boolean canInteractWith(EntityPlayer playerIn){
+                        return true;
+                    }
+                };
             default:
                 throw new IllegalStateException("No Container for gui id: " + ID);
         }

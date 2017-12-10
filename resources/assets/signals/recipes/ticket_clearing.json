@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "ticket",
+  "ingredients": [
+    {
+      "item": "signals:ticket"
+    }
+  ],
+  "result": {
+    "item": "signals:ticket"
+  }
+}

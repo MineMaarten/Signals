@@ -25,6 +25,7 @@ public class NetworkHandler{
         INSTANCE.registerMessage(PacketGuiButton.class, PacketGuiButton.class, discriminant++, Side.SERVER);
         INSTANCE.registerMessage(PacketUpdateTextfield.class, PacketUpdateTextfield.class, discriminant++, Side.SERVER);
         INSTANCE.registerMessage(PacketUpdateTextfieldEntity.class, PacketUpdateTextfieldEntity.class, discriminant++, Side.SERVER);
+        INSTANCE.registerMessage(PacketUpdateTicket.class, PacketUpdateTicket.class, discriminant++, Side.SERVER);
     }
 
     public static void sendToAll(IMessage message){

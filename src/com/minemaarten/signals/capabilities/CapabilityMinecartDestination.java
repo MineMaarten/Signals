@@ -204,7 +204,8 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         return getDestinations()[index];
     }
 
-    private String[] getDestinations(){
+    @Override
+    public String[] getDestinations(){
         return destinationStations.equals("") ? new String[0] : destinationStations.split("\n");
     }
 
