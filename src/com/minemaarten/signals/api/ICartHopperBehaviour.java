@@ -43,4 +43,13 @@ public interface ICartHopperBehaviour<T> {
      * @return
      */
     public boolean isCartEmpty(T capability, List<Pair<TileEntity, EnumFacing>> filters);
+
+    /**
+     * The comparator override for the cart for this behaviour. The highest override of the applicable behaviours is emitted.
+     * @param capability
+     * @return
+     */
+    public default int getComparatorInputOverride(T capability){
+        return 0;
+    };
 }

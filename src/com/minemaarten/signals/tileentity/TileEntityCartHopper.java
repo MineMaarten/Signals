@@ -2,13 +2,14 @@ package com.minemaarten.signals.tileentity;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -22,7 +23,6 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.minemaarten.signals.api.ICartHopperBehaviour;
 import com.minemaarten.signals.api.access.ICartHopper;
@@ -145,26 +145,30 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
             if(filter != null) filters.add(new ImmutablePair<>(filter, dir));
         }
 
-        for(ICartHopperBehaviour hopperBehaviour : RailManager.getInstance().getHopperBehaviours()) {
+        for(ICartHopperBehaviour hopperBehaviour : getApplicableHopperBehaviours(managingCart)) {
             Capability<?> cap = hopperBehaviour.getCapability();
-            if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems || managingCart.hasCapability(cap, null)) {
-                Object cart = null;
-                if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems) {
-                    if(managingCart.hasCapability(CapabilityMinecartDestination.INSTANCE, null)) {
-                        cart = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getEngineItemHandler();
-                    } else {
-                        continue;
-                    }
+            Object cart = null;
+            if(interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems) {
+                if(managingCart.hasCapability(CapabilityMinecartDestination.INSTANCE, null)) {
+                    cart = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getEngineItemHandler();
                 } else {
-                    cart = managingCart.getCapability(cap, null);
+                    continue;
                 }
-                Object te = getCapabilityAt(cap, extract ? EnumFacing.DOWN : EnumFacing.UP);
-                if(te != null && hopperBehaviour.tryTransfer(extract ? cart : te, extract ? te : cart, filters)) active = true;
-                if(hopperMode == HopperMode.CART_EMPTY && hopperBehaviour.isCartEmpty(cart, filters)) empty = true;
-                if(hopperMode == HopperMode.CART_FULL && hopperBehaviour.isCartFull(cart)) full = true;
+            } else {
+                cart = managingCart.getCapability(cap, null);
             }
+            Object te = getCapabilityAt(cap, extract ? EnumFacing.DOWN : EnumFacing.UP);
+            if(te != null && hopperBehaviour.tryTransfer(extract ? cart : te, extract ? te : cart, filters)) active = true;
+            if(hopperMode == HopperMode.CART_EMPTY && hopperBehaviour.isCartEmpty(cart, filters)) empty = true;
+            if(hopperMode == HopperMode.CART_FULL && hopperBehaviour.isCartFull(cart)) full = true;
         }
         return hopperMode == HopperMode.NO_ACTIVITY ? !active : empty || full;
+    }
+
+    private List<ICartHopperBehaviour<?>> getApplicableHopperBehaviours(EntityMinecart cart){
+        Stream<ICartHopperBehaviour<?>> behaviours = RailManager.getInstance().getHopperBehaviours().stream();
+        behaviours = behaviours.filter(hopperBehaviour -> interactEngine && hopperBehaviour instanceof CartHopperBehaviourItems || managingCart.hasCapability(hopperBehaviour.getCapability(), null));
+        return behaviours.collect(Collectors.toList());
     }
 
     private void updateManagingCart(AxisAlignedBB aabb){
@@ -223,14 +227,28 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
         return super.getCapability(capability, facing);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public int getComparatorInputOverride(){
-        if(interactEngine && managingCart != null) {
-            CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-            if(destCap != null && destCap.isMotorized()) {
-                return Container.calcRedstoneFromInventory(destCap.getFuelInv());
+        if(managingCart != null) {
+            if(interactEngine) {
+                CapabilityMinecartDestination destCap = managingCart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+                if(destCap != null && destCap.isMotorized()) {
+                    return Container.calcRedstoneFromInventory(destCap.getFuelInv());
+                } else {
+                    return 0;
+                }
+            } else {
+                int comparatorValue = 0;
+                for(ICartHopperBehaviour hopperBehaviour : getApplicableHopperBehaviours(managingCart)) {
+                    Capability<?> cap = hopperBehaviour.getCapability();
+                    Object capabilityValue = managingCart.getCapability(cap, null);
+                    if(capabilityValue != null) {
+                        int behaviourComparatorValue = hopperBehaviour.getComparatorInputOverride(capabilityValue);
+                        comparatorValue = Math.max(comparatorValue, behaviourComparatorValue);
+                    }
+                }
+                return comparatorValue;
             }
-        } else if(managingCart instanceof IInventory) {
-            return Container.calcRedstoneFromInventory((IInventory)managingCart);
         }
         return 0;
     }

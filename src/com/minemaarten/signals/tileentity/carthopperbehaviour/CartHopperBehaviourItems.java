@@ -91,4 +91,9 @@ public class CartHopperBehaviourItems implements ICartHopperBehaviour<IItemHandl
         }
         return allInventoriesEmpty;
     }
+
+    @Override
+    public int getComparatorInputOverride(IItemHandler capability){
+        return ItemHandlerHelper.calcRedstoneFromInventory(capability);
+    }
 }
