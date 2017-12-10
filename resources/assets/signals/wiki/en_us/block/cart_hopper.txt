@@ -40,3 +40,6 @@ When a Redstone Comparator is connected to the Cart Hopper, it will emit a redst
 
 [prefix{l}]Targeting a Cart Engine inventory[prefix{}]
 A Cart Hopper is a perfect way to manage fuel you want to insert into a Cart's Cart Engine. By right-clicking the Cart Hopper and toggling the interaction behaviour to 'Cart Engine', items will only be transfered between the inventory and the Cart Engine.
+
+[prefix{l}]Automatically installing Cart Engines[prefix{}]
+By having the Cart Hopper set to interface with the Engine, and by transfering a Cart Engine item into a cart which does not have an engine installed yet, it will install the Cart Engine into the Cart.
