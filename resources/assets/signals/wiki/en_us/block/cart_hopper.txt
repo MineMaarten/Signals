@@ -35,5 +35,8 @@ Redstone will only be emitted to the top and bottom of the block.
 [prefix{l}]Applying redstone[prefix{}]
 By applying redstone to a side of the Cart Hopper, the hopper will stop transfering items and it will emit redstone to the top/and bottom, allowing carts to pass through.
 
+[prefix{l}]Comparator output[prefix{}]
+When a Redstone Comparator is connected to the Cart Hopper, it will emit a redstone signal based on the interfacing minecart. This means it will emit a redstone signal based on how full the inventory of a Chest Cart is, for example. If the Cart Hopper is in 'Interface with Engine' mode, it will emit a redstone based on how much fuel the cart has.
+
 [prefix{l}]Targeting a Cart Engine inventory[prefix{}]
 A Cart Hopper is a perfect way to manage fuel you want to insert into a Cart's Cart Engine. By right-clicking the Cart Hopper and toggling the interaction behaviour to 'Cart Engine', items will only be transfered between the inventory and the Cart Engine.
