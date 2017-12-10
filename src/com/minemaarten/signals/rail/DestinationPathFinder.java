@@ -15,7 +15,7 @@ import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.WorldServer;
 
-import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
+import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.SignalsOnRouteIterable.SignalOnRoute;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 

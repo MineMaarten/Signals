@@ -9,33 +9,18 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
+import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
 public class BlockSignalBase extends BlockBase{
-    public enum EnumLampStatus implements IStringSerializable{
-        GREEN(0xFF00FF00), RED(0xFFFF0000), YELLOW(0xFFFFFF00), YELLOW_BLINKING(0xFF999900);
-
-        public int color;
-
-        private EnumLampStatus(int color){
-            this.color = color;
-        }
-
-        @Override
-        public String getName(){
-            return toString().toLowerCase();
-        }
-    }
-
     public static PropertyEnum<EnumLampStatus> LAMP_STATUS = PropertyEnum.<EnumLampStatus> create("lamp_status", EnumLampStatus.class);
     public static PropertyEnum<EnumFacing> FACING = PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
 

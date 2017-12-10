@@ -2,7 +2,6 @@ package com.minemaarten.signals.capabilities;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -36,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import com.minemaarten.signals.api.access.IDestinationAccessor;
-import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
+import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.inventory.EngineItemHandler;
 import com.minemaarten.signals.lib.SignalsUtils;

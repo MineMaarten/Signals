@@ -9,7 +9,6 @@ import java.util.Stack;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.util.math.BlockPos;
 
-import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;

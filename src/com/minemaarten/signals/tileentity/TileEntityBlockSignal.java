@@ -7,7 +7,6 @@ import java.util.Set;
 
 import net.minecraft.entity.item.EntityMinecart;
 
-import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.RailWrapper;
 

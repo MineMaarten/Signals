@@ -32,8 +32,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
+import com.minemaarten.signals.api.access.ISignal;
 import com.minemaarten.signals.block.BlockSignalBase;
-import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.network.NetworkHandler;
@@ -46,7 +46,7 @@ import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.rail.SignalsOnRouteIterable.SignalOnRoute;
 
-public abstract class TileEntitySignalBase extends TileEntityBase implements ITickable{
+public abstract class TileEntitySignalBase extends TileEntityBase implements ITickable, ISignal{
 
     private boolean firstTick = true;
     private List<EntityMinecart> routedMinecarts = new ArrayList<>();
@@ -56,10 +56,6 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     private EnumForceMode forceMode = EnumForceMode.NONE;
     private EntityMinecart claimingCart; //The cart that has called dibs on the rail block in front of this signal.
     private UUID claimingCartUUID; //The claiming cart ID loaded from NBT. Will only have a value when just loaded.
-
-    public enum EnumForceMode{
-        NONE, FORCED_GREEN_ONCE, FORCED_RED;
-    }
 
     public BlockPos getNeighborPos(){
         return getPos().offset(getFacing().rotateYCCW());
@@ -145,6 +141,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         }
     }
 
+    @Override
     public EnumLampStatus getLampStatus(){
         if(getWorld() != null) {
             IBlockState state = getWorld().getBlockState(getPos());
@@ -494,6 +491,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return I18n.format(text, (Object[])localizedArguments);
     }
 
+    @Override
     public void setForceMode(EnumForceMode forceMode){
         this.forceMode = forceMode;
         markDirty();
@@ -508,6 +506,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         }
     }
 
+    @Override
     public EnumForceMode getForceMode(){
         return forceMode;
     }
