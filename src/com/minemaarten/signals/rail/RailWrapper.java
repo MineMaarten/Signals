@@ -22,7 +22,7 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class RailWrapper extends BlockPos{
-    private static Map<EnumSet<EnumFacing>, EnumRailDirection> DIRS_TO_RAIL_DIR = new HashMap<EnumSet<EnumFacing>, EnumRailDirection>(6);
+    private static Map<EnumSet<EnumFacing>, EnumRailDirection> DIRS_TO_RAIL_DIR = new HashMap<>(6);
 
     static {
         DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumFacing.NORTH, EnumFacing.SOUTH), EnumRailDirection.NORTH_SOUTH);
@@ -36,7 +36,8 @@ public class RailWrapper extends BlockPos{
     public final IRail rail;
     public final World world;
     public final IBlockState state;
-    private Map<RailWrapper, EnumFacing> neighbors;
+    private Map<RailWrapper, EnumFacing> allNeighbors;
+    private Map<EnumFacing, Map<RailWrapper, EnumFacing>> exitsForEntries;
     private List<TileEntityStationMarker> stationMarkers;
     private Map<EnumFacing, TileEntitySignalBase> signals;
     private Set<TileEntityRailLink> railLinks = Collections.emptySet();
@@ -63,9 +64,9 @@ public class RailWrapper extends BlockPos{
     }
 
     public void invalidate(){
-        if(neighbors != null) {
-            for(RailWrapper neighbor : neighbors.keySet()) {
-                if(neighbor.neighbors != null) neighbor.neighbors.remove(this); //Dereference itself
+        if(allNeighbors != null) {
+            for(RailWrapper neighbor : allNeighbors.keySet()) {
+                if(neighbor.allNeighbors != null) neighbor.allNeighbors.remove(this); //Dereference itself
             }
         }
         for(TileEntityRailLink railLink : railLinks) {
@@ -76,7 +77,7 @@ public class RailWrapper extends BlockPos{
 
     public void link(TileEntityRailLink link){
         if(railLinks == Collections.EMPTY_SET) {
-            railLinks = new HashSet<TileEntityRailLink>();
+            railLinks = new HashSet<>();
         }
         railLinks.add(link);
     }
@@ -96,13 +97,13 @@ public class RailWrapper extends BlockPos{
             for(EnumFacing d : EnumFacing.values()) {
                 TileEntity te = world.getTileEntity(offset(d));
                 if(te instanceof TileEntityStationMarker) {
-                    if(stationMarkers == null) stationMarkers = new ArrayList<TileEntityStationMarker>(1); //Be conservative with instantiating, as not many rails usually have a station.
+                    if(stationMarkers == null) stationMarkers = new ArrayList<>(1); //Be conservative with instantiating, as not many rails usually have a station.
                     stationMarkers.add((TileEntityStationMarker)te);
                 }
             }
             if(stationMarkers == null) stationMarkers = Collections.emptyList();
         }
-        Set<String> stationNames = new HashSet<String>(stationMarkers.size());
+        Set<String> stationNames = new HashSet<>(stationMarkers.size());
         for(TileEntityStationMarker marker : stationMarkers) {
             stationNames.add(marker.getStationName());
         }
@@ -123,7 +124,7 @@ public class RailWrapper extends BlockPos{
                     if(te instanceof TileEntitySignalBase) {
                         TileEntitySignalBase signal = (TileEntitySignalBase)te;
                         if(signal.getNeighborPos().equals(this)) {
-                            if(signals == null) signals = new HashMap<EnumFacing, TileEntitySignalBase>(1); //Be conservative with instantiating, as not many rails usually have a signal.
+                            if(signals == null) signals = new HashMap<>(1); //Be conservative with instantiating, as not many rails usually have a signal.
                             signals.put(d, signal);
                         }
                     }
@@ -135,48 +136,102 @@ public class RailWrapper extends BlockPos{
     }
 
     public void updateNeighborCache(){
-        neighbors = null;
+        allNeighbors = null;
+        exitsForEntries = null;
     }
 
+    /**
+     * The neighbors mapped from a entry direction, used in pathfinding. For example, junction rails only map east to west, and north to south,
+     * the only pathable options
+     * @param entryDir The rail direction going into this RailWrapper
+     * @return
+     */
+    public Map<RailWrapper, EnumFacing> getNeighborsForEntryDir(EnumFacing entryDir){
+        getNeighbors(); //Build the cache
+        if(entryDir == null || entryDir == EnumFacing.DOWN) return allNeighbors;
+        Map<RailWrapper, EnumFacing> exits = exitsForEntries.get(entryDir);
+        if(exits == null) {
+            new Throwable(String.format("NullPointer for Entry dir: %s, pos: %s", entryDir, this)).printStackTrace();
+            exits = allNeighbors; //Fall back onto all neighbors.
+        }
+        return exits;
+    }
+
+    /**
+     * All the neighbors of this rail, used in determining which rails are part of a block.
+     * For junction rails this would include all north, south east and west.
+     * @return
+     */
     public Map<RailWrapper, EnumFacing> getNeighbors(){
-        if(neighbors == null) {
-            Map<RailWrapper, EnumFacing> neighbors = new HashMap<RailWrapper, EnumFacing>(6);
+        if(allNeighbors == null) {
+            EnumSet<EnumRailDirection> validRailDirs = rail.getValidDirections(world, this, state);
+            this.allNeighbors = calculateAllNeighbors(validRailDirs);
+            this.exitsForEntries = calculateExitsForEntries(validRailDirs);
+        }
+        return allNeighbors;
+    }
 
-            EnumSet<EnumFacing> validDirs = EnumSet.noneOf(EnumFacing.class);
-            for(EnumRailDirection railDir : rail.getValidDirections(world, this, state)) {
-                validDirs.addAll(getDirections(railDir));
+    private Map<EnumFacing, Map<RailWrapper, EnumFacing>> calculateExitsForEntries(EnumSet<EnumRailDirection> validRailDirs){
+        Map<EnumFacing, Map<RailWrapper, EnumFacing>> exitsForEntries = new HashMap<>();
+
+        //Evaluate every neighbor dir
+        for(EnumFacing entry : allNeighbors.values()) {
+            Map<RailWrapper, EnumFacing> exitsForEntry = new HashMap<>(6);
+            exitsForEntries.put(entry.getOpposite(), exitsForEntry);
+
+            //Check if that neighbor dir is part of a EnumRailDir, if so it's a valid entry/exit path
+            for(EnumRailDirection railDir : validRailDirs) {
+                EnumSet<EnumFacing> railDirDirs = getDirections(railDir);
+                if(railDirDirs.contains(entry)) {
+
+                    //If found, put all the rail dir entries in the result set
+                    for(Map.Entry<RailWrapper, EnumFacing> neighbor : allNeighbors.entrySet()) {
+                        if(neighbor.getValue() == EnumFacing.DOWN || railDirDirs.contains(neighbor.getValue())) {
+                            exitsForEntry.put(neighbor.getKey(), neighbor.getValue());
+                        }
+                    }
+                }
             }
+        }
 
-            for(EnumFacing d : validDirs) {
-                if(world.isBlockLoaded(offset(d))) {
-                    RailWrapper rail = RailCacheManager.getInstance(world).getRail(world, offset(d));
-                    if(rail != null) {
-                        neighbors.put(rail, d);
+        return exitsForEntries;
+    }
+
+    private Map<RailWrapper, EnumFacing> calculateAllNeighbors(EnumSet<EnumRailDirection> validRailDirs){
+        Map<RailWrapper, EnumFacing> neighbors = new HashMap<>(6);
+
+        EnumSet<EnumFacing> validDirs = EnumSet.noneOf(EnumFacing.class);
+        for(EnumRailDirection railDir : validRailDirs) {
+            validDirs.addAll(getDirections(railDir));
+        }
+
+        for(EnumFacing d : validDirs) {
+            if(world.isBlockLoaded(offset(d))) {
+                RailWrapper rail = RailCacheManager.getInstance(world).getRail(world, offset(d));
+                if(rail != null) {
+                    neighbors.put(rail, d);
+                } else {
+                    RailWrapper rail2 = RailCacheManager.getInstance(world).getRail(world, offset(d).down());
+                    if(rail2 != null) {
+                        neighbors.put(rail2, d);
                     } else {
-                        RailWrapper rail2 = RailCacheManager.getInstance(world).getRail(world, offset(d).down());
-                        if(rail2 != null) {
-                            neighbors.put(rail2, d);
-                        } else {
-                            RailWrapper rail3 = RailCacheManager.getInstance(world).getRail(world, offset(d).up());
-                            if(rail3 != null) neighbors.put(rail3, d);
-                        }
+                        RailWrapper rail3 = RailCacheManager.getInstance(world).getRail(world, offset(d).up());
+                        if(rail3 != null) neighbors.put(rail3, d);
                     }
                 }
             }
+        }
 
-            for(EnumFacing d : EnumFacing.values()) {
-                if(world.isBlockLoaded(offset(d))) {
-                    TileEntity te = world.getTileEntity(offset(d));
-                    if(te instanceof TileEntityRailLink) {
-                        RailWrapper linkedNeighbor = ((TileEntityRailLink)te).getLinkedRail();
-                        if(linkedNeighbor != null) {
-                            neighbors.put(linkedNeighbor, EnumFacing.DOWN);
-                        }
+        for(EnumFacing d : EnumFacing.values()) {
+            if(world.isBlockLoaded(offset(d))) {
+                TileEntity te = world.getTileEntity(offset(d));
+                if(te instanceof TileEntityRailLink) {
+                    RailWrapper linkedNeighbor = ((TileEntityRailLink)te).getLinkedRail();
+                    if(linkedNeighbor != null) {
+                        neighbors.put(linkedNeighbor, EnumFacing.DOWN);
                     }
                 }
             }
-
-            this.neighbors = neighbors;
         }
         return neighbors;
     }
@@ -236,7 +291,8 @@ public class RailWrapper extends BlockPos{
             case ASCENDING_EAST:
             case ASCENDING_WEST:
                 return true;
+            default:
+                return false;
         }
-        return false;
     }
 }

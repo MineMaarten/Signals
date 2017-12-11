@@ -25,6 +25,7 @@ public class NetworkHandler{
         INSTANCE.registerMessage(PacketGuiButton.class, PacketGuiButton.class, discriminant++, Side.SERVER);
         INSTANCE.registerMessage(PacketUpdateTextfield.class, PacketUpdateTextfield.class, discriminant++, Side.SERVER);
         INSTANCE.registerMessage(PacketUpdateTextfieldEntity.class, PacketUpdateTextfieldEntity.class, discriminant++, Side.SERVER);
+        INSTANCE.registerMessage(PacketUpdateTicket.class, PacketUpdateTicket.class, discriminant++, Side.SERVER);
     }
 
     public static void sendToAll(IMessage message){
@@ -37,17 +38,17 @@ public class NetworkHandler{
         INSTANCE.sendTo(message, player);
     }
 
-    public static void sendToAllAround(LocationIntPacket message, World world, double distance){
+    public static void sendToAllAround(LocationIntPacket<?> message, World world, double distance){
 
         sendToAllAround(message, message.getTargetPoint(world, distance));
     }
 
-    public static void sendToAllAround(LocationIntPacket message, World world){
+    public static void sendToAllAround(LocationIntPacket<?> message, World world){
 
         sendToAllAround(message, message.getTargetPoint(world));
     }
 
-    public static void sendToAllAround(LocationDoublePacket message, World world){
+    public static void sendToAllAround(LocationDoublePacket<?> message, World world){
 
         sendToAllAround(message, message.getTargetPoint(world));
     }

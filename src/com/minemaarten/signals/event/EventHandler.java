@@ -1,5 +1,7 @@
 package com.minemaarten.signals.event;
 
+import java.util.Arrays;
+
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
@@ -13,6 +15,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -28,6 +31,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.init.ModItems;
+import com.minemaarten.signals.item.ItemTicket;
 import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.proxy.CommonProxy;
 import com.minemaarten.signals.rail.RailCacheManager;
@@ -47,13 +51,20 @@ public class EventHandler implements IWorldEventListener{
     }
 
     @SubscribeEvent
+    public void onCapabilityAttachmentStack(AttachCapabilitiesEvent<ItemStack> event){
+        if(event.getObject().getItem() == ModItems.TICKET) {
+            event.addCapability(new ResourceLocation(Constants.MOD_ID, "ticketDestinationCapability"), new CapabilityMinecartDestination.Provider());
+        }
+    }
+
+    @SubscribeEvent
     public void onMinecartInteraction(MinecartInteractEvent event){
         if(!event.getMinecart().world.isRemote) {
             ItemStack heldItem = event.getPlayer().getHeldItemMainhand();
             if(!heldItem.isEmpty()) {
                 CapabilityMinecartDestination cap = event.getMinecart().getCapability(CapabilityMinecartDestination.INSTANCE, null);
                 if(cap != null) {
-                    if(heldItem.getItem() == ModItems.cartEngine && !cap.isMotorized()) {
+                    if(heldItem.getItem() == ModItems.CART_ENGINE && !cap.isMotorized()) {
                         if(!event.getPlayer().isCreative()) {
                             heldItem.shrink(1);
                             if(heldItem.isEmpty()) event.getPlayer().setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
@@ -61,9 +72,18 @@ public class EventHandler implements IWorldEventListener{
                         cap.setMotorized();
                         event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
                         event.setCanceled(true);
-                    } else if(heldItem.getItem() == ModItems.railConfigurator) {
+                    } else if(heldItem.getItem() == ModItems.RAIL_CONFIGURATOR) {
                         RailCacheManager.syncStationNames((EntityPlayerMP)event.getPlayer());
-                        event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), ((EntityPlayerMP) event.getPlayer()).world, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
+                        event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), ((EntityPlayerMP)event.getPlayer()).world, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
+                        event.setCanceled(true);
+                    } else if(heldItem.getItem() == ModItems.TICKET) {
+                        if(event.getPlayer().isSneaking()) {
+                            ItemTicket.setDestinations(heldItem, Arrays.asList(cap.getDestinations()));
+                            event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.destinations_saved", TextFormatting.GOLD + ItemTicket.getConcattedDestinations(heldItem) + TextFormatting.WHITE));
+                        } else {
+                            ItemTicket.applyDestinations(event.getMinecart(), heldItem);
+                            event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.destinations_set", TextFormatting.GOLD + ItemTicket.getConcattedDestinations(heldItem) + TextFormatting.WHITE));
+                        }
                         event.setCanceled(true);
                     }
                 }
@@ -133,12 +153,12 @@ public class EventHandler implements IWorldEventListener{
     @Override
     public void spawnParticle(int particleID, boolean ignoreRange, double xCoord, double yCoord, double zCoord, double xSpeed, double ySpeed, double zSpeed, int... parameters){}
 
-	@Override
-	public void spawnParticle(int id, boolean ignoreRange, boolean p_190570_3_, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, int... parameters) {
-		
-	}
+    @Override
+    public void spawnParticle(int id, boolean ignoreRange, boolean p_190570_3_, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, int... parameters){
 
-	@Override
+    }
+
+    @Override
     public void onEntityAdded(Entity entityIn){
 
     }

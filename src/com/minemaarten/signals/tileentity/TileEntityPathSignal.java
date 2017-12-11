@@ -4,22 +4,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Stack;
 
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 
-import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
+import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
-import com.minemaarten.signals.network.NetworkHandler;
-import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
-import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.RailWrapper;
 
-public class TileEntityPathSignal extends TileEntitySignalBase implements ITickable{
+public class TileEntityPathSignal extends TileEntitySignalBase{
 
     private int pathingTimer;
 
@@ -44,31 +39,20 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                 //This also will fill the routed carts with a path for the next stage.
                 for(EntityMinecart routingCart : routingMinecarts) {
                     if(routeCart(routingCart, getFacing(), false) == null) {
-                        updateLampStatusBlockSignal(cartsOnNextBlock);
+                        setLampStatus(cartsOnNextBlock.isEmpty() ? EnumLampStatus.GREEN : EnumLampStatus.RED);
                         setMessage("signals.signal_message.cart_without_destination");
                         Log.debug("[Path Signal] Cart routed without destination. Block signal behaviour.");
                         return;
                     }
                 }
 
-                //ignore carts that are part of the same train
-                cartsOnNextBlock = cartsOnNextBlock.stream().filter(cart -> !isCartLinkedToAny(routingMinecarts, cart)).collect(Collectors.toList());
-
                 //Don't allow the cart to proceed if there are carts on the block without a path.
                 for(EntityMinecart cartOnNextBlock : cartsOnNextBlock) {
-                    if(RailManager.getInstance().getPath(cartOnNextBlock) == null) {
+                    if(getStoredPath(cartOnNextBlock) == null) {
                         setLampStatus(EnumLampStatus.RED);
                         BlockPos pos = cartOnNextBlock.getPosition();
                         setMessage("signals.signal_message.cart_on_track_without_destination", pos.getX(), pos.getY(), pos.getZ());
                         Log.debug("[Path Signal] Cart on rails without destination. Red signal. Cart: " + cartOnNextBlock.getPosition());
-
-                        for(int i = 0; i < 10; i++) {
-                            double randX = pos.getX() + world.rand.nextDouble();
-                            double randY = pos.getY() + world.rand.nextDouble();
-                            double randZ = pos.getZ() + world.rand.nextDouble();
-                            NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, randX, randY, randZ, 0, 0, 0), world);
-                        }
-
                         return;
                     }
                 }
@@ -87,20 +71,13 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
                             BlockPos p = cartOnNextBlock.getPosition();
                             setMessage("signals.signal_message.cart_intersecting_path", p.getX(), p.getY(), p.getZ());
                             Log.debug("[Path Signal] Cart on rails intersecting the path of the routed cart. Red signal. Cart: " + cartOnNextBlock.getPosition());
-
-                            for(int i = 0; i < 10; i++) {
-                                double randX = p.getX() + world.rand.nextDouble();
-                                double randY = p.getY() + world.rand.nextDouble();
-                                double randZ = p.getZ() + world.rand.nextDouble();
-                                NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, randX, randY, randZ, 0, 0, 0), world);
-                            }
                             return;
                         }
                     }
                 }
                 setLampStatus(EnumLampStatus.GREEN);
 
-                AStarRailNode path = RailManager.getInstance().getPath(routingMinecarts.get(0));
+                AStarRailNode path = getStoredPath(routingMinecarts.get(0));
                 if(path != null) updateSwitches(path, routingMinecarts.get(0), true);
             } else {
                 setMessage("");
@@ -117,16 +94,31 @@ public class TileEntityPathSignal extends TileEntitySignalBase implements ITicka
         route();
     }
 
-    private List<BlockPos> getToBeTraversedCoordinates(EntityMinecart cart){
-        AStarRailNode path = RailManager.getInstance().getPath(cart);
-        List<BlockPos> coords = new ArrayList<BlockPos>();
+    private static AStarRailNode getStoredPath(EntityMinecart cart){
+        return cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getPath(cart.world);
+    }
+
+    private static List<BlockPos> getToBeTraversedCoordinates(EntityMinecart cart){
+        AStarRailNode path = getStoredPath(cart);
+        List<BlockPos> coords = new ArrayList<>();
         BlockPos cartPos = cart.getPosition();
         boolean returnOnNext = false;
-        while(path != null) {
-            coords.add(path.getRail());
+
+        if(path != null) path = path.getNextNode();
+
+        Stack<AStarRailNode> reversedRoute = new Stack<>();
+        for(; path != null; path = path.getNextNode()) {
+            if(path.getSignal(null) != null) break;
+            reversedRoute.push(path);
+        }
+
+        while(!reversedRoute.isEmpty()) {
+            AStarRailNode node = reversedRoute.pop();
+
+            coords.add(node.getRail());
+
             if(returnOnNext) return coords;
-            if(path.getRail().equals(cartPos)) returnOnNext = true;
-            path = path.getNextNode();
+            if(node.getRail().equals(cartPos)) returnOnNext = true;
         }
         return coords;
     }

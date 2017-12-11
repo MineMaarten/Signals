@@ -35,8 +35,8 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class NetworkController{
-    private static final Map<Integer, NetworkController> SERVER_INSTANCES = new HashMap<Integer, NetworkController>();
-    private static final Map<Integer, NetworkController> CLIENT_INSTANCES = new HashMap<Integer, NetworkController>();
+    private static final Map<Integer, NetworkController> SERVER_INSTANCES = new HashMap<>();
+    private static final Map<Integer, NetworkController> CLIENT_INSTANCES = new HashMap<>();
     private static final int RAIL_COLOR = 0xFF666666;
     private static final int PATH_COLOR = 0xFFAAAAAA;
     private static final int TEXT_COLOR = 0xFFFFFF; //No alpha
@@ -184,7 +184,7 @@ public class NetworkController{
 
     }
 
-    private boolean shouldPlayerGetUpdates(EntityPlayer player){
+    private static boolean shouldPlayerGetUpdates(EntityPlayer player){
         return player.openContainer instanceof ContainerNetworkController;
     }
 
@@ -219,7 +219,7 @@ public class NetworkController{
 
     public void rebuildAll(){
         Iterable<RailWrapper> allRails = RailCacheManager.getInstance(dimensionId).getAllRails();
-        Map<BlockPos, Integer> posToColor = new HashMap<BlockPos, Integer>();
+        Map<BlockPos, Integer> posToColor = new HashMap<>();
         for(RailWrapper wrapper : allRails) {
             posToColor.put(wrapper, RAIL_COLOR);
         }

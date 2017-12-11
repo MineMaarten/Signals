@@ -68,7 +68,7 @@ public class CartHopperBehaviourItems implements ICartHopperBehaviour<IItemHandl
         return true;
     }
 
-    private boolean passesFilters(ItemStack stack, List<Pair<TileEntity, EnumFacing>> filters){
+    private static boolean passesFilters(ItemStack stack, List<Pair<TileEntity, EnumFacing>> filters){
         boolean allInventoriesEmpty = true;
         for(Pair<TileEntity, EnumFacing> filter : filters) {
             if(filter.getLeft().hasCapability(CapabilityDestinationProvider.INSTANCE, null)) {
@@ -90,5 +90,10 @@ public class CartHopperBehaviourItems implements ICartHopperBehaviour<IItemHandl
             }
         }
         return allInventoriesEmpty;
+    }
+
+    @Override
+    public int getComparatorInputOverride(IItemHandler capability){
+        return ItemHandlerHelper.calcRedstoneFromInventory(capability);
     }
 }

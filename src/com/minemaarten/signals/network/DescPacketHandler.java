@@ -23,7 +23,7 @@ public class DescPacketHandler extends SimpleChannelInboundHandler<FMLProxyPacke
     private final static EnumMap<Side, FMLEmbeddedChannel> channels = NetworkRegistry.INSTANCE.newChannel(DescPacketHandler.CHANNEL, new DescPacketHandler());
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FMLProxyPacket msg) throws Exception{
+    protected void channelRead0(ChannelHandlerContext ctx, FMLProxyPacket msg) {
 
         PacketDescription packet = new PacketDescription();
         packet.fromBytes(msg.payload());

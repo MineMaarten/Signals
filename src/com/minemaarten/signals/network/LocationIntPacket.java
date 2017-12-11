@@ -14,7 +14,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
  * @license Lesser GNU Public License v3 (http://www.gnu.org/licenses/lgpl.html)
  */
 
-public abstract class LocationIntPacket<REQ extends AbstractPacket> extends AbstractPacket<REQ>{
+public abstract class LocationIntPacket<REQ extends AbstractPacket<REQ>> extends AbstractPacket<REQ>{
 
     public BlockPos pos;
 

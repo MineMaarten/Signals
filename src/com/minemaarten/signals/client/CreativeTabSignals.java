@@ -1,8 +1,6 @@
 package com.minemaarten.signals.client;
 
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
-
 import com.minemaarten.signals.init.ModBlocks;
 import net.minecraft.item.ItemStack;
 
@@ -19,7 +17,7 @@ public class CreativeTabSignals extends CreativeTabs{
 
     @Override
     public ItemStack getTabIconItem(){
-        return new ItemStack(ModBlocks.blockSignal);
+        return new ItemStack(ModBlocks.BLOCK_SIGNAL);
     }
 
 }

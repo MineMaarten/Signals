@@ -9,12 +9,11 @@ import net.minecraft.util.math.Vec3d;
 
 import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
-import com.minemaarten.signals.tileentity.IGUIButtonSensitive;
 
-public class ContainerSelectDestinationProvider extends ContainerBase<TileEntity> implements IGUIButtonSensitive{
+public class ContainerSelectDestinationProvider extends ContainerBase<TileEntity> {
 
     private final TileEntity te;
-    public final List<IDestinationProvider> guiProviders = new ArrayList<IDestinationProvider>();
+    public final List<IDestinationProvider> guiProviders = new ArrayList<>();
 
     public ContainerSelectDestinationProvider(TileEntity te){
         super(null);

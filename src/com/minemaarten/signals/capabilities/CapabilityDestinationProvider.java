@@ -21,7 +21,7 @@ public class CapabilityDestinationProvider{
     @CapabilityInject(CapabilityDestinationProvider.class)
     public static Capability<CapabilityDestinationProvider> INSTANCE;
 
-    private List<IDestinationProvider> destinationProviders = new ArrayList<IDestinationProvider>();
+    private List<IDestinationProvider> destinationProviders = new ArrayList<>();
 
     public static void register(){
         CapabilityManager.INSTANCE.register(CapabilityDestinationProvider.class, new Capability.IStorage<CapabilityDestinationProvider>(){
@@ -42,12 +42,7 @@ public class CapabilityDestinationProvider{
                 }
             }
 
-        }, new Callable<CapabilityDestinationProvider>(){
-            @Override
-            public CapabilityDestinationProvider call() throws Exception{
-                return new CapabilityDestinationProvider();
-            }
-        });
+        }, CapabilityDestinationProvider::new);
     }
 
     public static class Provider implements ICapabilitySerializable<NBTBase>{

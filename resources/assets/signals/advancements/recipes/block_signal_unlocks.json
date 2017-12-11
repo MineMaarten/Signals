@@ -4,6 +4,8 @@
     "recipes": [
       "signals:path_signal_from_red_dye",
       "signals:path_signal_from_redstone",
+      "signals:chain_signal_from_red_dye",
+      "signals:chain_signal_from_redstone",
       "signals:rail_network_controller"
     ]
   },

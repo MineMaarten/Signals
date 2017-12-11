@@ -2,7 +2,6 @@ package com.minemaarten.signals.capabilities;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -28,11 +27,17 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.event.entity.minecart.MinecartUpdateEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
-import com.minemaarten.signals.block.BlockSignalBase.EnumLampStatus;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+
+import com.minemaarten.signals.api.access.IDestinationAccessor;
+import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.init.ModItems;
+import com.minemaarten.signals.inventory.EngineItemHandler;
 import com.minemaarten.signals.lib.SignalsUtils;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
@@ -45,7 +50,7 @@ import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.tileentity.IGUITextFieldSensitive;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
-public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
+public class CapabilityMinecartDestination implements IGUITextFieldSensitive, IDestinationAccessor{
     @CapabilityInject(CapabilityMinecartDestination.class)
     public static Capability<CapabilityMinecartDestination> INSTANCE;
     private static final Pattern EMPTY_PATTERN = Pattern.compile("");
@@ -68,12 +73,14 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
     private int totalBurnTime;
     private int hopperTimer;
 
-    private InventoryBasic fuelInv = new InventoryBasic("cartEngineInv", true, 5){
+    private final InventoryBasic fuelInv = new InventoryBasic("cartEngineInv", true, 5){
         @Override
         public boolean isItemValidForSlot(int index, ItemStack stack){
             return stack == null || TileEntityFurnace.isItemFuel(stack);
         }
     };
+    private final IItemHandler fuelItemHandler = new InvWrapper(fuelInv);
+    private final IItemHandler engineItemHandler = new EngineItemHandler(this, fuelItemHandler);
     private boolean motorActive;
     public boolean travelingBetweenDimensions;
 
@@ -120,7 +127,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                 instance.curDestinationIndex = tag.getInteger("destIndex");
 
                 if(tag.hasKey("path")) {
-                    instance.nbtLoadedPath = new ArrayList<BlockPos>();
+                    instance.nbtLoadedPath = new ArrayList<>();
                     NBTTagList nodeList = tag.getTagList("path", 10);
                     for(int i = 0; i < nodeList.tagCount(); i++) {
                         NBTTagCompound nodeTag = nodeList.getCompoundTagAt(i);
@@ -137,17 +144,20 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                     SignalsUtils.readInventoryFromNBT(tag, instance.fuelInv);
                 }
             }
-        }, new Callable<CapabilityMinecartDestination>(){
-            @Override
-            public CapabilityMinecartDestination call() throws Exception{
-                return new CapabilityMinecartDestination();
-            }
-        });
+        }, CapabilityMinecartDestination::new);
     }
 
     @Override
     public void setText(int textFieldID, String text){
         destinationStations = text;
+        recompileRegexes();
+    }
+
+    @Override
+    public void setDestinations(String... destinations){
+        Validate.noNullElements(destinations, "The destinations array contains null at position %d");
+
+        destinationStations = StringUtils.joinWith("\n", (Object[])destinations);
         recompileRegexes();
     }
 
@@ -166,8 +176,10 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                 destinationRegexes[i] = EMPTY_PATTERN;
             }
         }
+        getCurrentDestination(); //Update to a valid destination index.
     }
 
+    @Override
     public int[] getInvalidDestinationIndeces(){
         if(invalidDestinations.equals("")) return new int[0];
         String[] strings = invalidDestinations.split(",");
@@ -187,28 +199,39 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         return getDestinations()[index];
     }
 
-    private String[] getDestinations(){
+    @Override
+    public String[] getDestinations(){
         return destinationStations.equals("") ? new String[0] : destinationStations.split("\n");
     }
 
+    @Override
     public int getTotalDestinations(){
         return getDestinations().length;
     }
 
+    @Override
     public String getCurrentDestination(){
         String[] destinations = getDestinations();
         if(curDestinationIndex >= destinations.length || curDestinationIndex == -1) nextDestination();
         return curDestinationIndex >= 0 ? destinations[curDestinationIndex] : "";
     }
 
+    @Override
     public int getDestinationIndex(){
         return curDestinationIndex;
     }
 
     public void nextDestination(){
+        setCurrentDestinationIndex(curDestinationIndex + 1);
+    }
+
+    @Override
+    public void setCurrentDestinationIndex(int index){
         String[] destinations = getDestinations();
-        if(++curDestinationIndex >= destinations.length) {
+        if(index >= destinations.length || index < 0) {
             curDestinationIndex = destinations.length > 0 ? 0 : -1;
+        } else {
+            curDestinationIndex = index;
         }
     }
 
@@ -223,7 +246,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         sendUpdatePacket(cart);
     }
 
-    private void sendUpdatePacket(EntityMinecart cart){
+    private static void sendUpdatePacket(EntityMinecart cart){
         NetworkHandler.sendToAll(new PacketUpdateMinecartPath(cart));
     }
 
@@ -292,6 +315,10 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
         return fuelInv;
     }
 
+    public IItemHandler getEngineItemHandler(){
+        return motorized ? fuelItemHandler : engineItemHandler;
+    }
+
     public int getScaledFuel(int barLength){
         return totalBurnTime == 0 ? 0 : barLength * fuelLeft / totalBurnTime;
     }
@@ -299,7 +326,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
     public void onCartBroken(EntityMinecart cart){
         if(motorized && !travelingBetweenDimensions) {
             motorized = false;
-            cart.dropItem(ModItems.cartEngine, 1);
+            cart.dropItem(ModItems.CART_ENGINE, 1);
             for(int i = 0; i < fuelInv.getSizeInventory(); i++) {
                 ItemStack fuel = fuelInv.getStackInSlot(i);
                 if(fuel != null) cart.entityDropItem(fuel, 0);
@@ -381,13 +408,12 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive{
                         TileEntityHopper hopper = (TileEntityHopper)te;
                         for(int i = 0; i < hopper.getSizeInventory(); i++) {
                             ItemStack stack = hopper.getStackInSlot(i);
-                            if(!stack.isEmpty()&& getFuelInv().isItemValidForSlot(0, stack)) {
-                                InvWrapper invWrapper = new InvWrapper(getFuelInv());
+                            if(!stack.isEmpty() && getFuelInv().isItemValidForSlot(0, stack)) {
                                 ItemStack inserted = stack.copy();
                                 inserted.setCount(1);
-                                ItemStack left = ItemHandlerHelper.insertItemStacked(invWrapper, inserted, false);
+                                ItemStack left = ItemHandlerHelper.insertItemStacked(getEngineItemHandler(), inserted, false);
                                 if(left.isEmpty()) {
-                                	stack.shrink(1);
+                                    stack.shrink(1);
                                     hopper.markDirty();
                                     return true;
                                 }

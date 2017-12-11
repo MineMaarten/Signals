@@ -5,11 +5,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 
-import com.minemaarten.signals.tileentity.IGUIButtonSensitive;
+import com.minemaarten.signals.api.access.ISignal.EnumForceMode;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
-import com.minemaarten.signals.tileentity.TileEntitySignalBase.EnumForceMode;
 
-public class ContainerNetworkController extends ContainerBase<TileEntity> implements IGUIButtonSensitive {
+public class ContainerNetworkController extends ContainerBase<TileEntity> {
 
 	public ContainerNetworkController() {
 		super(null);

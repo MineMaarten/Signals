@@ -22,7 +22,7 @@ The hopper will try to transfer any item from the input inventory into the Chest
 [prefix{l}]Filtering [prefix{}]
 Optionally you can attach inventories to the sides of the Cart Hopper, which act as filter. By default the items in the input inventory need to match any item of the filter inventories to be transfered. This can be configured by right-clicking the inventory with a Rail Configurator.
 
-[prefix{l}]Redstone behaviour[prefix{}]
+[prefix{l}]Redstone emission[prefix{}]
 You can change when carts are allowed to continue on their way by right-clicking the Cart Hopper. You can toggle between the following modes:
 
 No activity - Emits a redstone signal as soon as items stop transfering.
@@ -30,5 +30,16 @@ Never - Never emit a redstone signal.
 Cart full - Emits a redstone signal as soon as the cart's inventory is full.
 Cart empty - Emits a redstone signal as soon as the cart's inventory is empty.
 
+Redstone will only be emitted to the top and bottom of the block.
+
+[prefix{l}]Applying redstone[prefix{}]
+By applying redstone to a side of the Cart Hopper, the hopper will stop transfering items and it will emit redstone to the top/and bottom, allowing carts to pass through.
+
+[prefix{l}]Comparator output[prefix{}]
+When a Redstone Comparator is connected to the Cart Hopper, it will emit a redstone signal based on the interfacing minecart. This means it will emit a redstone signal based on how full the inventory of a Chest Cart is, for example. If the Cart Hopper is in 'Interface with Engine' mode, it will emit a redstone based on how much fuel the cart has.
+
 [prefix{l}]Targeting a Cart Engine inventory[prefix{}]
 A Cart Hopper is a perfect way to manage fuel you want to insert into a Cart's Cart Engine. By right-clicking the Cart Hopper and toggling the interaction behaviour to 'Cart Engine', items will only be transfered between the inventory and the Cart Engine.
+
+[prefix{l}]Automatically installing Cart Engines[prefix{}]
+By having the Cart Hopper set to interface with the Engine, and by transfering a Cart Engine item into a cart which does not have an engine installed yet, it will install the Cart Engine into the Cart.

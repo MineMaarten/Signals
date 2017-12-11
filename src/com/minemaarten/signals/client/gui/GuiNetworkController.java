@@ -6,16 +6,12 @@ import java.io.IOException;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.tileentity.TileEntity;
 
-import org.lwjgl.opengl.GL11;
-
+import com.minemaarten.signals.api.access.ISignal.EnumForceMode;
 import com.minemaarten.signals.client.gui.widget.IGuiWidget;
-import com.minemaarten.signals.inventory.ContainerBase;
 import com.minemaarten.signals.inventory.ContainerNetworkController;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketGuiButton;
-import com.minemaarten.signals.network.PacketUpdateGui;
 import com.minemaarten.signals.rail.NetworkController;
-import com.minemaarten.signals.tileentity.TileEntitySignalBase.EnumForceMode;
 
 public class GuiNetworkController extends GuiContainerBase<TileEntity>{
 

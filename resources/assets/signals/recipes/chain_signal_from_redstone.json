@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "chain_signal",
+  "pattern": [
+    "sss", 
+    "srs", 
+    "sds"
+  ],
+  "key": {
+    "s": {
+      "type": "forge:ore_dict",
+      "ore": "dyeBlue"
+    },
+    "r": {
+      "type": "forge:ore_dict",
+      "ore": "dustRedstone"
+    },
+    "d": {
+      "type": "forge:ore_dict",
+      "ore": "dyeGreen"
+    }
+  },
+  "result": {
+    "item": "signals:chain_signal",
+    "count": 8
+  }
+}

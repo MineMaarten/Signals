@@ -35,7 +35,7 @@ public class ClientEventHandler{
         Tessellator t = Tessellator.getInstance();
         BufferBuilder b = t.getBuffer();
         EntityPlayer player = Minecraft.getMinecraft().player;
-        if(player.inventory.getCurrentItem().isEmpty() || player.inventory.getCurrentItem().getItem() != ModItems.railConfigurator) return;
+        if(player.inventory.getCurrentItem().isEmpty() || player.inventory.getCurrentItem().getItem() != ModItems.RAIL_CONFIGURATOR) return;
 
         double playerX = player.prevPosX + (player.posX - player.prevPosX) * event.getPartialTicks();
         double playerY = player.prevPosY + (player.posY - player.prevPosY) * event.getPartialTicks();
@@ -54,7 +54,7 @@ public class ClientEventHandler{
         //      wr.pos(rail.getX() + 0.5, rail.getY() + 0.5, rail.getZ() + 0.5).color(1F, 1F, 1F, 1F).endVertex();
         //}
 
-        List<TileEntityStationMarker> markers = new ArrayList<TileEntityStationMarker>();
+        List<TileEntityStationMarker> markers = new ArrayList<>();
         for(TileEntity te : tes) {
             if(player.isSneaking() && te instanceof TileEntitySignalBase) {
                 TileEntitySignalBase teSignal = (TileEntitySignalBase)te;
@@ -193,7 +193,7 @@ public class ClientEventHandler{
         drawBetween(buffer, p1, p2, offset, offset, r, g, b, a);
     }
 
-    private void drawBetween(BufferBuilder buffer, BlockPos p1, BlockPos p2, double offset1, double offset2, float r, float g, float b, float alpha){
+    private static void drawBetween(BufferBuilder buffer, BlockPos p1, BlockPos p2, double offset1, double offset2, float r, float g, float b, float alpha){
         buffer.pos(p1.getX() + 0.5, p1.getY() + offset1, p1.getZ() + 0.5).color(r, g, b, alpha).endVertex();
         buffer.pos(p2.getX() + 0.5, p2.getY() + offset2, p2.getZ() + 0.5).color(r, g, b, alpha).endVertex();
     }

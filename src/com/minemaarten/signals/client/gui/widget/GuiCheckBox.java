@@ -23,7 +23,7 @@ public class GuiCheckBox extends Gui implements IGuiWidget{
     private final int id;
     public String text;
     public FontRenderer fontRenderer = FMLClientHandler.instance().getClient().fontRenderer;
-    private List<String> tooltip = new ArrayList<String>();
+    private List<String> tooltip = new ArrayList<>();
     private IWidgetListener listener;
 
     private static final int CHECKBOX_WIDTH = 10;

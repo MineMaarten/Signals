@@ -1,3 +1,5 @@
 A Limiter Rail simply limits the speed of a cart going over it to a speed where the cart can be stopped by a single (unpowered) Powered Rail. This can be used to make sure a cart stops right under/above a Hopper, for example.
 
-[crafting{200, 80, key=block/limiter_rail}]
+By powering the rail with redstone, the braking is suppressed, and the rail acts like it is a normal rail.
+
+[crafting{200, 110, key=block/limiter_rail}]

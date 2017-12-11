@@ -1,0 +1,19 @@
+A Chain Signal is an enhanced [link{signals:block/block_signal}]Block Signal[link{}]. If you do not know what a Block Signal is it is strongly recommended to read this first.
+
+At a basic level, Chain Signals behave like normal Block Signals; they will not allow any carts to pass as long as the next block section is occupied. However, another requirement to allow carts to pass, is next signal the cart is going to pass also is green. This is a very useful property in rail crossings: 
+
+[image{200, 125, 0.144, signals:textures/wiki/chain_signal_crossing_deadlocked.png}]
+
+Carts are traveling from north <--> south, east <--> west. The north <--> south line is blocking the east <--> west line, because the cart is stopped on the intersection.
+
+This issue can be resolved by placing down Chain Signals:
+
+[image{200, 355, 0.225, signals:textures/wiki/chain_signal_crossing_right.png}]
+
+The Chain Signal makes sure that carts are only allowed to enter the intersection only if they can pass it completely.
+
+Another application for Chain Signals is in single rail lines, with bypasses to allow carts traveling in opposite directions to pass:
+
+[image{200, 655, 0.14, signals:textures/wiki/chain_signal_one_rail.png}]
+
+[crafting{200, 720, key=block/chain_signal}]

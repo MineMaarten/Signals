@@ -2,6 +2,7 @@ package com.minemaarten.signals.network;
 
 import io.netty.buffer.ByteBuf;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,10 +32,10 @@ public class NetworkUtils{
      * markedFields.add(field); }
      */
 
-    public static List<SyncedField> getSyncedFields(Object te, Class searchedAnnotation){
+    public static List<SyncedField> getSyncedFields(Object te, Class<? extends Annotation> searchedAnnotation){
+        List<SyncedField> syncedFields = new ArrayList<>();
+        Class<?> examinedClass = te.getClass();
 
-        List<SyncedField> syncedFields = new ArrayList<SyncedField>();
-        Class examinedClass = te.getClass();
         while(examinedClass != null) {
             for(Field field : examinedClass.getDeclaredFields()) {
                 if(field.getAnnotation(searchedAnnotation) != null) {
@@ -46,10 +47,10 @@ public class NetworkUtils{
         return syncedFields;
     }
 
-    private static List<SyncedField> getSyncedFieldsForField(Field field, Object te, Class searchedAnnotation){
+    private static List<SyncedField> getSyncedFieldsForField(Field field, Object te, Class<? extends Annotation> searchedAnnotation){
 
         boolean isLazy = field.getAnnotation(LazySynced.class) != null;
-        List<SyncedField> syncedFields = new ArrayList<SyncedField>();
+        List<SyncedField> syncedFields = new ArrayList<>();
         SyncedField syncedField = getSyncedFieldForField(field, te);
         if(syncedField != null) {
             syncedFields.add(syncedField.setLazy(isLazy));
@@ -165,7 +166,7 @@ public class NetworkUtils{
         }
     }
 
-    private static SyncedField getSyncedFieldForField(Field field, Object te){
+    private static SyncedField<?> getSyncedFieldForField(Field field, Object te){
 
         if(int.class.isAssignableFrom(field.getType())) return new SyncedInt(te, field);
         if(float.class.isAssignableFrom(field.getType())) return new SyncedFloat(te, field);
