@@ -35,7 +35,7 @@ public class ClientEventHandler{
         Tessellator t = Tessellator.getInstance();
         BufferBuilder b = t.getBuffer();
         EntityPlayer player = Minecraft.getMinecraft().player;
-        if(player.inventory.getCurrentItem().isEmpty() || player.inventory.getCurrentItem().getItem() != ModItems.RAIL_CONFIGURATOR) return;
+        if(player.inventory.getCurrentItem().getItem() != ModItems.RAIL_CONFIGURATOR) return;
 
         double playerX = player.prevPosX + (player.posX - player.prevPosX) * event.getPartialTicks();
         double playerY = player.prevPosY + (player.posY - player.prevPosY) * event.getPartialTicks();
