@@ -13,6 +13,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -34,8 +35,7 @@ public class ClientEventHandler{
         BufferBuilder b = t.getBuffer();
 
         EntityPlayer player = Minecraft.getMinecraft().player;
-        Item item = player.inventory.getCurrentItem().getItem();
-        if(item != ModItems.RAIL_CONFIGURATOR && (!(item instanceof ItemBlock) || !(((ItemBlock)item).getBlock() instanceof BlockSignalBase))) return;
+        if(!shouldRender()) return;
 
         double playerX = player.prevPosX + (player.posX - player.prevPosX) * event.getPartialTicks();
         double playerY = player.prevPosY + (player.posY - player.prevPosY) * event.getPartialTicks();
@@ -86,21 +86,17 @@ public class ClientEventHandler{
         GL11.glPopMatrix();
     }
 
-    /*private void drawBetween(BufferBuilder buffer, BlockPos p1, BlockPos p2, double offset1, double offset2, int colorHash){
-        drawBetween(buffer, p1, p2, offset1, offset2, getR(colorHash), getG(colorHash), getB(colorHash), 1);
-    }
+    private boolean shouldRender(){
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityPlayer player = mc.player;
+        Item item = player.inventory.getCurrentItem().getItem();
+        if(item == ModItems.RAIL_CONFIGURATOR || (item instanceof ItemBlock) && ((ItemBlock)item).getBlock() instanceof BlockSignalBase) {
+            return true;
+        }
 
-    private float getR(int colorHash){
-        return colorHash % 256 / 256F;
+        RayTraceResult ray = Minecraft.getMinecraft().objectMouseOver;
+        return ray.typeOfHit == RayTraceResult.Type.BLOCK && player.world.getBlockState(ray.getBlockPos()).getBlock() instanceof BlockSignalBase;
     }
-
-    private float getG(int colorHash){
-        return colorHash % 415 / 415F;
-    }
-
-    private float getB(int colorHash){
-        return colorHash % 351 / 351F;
-    }*/
 
     private void drawBetween(BufferBuilder buffer, BlockPos p1, BlockPos p2, double offset, float r, float g, float b, float a){
         drawBetween(buffer, p1, p2, offset, offset, r, g, b, a);
