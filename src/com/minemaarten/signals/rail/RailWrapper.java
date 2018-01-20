@@ -97,7 +97,7 @@ public class RailWrapper extends BlockPos{
             for(EnumFacing d : EnumFacing.values()) {
                 TileEntity te = world.getTileEntity(offset(d));
                 if(te instanceof TileEntityStationMarker) {
-                    if(stationMarkers == null) stationMarkers = new ArrayList<>(1); //Be conservative with instantiating, as not many rails usually have a station.
+                    if(stationMarkers == null) stationMarkers = new ArrayList<>(1); //Be conservative with instantiating, as not many rails usually have multiple stations.
                     stationMarkers.add((TileEntityStationMarker)te);
                 }
             }
@@ -116,7 +116,7 @@ public class RailWrapper extends BlockPos{
 
     public Map<EnumFacing, TileEntitySignalBase> getSignals(){
         if(signals == null) {
-            EnumRailDirection railDir = rail.getDirection(world, this, state);
+            EnumRailDirection railDir = getRailDir();
             if(isStraightTrack(railDir) && getNeighbors().size() <= 2) {
                 for(EnumFacing d : getDirections(railDir)) {
                     d = d.rotateY(); //Check for signals perpendicular to the rail direction
@@ -124,7 +124,7 @@ public class RailWrapper extends BlockPos{
                     if(te instanceof TileEntitySignalBase) {
                         TileEntitySignalBase signal = (TileEntitySignalBase)te;
                         if(signal.getNeighborPos().equals(this)) {
-                            if(signals == null) signals = new HashMap<>(1); //Be conservative with instantiating, as not many rails usually have a signal.
+                            if(signals == null) signals = new HashMap<>(1); //Be conservative with instantiating, as not many rails usually have multiple signals.
                             signals.put(d, signal);
                         }
                     }
@@ -274,8 +274,12 @@ public class RailWrapper extends BlockPos{
         }
     }
 
+    public EnumRailDirection getRailDir(){
+        return rail.getDirection(world, this, state);
+    }
+
     public boolean isStraightTrack(){
-        return isStraightTrack(rail.getDirection(world, this, state));
+        return isStraightTrack(getRailDir());
     }
 
     public static EnumRailDirection getRailDir(EnumSet<EnumFacing> facings){

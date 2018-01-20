@@ -37,6 +37,7 @@ import com.minemaarten.signals.api.access.ISignal;
 import com.minemaarten.signals.block.BlockSignalBase;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
+import com.minemaarten.signals.lib.SignalBlockNode;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketUpdateMessage;
 import com.minemaarten.signals.rail.DestinationPathFinder;
@@ -52,7 +53,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     private boolean firstTick = true;
     private List<EntityMinecart> routedMinecarts = new ArrayList<>();
     private Set<TileEntitySignalBase> nextSignals = new HashSet<>();
-    private SignalBlockNode rootSignalNode = new SignalBlockNode(new BlockPos(0, 0, 0));
+    private SignalBlockNode rootSignalNode = new SignalBlockNode(new BlockPos(0, 0, 0), EnumRailDirection.NORTH_SOUTH);
     private String text = "";
     private String arguments = "";
     private EnumForceMode forceMode = EnumForceMode.NONE;
@@ -593,38 +594,4 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         }
     }
 
-    public static class SignalBlockNode{
-        public final List<SignalBlockNode> nextNeighbors = new ArrayList<>();
-        public final BlockPos railPos;
-
-        public SignalBlockNode(BlockPos railPos){
-            this.railPos = railPos;
-        }
-
-        public SignalBlockNode(NBTTagCompound tag){
-            railPos = new BlockPos(tag.getInteger("x"), tag.getInteger("y"), tag.getInteger("z"));
-
-            NBTTagList tagList = tag.getTagList("blockNode", 10);
-            for(int i = 0; i < tagList.tagCount(); i++) {
-                NBTTagCompound t = tagList.getCompoundTagAt(i);
-
-                SignalBlockNode neighbor = new SignalBlockNode(t);
-                nextNeighbors.add(neighbor);
-            }
-        }
-
-        private void toNBTTagCompound(NBTTagCompound tag){
-            tag.setInteger("x", railPos.getX());
-            tag.setInteger("y", railPos.getY());
-            tag.setInteger("z", railPos.getZ());
-
-            NBTTagList tagList = new NBTTagList();
-            for(SignalBlockNode neighbor : nextNeighbors) {
-                NBTTagCompound t = new NBTTagCompound();
-                neighbor.toNBTTagCompound(t);
-                tagList.appendTag(t);
-            }
-            tag.setTag("blockNode", tagList);
-        }
-    }
 }
