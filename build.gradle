@@ -59,7 +59,7 @@ dependencies {
 }
 
 minecraft {
-    version = "1.12.2-14.23.0.2509"
+    version = "1.12.2-14.23.1.2577"
     runDir = "eclipse"
     
     // the mappings can be changed at any time, and must be in the following format.
