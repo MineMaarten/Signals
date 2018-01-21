@@ -95,7 +95,7 @@ public class ClientEventHandler{
         }
 
         RayTraceResult ray = Minecraft.getMinecraft().objectMouseOver;
-        return ray.typeOfHit == RayTraceResult.Type.BLOCK && player.world.getBlockState(ray.getBlockPos()).getBlock() instanceof BlockSignalBase;
+        return ray != null && ray.typeOfHit == RayTraceResult.Type.BLOCK && player.world.getBlockState(ray.getBlockPos()).getBlock() instanceof BlockSignalBase;
     }
 
     private void drawBetween(BufferBuilder buffer, BlockPos p1, BlockPos p2, double offset, float r, float g, float b, float a){
