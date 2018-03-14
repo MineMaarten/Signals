@@ -13,7 +13,7 @@ import com.minemaarten.signals.rail.RailObjectHolder;
 
 /**
  * Edge used in pathfinding. Edges may be unidirectional as a result of Signals, and Rail Links.
- * Edges do not have intersections (or they would be splitted into multiple edges) 
+ * Edges do not have intersections (or they would have been split into multiple edges) 
  * @author Maarten
  *
  * @param <TPos>

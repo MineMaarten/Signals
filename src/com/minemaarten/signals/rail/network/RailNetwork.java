@@ -19,8 +19,8 @@ import com.minemaarten.signals.rail.RailObjectHolder;
 public class RailNetwork<TPos extends IPosition<TPos>> {
 
     public final RailObjectHolder<TPos> railObjects;
-    private Set<RailSection<TPos>> railSections = new HashSet<>();//TODO
-    //private Map<TPos, RailSection<TPos>> railPosToRailSections = new HashMap<>();//TODO
+    //private Set<RailSection<TPos>> railSections = new HashSet<>();//TODO
+    private Map<TPos, RailSection<TPos>> railPosToRailSections = new HashMap<>();
     private Set<RailEdge<TPos>> allEdges = new HashSet<>();
 
     /**
@@ -41,32 +41,64 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
     public RailNetwork(List<NetworkObject<TPos>> allNetworkObjects){
         this.railObjects = new RailObjectHolder<>(allNetworkObjects);
-        //TODO build network cache
 
+        buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
         buildRailEdges();
     }
 
-    /* private void buildRailSections(){
-         //Wrap in HashSet because java doesn't guarentee mutability with Collectors.toSet()
-         Set<TPos> toTraverse = new HashSet<>(getRails().map(r -> r.pos).collect(Collectors.toList()));
+    private void buildRailSections(){
+        //Wrap in HashSet because java doesn't guarantee mutability with Collectors.toSet()
+        Set<NetworkRail<TPos>> toTraverse = new HashSet<>(railObjects.getRails().collect(Collectors.toList()));
 
-         while(!toTraverse.isEmpty()) {
-             TPos first = toTraverse.iterator().next();
-             Map<TPos, NetworkObject<TPos>> sectionObjects = new HashMap<>();
+        while(!toTraverse.isEmpty()) {
+            Iterator<NetworkRail<TPos>> toTraverseIterator = toTraverse.iterator();
+            NetworkRail<TPos> first = toTraverseIterator.next();
+            toTraverseIterator.remove(); //Remove so we don't evaluate it again.
 
-         }
-     }
+            Set<NetworkRail<TPos>> sectionSet = new HashSet<>();
+            sectionSet.add(first);
 
-     private void addSection(RailSection<TPos> section){
-         railSections.add(section);
+            Stack<NetworkRail<TPos>> sectionToTraverse = new Stack<>();
+            sectionToTraverse.push(first);
 
-     }*/
+            while(!sectionToTraverse.isEmpty()) {
+                NetworkRail<TPos> curRail = sectionToTraverse.pop();
+                List<NetworkRail<TPos>> neighbors = railObjects.getNeighborRails(curRail.getPotentialNeighborRailLocations()).collect(Collectors.toList());
 
-    /*public RailSection<TPos> findSection(TPos pos){
+                for(NetworkRail<TPos> neighbor : neighbors) {
+                    EnumHeading dir = neighbor.pos.getRelativeHeading(curRail.pos); //TODO rail links?
+                    NetworkSignal<TPos> forwardSignal = neighbors.size() < 3 ? getSignalInDir(curRail, dir) : null; //Don't look at signals on an intersection.
+                    if(forwardSignal == null) { //Only when the neighbor is not on a next section, continue
+                        NetworkSignal<TPos> neighborBackSignal = getSignalInDir(neighbor, dir.getOpposite());
+                        if(neighborBackSignal == null) {
+                            if(toTraverse.remove(neighbor)) {
+                                sectionToTraverse.push(neighbor);
+                            }
+
+                            sectionSet.add(neighbor);
+                        }
+                    }
+                }
+            }
+
+            addSection(new RailSection<>(sectionSet));
+        }
+    }
+
+    private NetworkSignal<TPos> getSignalInDir(NetworkRail<TPos> rail, EnumHeading dir){
+        return railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.heading == dir).findFirst().orElse(null);
+    }
+
+    private void addSection(RailSection<TPos> section){
+        section.getRailPositions().forEach(pos -> {
+            railPosToRailSections.put(pos, section);
+        });
+    }
+
+    public RailSection<TPos> findSection(TPos pos){
         return railPosToRailSections.get(pos);
-    }*/
+    }
 
-    //TODO reduce to intersections
     private void buildRailEdges(){
         //Wrap in HashSet because java doesn't guarantee mutability with Collectors.toSet()
         Set<NetworkRail<TPos>> toTraverse = new HashSet<>(railObjects.getRails().collect(Collectors.toList()));

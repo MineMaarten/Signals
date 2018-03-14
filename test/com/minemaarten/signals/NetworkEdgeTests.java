@@ -10,7 +10,7 @@ import com.minemaarten.signals.util.parsing.NetworkParser;
 
 //@formatter:off
 /**
- * Tests of the validity of the RailNetwork's created edges, sections, etc.
+ * Tests of the validity of the RailNetwork's created edges.
  * @author Maarten
  *
  */

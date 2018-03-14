@@ -53,4 +53,18 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> {
     private static <T> Stream<T> ofType(Class<? extends T> type, Stream<? super T> stream){
         return stream.filter(el -> el != null && type.isAssignableFrom(el.getClass())).map(type::cast);
     }
+
+    @Override
+    public boolean equals(Object other){
+        if(other instanceof RailObjectHolder) {
+            return ((RailObjectHolder<?>)other).allNetworkObjects.equals(allNetworkObjects);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode(){
+        return allNetworkObjects.hashCode();
+    }
 }

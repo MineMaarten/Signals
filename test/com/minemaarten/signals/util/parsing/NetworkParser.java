@@ -17,6 +17,7 @@ import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.railnode.DefaultRailNode;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedEdge;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedIntersection;
+import com.minemaarten.signals.util.railnode.RailNodeExpectedSection;
 import com.minemaarten.signals.util.railnode.ValidatingRailNode;
 
 public class NetworkParser{
@@ -44,6 +45,13 @@ public class NetworkParser{
     public NetworkParser addEdgeGroups(String groups){
         for(char c : groups.toCharArray()) {
             objCreators.put(c, pos -> new RailNodeExpectedEdge(pos, c));
+        }
+        return this;
+    }
+
+    public NetworkParser addSectionGroups(String groups){
+        for(char c : groups.toCharArray()) {
+            objCreators.put(c, pos -> new RailNodeExpectedSection(pos, c));
         }
         return this;
     }
