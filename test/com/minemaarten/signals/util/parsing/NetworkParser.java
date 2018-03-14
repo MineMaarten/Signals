@@ -12,6 +12,7 @@ import org.apache.commons.lang3.Validate;
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
+import com.minemaarten.signals.rail.network.NetworkSignal;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.railnode.DefaultRailNode;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedEdge;
@@ -25,6 +26,11 @@ public class NetworkParser{
         parser.objCreators.put('+', pos -> new DefaultRailNode(pos));
         parser.objCreators.put('d', pos -> new DefaultRailNode(pos).setDestination());
         parser.objCreators.put('s', pos -> new DefaultRailNode(pos).setStart());
+
+        parser.objCreators.put('^', pos -> new NetworkSignal<>(pos, EnumHeading.NORTH));
+        parser.objCreators.put('>', pos -> new NetworkSignal<>(pos, EnumHeading.EAST));
+        parser.objCreators.put('v', pos -> new NetworkSignal<>(pos, EnumHeading.SOUTH));
+        parser.objCreators.put('<', pos -> new NetworkSignal<>(pos, EnumHeading.WEST));
         return parser;
     }
 

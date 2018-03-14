@@ -10,16 +10,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import com.minemaarten.signals.rail.RailObjectHolder;
 
 public class RailNetwork<TPos extends IPosition<TPos>> {
 
-    private Map<TPos, NetworkObject<TPos>> allNetworkObjects;
-
+    public final RailObjectHolder<TPos> railObjects;
     private Set<RailSection<TPos>> railSections = new HashSet<>();//TODO
     //private Map<TPos, RailSection<TPos>> railPosToRailSections = new HashMap<>();//TODO
     private Set<RailEdge<TPos>> allEdges = new HashSet<>();
@@ -32,16 +31,16 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     /**
      * Given a position of a path node, which edges can end up in this node?
      */
-    private Multimap<TPos, RailEdge<TPos>> positionsToEdgesBackward = ArrayListMultimap.create();//TODO
+    private Multimap<TPos, RailEdge<TPos>> positionsToEdgesBackward = ArrayListMultimap.create();
 
     /**
      * given any rail pos, which edge belongs to this rail?
      * Intersections don't return an edge.
      */
-    private Map<TPos, RailEdge<TPos>> railPosToRailEdges = new HashMap<>(); //TODO
+    private Map<TPos, RailEdge<TPos>> railPosToRailEdges = new HashMap<>();
 
     public RailNetwork(List<NetworkObject<TPos>> allNetworkObjects){
-        this.allNetworkObjects = allNetworkObjects.stream().collect(Collectors.toMap(n -> n.pos, n -> n));
+        this.railObjects = new RailObjectHolder<>(allNetworkObjects);
         //TODO build network cache
 
         buildRailEdges();
@@ -70,7 +69,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     //TODO reduce to intersections
     private void buildRailEdges(){
         //Wrap in HashSet because java doesn't guarantee mutability with Collectors.toSet()
-        Set<NetworkRail<TPos>> toTraverse = new HashSet<>(getRails().collect(Collectors.toList()));
+        Set<NetworkRail<TPos>> toTraverse = new HashSet<>(railObjects.getRails().collect(Collectors.toList()));
 
         while(!toTraverse.isEmpty()) {
             Iterator<NetworkRail<TPos>> toTraverseIterator = toTraverse.iterator();
@@ -90,7 +89,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
             while(!edgeToTraverse.isEmpty()) {
                 NetworkRail<TPos> curRail = edgeToTraverse.pop();
-                List<NetworkRail<TPos>> neighbors = getNeighbors(curRail.getPotentialNeighborLocations()).collect(Collectors.toList());
+                List<NetworkRail<TPos>> neighbors = railObjects.getNeighborRails(curRail.getPotentialNeighborRailLocations()).collect(Collectors.toList());
                 if(neighbors.size() < 3) {
                     for(NetworkRail<TPos> neighbor : neighbors) {
                         if(toTraverse.remove(neighbor)) {//If not on an intersection, expand further
@@ -117,7 +116,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
             //Only create edges of 2 or higher, as we are not interested in just intersections
             if(edge.size() > 1) {
-                RailEdge<TPos> railEdge = new RailEdge<>(allNetworkObjects, ImmutableList.copyOf(edge));
+                RailEdge<TPos> railEdge = new RailEdge<>(railObjects, ImmutableList.copyOf(edge));
                 if(!edge.get(0).pos.equals(railEdge.startPos)) { //If the order got reversed, switch the hit flags
                     boolean swap = startHitIntersection;
                     startHitIntersection = endHitIntersection;
@@ -146,24 +145,8 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         return railPosToRailEdges.get(pos);
     }
 
-    public NetworkObject<TPos> findRail(TPos pos){
-        return allNetworkObjects.get(pos);
-    }
-
     public Collection<RailEdge<TPos>> findConnectedEdgesBackwards(TPos intersection){
         return positionsToEdgesBackward.get(intersection);
-    }
-
-    public <T extends NetworkObject<TPos>> Stream<T> networkObjectsOfType(Class<T> clazz){
-        return allNetworkObjects.values().stream().filter(o -> clazz.isAssignableFrom(o.getClass())).map(clazz::cast);
-    }
-
-    public Stream<NetworkRail<TPos>> getRails(){
-        return allNetworkObjects.values().stream().filter(o -> o instanceof NetworkRail).map(o -> (NetworkRail<TPos>)o);
-    }
-
-    public Stream<NetworkRail<TPos>> getNeighbors(Collection<TPos> potentialNeighbors){
-        return potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)).filter(n -> n instanceof NetworkRail).map(n -> (NetworkRail<TPos>)n);
     }
 
     /**

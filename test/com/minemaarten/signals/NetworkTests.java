@@ -20,7 +20,7 @@ public class NetworkTests{
      * Test whether the middle parts of edges are properly grouped
      */
     @Test
-    public void testBasicEdges(){    
+    public void testBasicEdgeGrouping(){    
         List<String> map = new ArrayList<>();
         map.add("00+11 7    ");
         map.add("  2   7 a  ");
@@ -57,6 +57,31 @@ public class NetworkTests{
                      .validate();
     }
     
+    /**
+     * Test if Signals properly make edges unidirectional
+     */
+    @Test
+    public void testEdgeDirectionality(){    
+        List<String> map = new ArrayList<>();
+        map.add("   <       ");
+        map.add("bb+uu b    ");
+        map.add("  b   b<b  ");
+        map.add(" b+uuu+u+b ");
+        map.add(" b  >vu    ");
+        map.add(" b b< u    ");
+        map.add(" bb+uuu    ");
+        NetworkParser.createDefaultParser()
+                     .addValidator('u', (rail, network) -> {
+                       Assert.assertTrue("Expected unidirectional edge at " + rail.pos + ".", network.findEdge(rail.pos).unidirectional);  
+                     })
+                     .addValidator('b', (rail, network) -> {
+                       Assert.assertFalse("Expected bidirectional edge at " + rail.pos + ".", network.findEdge(rail.pos).unidirectional);  
+                     })
+                     .parse(map)
+                     .validate();
+    }
+    
     //Test unidirectional
+    //Test rail link
 }
 //@formatter:on

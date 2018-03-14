@@ -8,7 +8,13 @@ public abstract class NetworkRail<TPos> extends NetworkObject<TPos>{
         super(pos);
     }
 
-    public abstract List<TPos> getPotentialNeighborLocations();
+    public abstract List<TPos> getPotentialNeighborRailLocations();
+
+    /**
+     * Signals, Rail Links, Station markers
+     * @return
+     */
+    public abstract List<TPos> getPotentialNeighborObjectLocations();
 
     //public abstract Map<TPos, EnumHeading> getPotentialPathfindNeighbors()
 }

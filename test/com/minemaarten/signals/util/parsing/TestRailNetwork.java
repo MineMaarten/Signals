@@ -18,11 +18,11 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
 
     public TestRailNetwork(List<NetworkObject<Pos2D>> allNetworkObjects){
         super(allNetworkObjects);
-        List<DefaultRailNode> startNodes = networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isStart).collect(Collectors.toList());
+        List<DefaultRailNode> startNodes = railObjects.networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isStart).collect(Collectors.toList());
         if(startNodes.size() > 1) throw new IllegalStateException("Multiple start nodes defined: " + startNodes.size());
         start = startNodes.isEmpty() ? null : startNodes.get(0).pos;
 
-        destinations = networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isDestination).map(r -> r.pos).collect(Collectors.toSet());
+        destinations = railObjects.networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isDestination).map(r -> r.pos).collect(Collectors.toSet());
 
     }
 
@@ -31,6 +31,6 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
     }
 
     public void validate(){
-        networkObjectsOfType(ValidatingRailNode.class).forEach(r -> r.validate(this));
+        railObjects.networkObjectsOfType(ValidatingRailNode.class).forEach(r -> r.validate(this));
     }
 }

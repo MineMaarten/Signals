@@ -2,14 +2,14 @@ package com.minemaarten.signals.rail.network;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.Validate;
 
 import com.google.common.collect.ImmutableList;
+import com.minemaarten.signals.rail.RailObjectHolder;
 
 /**
  * Edge used in pathfinding. Edges may be unidirectional as a result of Signals, and Rail Links.
@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
  */
 public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkRail<TPos>>{
 
-    private final Map<TPos, NetworkObject<TPos>> allNetworkObjects;
+    private final RailObjectHolder<TPos> railObjects;
     private final ImmutableList<NetworkRail<TPos>> edge;
     /**
      * The start and end pos, which end in an intersection. 
@@ -42,10 +42,45 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
      */
     public final boolean unidirectional;
 
-    public RailEdge(Map<TPos, NetworkObject<TPos>> allNetworkObjects, ImmutableList<NetworkRail<TPos>> edge){
-        this.allNetworkObjects = allNetworkObjects;
+    private static enum EnumDirectionalityResult{
+        /**
+         * Trains can be routed both ways
+         */
+        BIDIRECTIONAL,
+        /**
+         * Trains can be routed one way only, and the given order is good
+         */
+        UNIDIRECTIONAL_NO_CHANGE,
+        /**
+         * Trains can be routed one way only, and the order needs to be reversed
+         */
+        UNIDIRECTIONAL_REVERSE,
+        /**
+         * Signals are placed in opposite directions, trains cannot be routed through here at all.
+         */
+        ZERODIRECTIONAL
+    }
 
-        unidirectional = false; //TODO
+    public RailEdge(RailObjectHolder<TPos> railObjects, ImmutableList<NetworkRail<TPos>> edge){
+        this.railObjects = railObjects;
+
+        switch(determineDirectionality(edge)){
+            case BIDIRECTIONAL:
+                unidirectional = false;
+                break;
+            case UNIDIRECTIONAL_NO_CHANGE:
+                unidirectional = true;
+                break;
+            case UNIDIRECTIONAL_REVERSE:
+                unidirectional = true;
+                edge = edge.reverse();
+                break;
+            case ZERODIRECTIONAL:
+                unidirectional = false;//TODO
+                break;
+            default:
+                throw new IllegalStateException();
+        }
 
         TPos firstPos = edge.get(0).pos;
         TPos lastPos = edge.get(edge.size() - 1).pos;
@@ -69,6 +104,39 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         endHeading = endPos.getRelativeHeading(edge.get(edge.size() - 2).pos);
 
         length = edge.size();
+    }
+
+    /**
+     * Check connecting signals and determine which way trains can be routed.
+     * @param edge
+     * @return
+     */
+    private EnumDirectionalityResult determineDirectionality(ImmutableList<NetworkRail<TPos>> edge){
+        boolean forwardsOk = true;
+        boolean backwardsOk = true;
+        for(int i = 1; i < edge.size() - 1; i++) {
+            NetworkRail<TPos> prev = edge.get(i - 1);
+            NetworkRail<TPos> cur = edge.get(i);
+            NetworkRail<TPos> next = edge.get(i + 1);
+            EnumHeading prevDir = cur.pos.getRelativeHeading(prev.pos);
+            EnumHeading nextDir = next.pos.getRelativeHeading(cur.pos);
+
+            if(prevDir == nextDir) { //Only evaluate signals on a straight
+                List<NetworkSignal<TPos>> signals = railObjects.getNeighborSignals(cur.getPotentialNeighborObjectLocations()).collect(Collectors.toList());
+                for(NetworkSignal<TPos> signal : signals) {
+                    if(signal.heading == nextDir) {
+                        backwardsOk = false;
+                    } else if(signal.heading == nextDir.getOpposite()) {
+                        forwardsOk = false;
+                    }
+                }
+            }
+        }
+
+        if(backwardsOk && forwardsOk) return EnumDirectionalityResult.BIDIRECTIONAL;
+        if(backwardsOk) return EnumDirectionalityResult.UNIDIRECTIONAL_REVERSE;
+        if(forwardsOk) return EnumDirectionalityResult.UNIDIRECTIONAL_NO_CHANGE;
+        return EnumDirectionalityResult.ZERODIRECTIONAL;
     }
 
     public TPos get(int index){
@@ -149,7 +217,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     }
 
     private int getIndex(TPos pos){
-        NetworkObject<TPos> destObj = allNetworkObjects.get(pos);
+        NetworkObject<TPos> destObj = railObjects.get(pos);
         Validate.notNull(destObj);
         int destinationIndex = edge.indexOf(destObj);
         if(destinationIndex < 0) throw new IllegalStateException("Edge " + this + " does not contain " + pos);
@@ -163,9 +231,9 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
     private RailEdge<TPos> subEdge(int startIndex, int endIndex){
         ImmutableList<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndex + 1);
-        Map<TPos, NetworkObject<TPos>> allObjects = new HashMap<>(allNetworkObjects);
-        subEdge.forEach(r -> allObjects.remove(r.pos)); //TODO prune non-rail objects better.
-        return new RailEdge<TPos>(allObjects, subEdge);
+        //Map<TPos, NetworkObject<TPos>> allObjects = new HashMap<>(allNetworkObjects);
+        //subEdge.forEach(r -> allObjects.remove(r.pos)); //TODO prune non-rail objects better.
+        return new RailEdge<TPos>(railObjects, subEdge);
     }
 
     @Override

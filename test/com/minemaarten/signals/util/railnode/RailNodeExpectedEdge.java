@@ -23,7 +23,7 @@ public class RailNodeExpectedEdge extends ValidatingRailNode{
         Assert.assertNotNull("Not on an edge at pos " + pos, expectedEdge);
 
         //Assert right groupings (333  (somewhere else) 333 = AssertionError)
-        network.networkObjectsOfType(RailNodeExpectedEdge.class).filter(node -> node.group == group).forEach(node -> {
+        network.railObjects.networkObjectsOfType(RailNodeExpectedEdge.class).filter(node -> node.group == group).forEach(node -> {
             Assert.assertEquals("Edge in group '" + group + "' for pos " + pos + " has an unexpected edge.", expectedEdge, network.findEdge(node.pos));
         });
 

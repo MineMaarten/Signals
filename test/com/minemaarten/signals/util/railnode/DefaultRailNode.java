@@ -26,13 +26,18 @@ public class DefaultRailNode extends NetworkRail<Pos2D>{
     }
 
     @Override
-    public List<Pos2D> getPotentialNeighborLocations(){
+    public List<Pos2D> getPotentialNeighborRailLocations(){
         List<Pos2D> neighbors = new ArrayList<Pos2D>(4);
         neighbors.add(new Pos2D(pos.x + 1, pos.y));
         neighbors.add(new Pos2D(pos.x - 1, pos.y));
         neighbors.add(new Pos2D(pos.x, pos.y + 1));
         neighbors.add(new Pos2D(pos.x, pos.y - 1));
         return neighbors;
+    }
+
+    @Override
+    public List<Pos2D> getPotentialNeighborObjectLocations(){
+        return getPotentialNeighborRailLocations();
     }
 
 }
