@@ -9,4 +9,6 @@ public interface IPosition<TPos> extends Comparable<TPos>{
      * @return
      */
     public EnumHeading getRelativeHeading(TPos from);
+
+    public TPos offset(EnumHeading heading);
 }

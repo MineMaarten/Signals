@@ -14,12 +14,16 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.minemaarten.signals.rail.RailObjectHolder;
 
+/**
+ * Entry point for dealing with rail networks. Designed to be immutable.
+ * @author Maarten
+ *
+ * @param <TPos>
+ */
 public class RailNetwork<TPos extends IPosition<TPos>> {
 
     public final RailObjectHolder<TPos> railObjects;
-    //private Set<RailSection<TPos>> railSections = new HashSet<>();//TODO
     private Map<TPos, RailSection<TPos>> railPosToRailSections = new HashMap<>();
     private Set<RailEdge<TPos>> allEdges = new HashSet<>();
 
@@ -67,7 +71,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
                 for(NetworkRail<TPos> neighbor : neighbors) {
                     EnumHeading dir = neighbor.pos.getRelativeHeading(curRail.pos); //TODO rail links?
-                    NetworkSignal<TPos> forwardSignal = neighbors.size() < 3 ? getSignalInDir(curRail, dir) : null; //Don't look at signals on an intersection.
+                    NetworkSignal<TPos> forwardSignal = getSignalInDir(curRail, dir);
                     if(forwardSignal == null) { //Only when the neighbor is not on a next section, continue
                         NetworkSignal<TPos> neighborBackSignal = getSignalInDir(neighbor, dir.getOpposite());
                         if(neighborBackSignal == null) {

@@ -50,6 +50,22 @@ public class Pos2D implements IPosition<Pos2D>{
     }
 
     @Override
+    public Pos2D offset(EnumHeading heading){
+        switch(heading){
+            case NORTH:
+                return new Pos2D(x, y - 1);
+            case SOUTH:
+                return new Pos2D(x, y + 1);
+            case WEST:
+                return new Pos2D(x - 1, y);
+            case EAST:
+                return new Pos2D(x + 1, y);
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    @Override
     public int compareTo(Pos2D o){
         int xComp = Integer.compare(x, o.x);
         if(xComp != 0) return xComp;

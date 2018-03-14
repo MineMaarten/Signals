@@ -4,17 +4,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.minemaarten.signals.lib.StreamUtils;
 import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
+import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.railnode.DefaultRailNode;
-import com.minemaarten.signals.util.railnode.ValidatingRailNode;
+import com.minemaarten.signals.util.railnode.IValidatingNode;
+import com.minemaarten.signals.util.railnode.RailNodeTrainProvider;
 
 public class TestRailNetwork extends RailNetwork<Pos2D>{
 
     public final Pos2D start;
     public final Set<Pos2D> destinations;
+    private final NetworkState<Pos2D> state;
 
     public TestRailNetwork(List<NetworkObject<Pos2D>> allNetworkObjects){
         super(allNetworkObjects);
@@ -24,6 +29,8 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
 
         destinations = railObjects.networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isDestination).map(r -> r.pos).collect(Collectors.toSet());
 
+        Set<Train<Pos2D>> trains = railObjects.networkObjectsOfType(RailNodeTrainProvider.class).map(r -> r.provideTrain(this)).collect(Collectors.toSet());
+        state = new NetworkState<Pos2D>(trains);
     }
 
     public RailRoute<Pos2D> pathfind(){
@@ -31,6 +38,7 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
     }
 
     public void validate(){
-        railObjects.networkObjectsOfType(ValidatingRailNode.class).forEach(r -> r.validate(this));
+        state.updateSignalStatusses(this);
+        StreamUtils.ofInterface(IValidatingNode.class, railObjects).forEach(r -> r.validate(this, state));
     }
 }

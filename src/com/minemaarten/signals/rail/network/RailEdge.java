@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.Validate;
 
 import com.google.common.collect.ImmutableList;
-import com.minemaarten.signals.rail.RailObjectHolder;
 
 /**
  * Edge used in pathfinding. Edges may be unidirectional as a result of Signals, and Rail Links.

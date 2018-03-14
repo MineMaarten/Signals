@@ -3,11 +3,12 @@ package com.minemaarten.signals.util.railnode;
 import org.junit.Assert;
 
 import com.minemaarten.signals.rail.network.NetworkRail;
+import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.RailEdge;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.parsing.TestRailNetwork;
 
-public class RailNodeExpectedEdge extends ValidatingRailNode{
+public class RailNodeExpectedEdge extends DefaultRailNode implements IValidatingNode{
 
     public final char group;
 
@@ -17,7 +18,7 @@ public class RailNodeExpectedEdge extends ValidatingRailNode{
     }
 
     @Override
-    public void validate(TestRailNetwork network){
+    public void validate(TestRailNetwork network, NetworkState<Pos2D> state){
 
         RailEdge<Pos2D> expectedEdge = network.findEdge(pos);
         Assert.assertNotNull("Not on an edge at pos " + pos, expectedEdge);

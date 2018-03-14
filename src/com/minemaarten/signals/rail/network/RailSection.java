@@ -2,7 +2,6 @@ package com.minemaarten.signals.rail.network;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,10 +29,11 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
      * @param trains
      * @return the only train that should be on this block, or null.
      */
-    public Train<TPos> getTrain(List<Train<TPos>> trains){
+    public Train<TPos> getTrain(Iterable<Train<TPos>> trains){
         for(Train<TPos> train : trains) {
-            TPos trainPos = train.getPos();
-            if(rails.get(trainPos) != null) return train;
+            for(TPos trainPos : train.getPositions()) {
+                if(rails.get(trainPos) != null) return train;
+            }
         }
         return null;
     }

@@ -3,12 +3,13 @@ package com.minemaarten.signals.util.railnode;
 import org.junit.Assert;
 
 import com.minemaarten.signals.rail.network.EnumHeading;
+import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.parsing.TestRailNetwork;
 
-public class RailNodeExpectedIntersection extends ValidatingRailNode{
+public class RailNodeExpectedIntersection extends DefaultRailNode implements IValidatingNode{
 
     private final int index;
     private final EnumHeading dirIn, dirOut;
@@ -21,7 +22,7 @@ public class RailNodeExpectedIntersection extends ValidatingRailNode{
     }
 
     @Override
-    public void validate(TestRailNetwork network){
+    public void validate(TestRailNetwork network, NetworkState<Pos2D> state){
         RailRoute<Pos2D> route = network.pathfind();
         Assert.assertNotNull(route);
         RailRouteNode<Pos2D> node = route.route.get(index);

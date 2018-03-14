@@ -3,11 +3,12 @@ package com.minemaarten.signals.util.railnode;
 import org.junit.Assert;
 
 import com.minemaarten.signals.rail.network.NetworkRail;
+import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.RailSection;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.parsing.TestRailNetwork;
 
-public class RailNodeExpectedSection extends ValidatingRailNode{
+public class RailNodeExpectedSection extends DefaultRailNode implements IValidatingNode{
 
     public final char group;
 
@@ -17,7 +18,7 @@ public class RailNodeExpectedSection extends ValidatingRailNode{
     }
 
     @Override
-    public void validate(TestRailNetwork network){
+    public void validate(TestRailNetwork network, NetworkState<Pos2D> state){
 
         RailSection<Pos2D> expectedSection = network.findSection(pos);
         Assert.assertNotNull("Not on an section at pos " + pos, expectedSection);
