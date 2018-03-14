@@ -13,12 +13,12 @@ import java.util.Set;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 
 public class RailPathfinder<TPos extends IPosition<TPos>> {
-    private static final double RED_SIGNAL_PENALTY = 10000;
-
     private final RailNetwork<TPos> network;
+    private final NetworkState<TPos> state;
 
-    public RailPathfinder(RailNetwork<TPos> network){
+    public RailPathfinder(RailNetwork<TPos> network, NetworkState<TPos> state){
         this.network = network;
+        this.state = state;
     }
 
     public class AStarRailNode implements Comparable<AStarRailNode>{
@@ -132,13 +132,7 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
                     neighborNode = new AStarRailNode(nextPos, nextEdge, startIntersection);
                     nodeMap.put(nextPos, neighborNode);
                 }
-                if(neighborNode.checkImprovementAndUpdate(node, nextEdge.length)) {
-                    //Penalize red signals on the way
-                    /*TODO TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(neighborNode.pos, neighborNode.pathDir);
-                    if(signal != null && signal.getLampStatus() == EnumLampStatus.RED) {
-                        neighborNode.distanceFromGoal += RED_SIGNAL_PENALTY;
-                    }*/
-
+                if(neighborNode.checkImprovementAndUpdate(node, nextEdge.getPathLength(state))) {
                     queue.add(neighborNode);
 
                     if(neighborNode.pos.equals(startIntersection)) { //If we find the start, we have found a valid path from start to end.

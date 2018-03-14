@@ -34,7 +34,7 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
     }
 
     public RailRoute<Pos2D> pathfind(){
-        return pathfind(start, null, destinations);
+        return pathfind(state, start, null, destinations);
     }
 
     public void validate(){

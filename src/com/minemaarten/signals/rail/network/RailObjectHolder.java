@@ -4,8 +4,9 @@ import static com.minemaarten.signals.lib.StreamUtils.ofType;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,7 +21,7 @@ import com.google.common.collect.ImmutableMap;
 public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<NetworkObject<TPos>>{
     private final ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects;
 
-    public RailObjectHolder(List<NetworkObject<TPos>> allNetworkObjects){
+    public RailObjectHolder(Collection<NetworkObject<TPos>> allNetworkObjects){
         HashMap<TPos, NetworkObject<TPos>> mutableNetworkMap = new HashMap<>(allNetworkObjects.stream().collect(Collectors.toMap((NetworkObject<TPos> n) -> n.pos, n -> n)));
 
         //Filter invalid signals, signals that are placed next to intersections, or not next to rails
@@ -41,6 +42,16 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         }
 
         this.allNetworkObjects = ImmutableMap.copyOf(mutableNetworkMap);
+    }
+
+    public RailObjectHolder<TPos> subSelection(Collection<NetworkRail<TPos>> rails){
+        Set<NetworkObject<TPos>> selection = new HashSet<NetworkObject<TPos>>(rails);
+        for(NetworkRail<TPos> rail : rails) {
+            rail.getPotentialNeighborObjectLocations().stream().map(n -> get(n)).filter(n -> n != null).forEach(n -> {
+                selection.add(n);
+            });
+        }
+        return new RailObjectHolder<>(selection);
     }
 
     public NetworkObject<TPos> get(TPos pos){

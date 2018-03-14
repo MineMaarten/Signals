@@ -99,5 +99,26 @@ public class PathfindingTests{
                      .parse(map)
                      .validate();
     }
+    
+    /**
+     * Assert that a route is using a detour when a signal on a shorter route is red.
+     */
+    @Test
+    public void testRedSignalPenaltyRoute(){
+        List<String> map = new ArrayList<>();
+        map.add("s+0++++    ");
+        map.add(" v+ <v+ +  ");
+        map.add(" +t+++1+++ ");
+        map.add(" d^   +    ");
+        map.add(" +<+ v+    ");
+        map.add(" ++2+++    ");
+        NetworkParser.createDefaultParser()
+                     .addTrainGroups("t")
+                     .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.EAST)
+                     .addExpectedIntersection(1, EnumHeading.NORTH, EnumHeading.SOUTH)
+                     .addExpectedIntersection(2, EnumHeading.EAST, EnumHeading.WEST)
+                     .parse(map)
+                     .validate();
+    }
 }
 //@formatter:on

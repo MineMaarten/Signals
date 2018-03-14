@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.Validate;
 
 import com.google.common.collect.ImmutableList;
+import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 
 /**
  * Edge used in pathfinding. Edges may be unidirectional as a result of Signals, and Rail Links.
@@ -18,6 +19,8 @@ import com.google.common.collect.ImmutableList;
  * @param <TPos>
  */
 public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkRail<TPos>>{
+
+    private static final double RED_SIGNAL_PENALTY = 10000;
 
     private final RailObjectHolder<TPos> railObjects;
     private final ImmutableList<NetworkRail<TPos>> edge;
@@ -61,7 +64,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     }
 
     public RailEdge(RailObjectHolder<TPos> railObjects, ImmutableList<NetworkRail<TPos>> edge){
-        this.railObjects = railObjects;
+        this.railObjects = railObjects.subSelection(edge);
 
         switch(determineDirectionality(edge)){
             case BIDIRECTIONAL:
@@ -215,6 +218,12 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         return null;
     }
 
+    public int getPathLength(NetworkState<TPos> state){
+        //Penalize red signals on the way
+        int pathPenalty = (int)(railObjects.getSignals().filter(s -> state.getLampStatus(s.pos) == EnumLampStatus.RED).count() * RED_SIGNAL_PENALTY);
+        return length + pathPenalty;
+    }
+
     private int getIndex(TPos pos){
         NetworkObject<TPos> destObj = railObjects.get(pos);
         Validate.notNull(destObj);
@@ -230,8 +239,6 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
     private RailEdge<TPos> subEdge(int startIndex, int endIndex){
         ImmutableList<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndex + 1);
-        //Map<TPos, NetworkObject<TPos>> allObjects = new HashMap<>(allNetworkObjects);
-        //subEdge.forEach(r -> allObjects.remove(r.pos)); //TODO prune non-rail objects better.
         return new RailEdge<TPos>(railObjects, subEdge);
     }
 

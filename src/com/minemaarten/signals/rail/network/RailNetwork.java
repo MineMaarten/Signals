@@ -192,8 +192,8 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      * @param destinations
      * @return a route, or null, if no path was found
      */
-    public RailRoute<TPos> pathfind(TPos from, EnumHeading direction, Set<TPos> destinations){
+    public RailRoute<TPos> pathfind(NetworkState<TPos> state, TPos from, EnumHeading direction, Set<TPos> destinations){
 
-        return new RailPathfinder<TPos>(this).pathfindToDestination(from, direction, destinations);
+        return new RailPathfinder<TPos>(this, state).pathfindToDestination(from, direction, destinations);
     }
 }
