@@ -24,4 +24,15 @@ public class NetworkSignal<TPos extends IPosition<TPos>> extends NetworkObject<T
     public TPos getRailPos(){
         return pos.offset(heading.rotateCCW());
     }
+
+    //@formatter:off
+    public RailSection<TPos> getNextRailSection(RailNetwork<TPos> network){
+        NetworkRail<TPos> rail = (NetworkRail<TPos>)network.railObjects.get(getRailPos()); //Safe to cast, as invalid signals have been filtered
+        NetworkRail<TPos> nextSectionRail = network.railObjects.getNeighborRails(rail.getPotentialNeighborRailLocations())
+                                                               .filter(r -> r.pos.getRelativeHeading(rail.pos) == heading)
+                                                               .findFirst()
+                                                               .orElse(null);
+        return nextSectionRail != null ? network.findSection(nextSectionRail.pos) : null;
+    }
+    //@formatter:on
 }

@@ -85,7 +85,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                 }
             }
 
-            addSection(new RailSection<>(sectionSet));
+            addSection(new RailSection<>(railObjects, sectionSet));
         }
     }
 

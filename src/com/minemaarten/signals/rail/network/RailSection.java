@@ -19,9 +19,11 @@ import com.google.common.collect.ImmutableMap;
 public class RailSection<TPos extends IPosition<TPos>> implements Iterable<NetworkRail<TPos>>{
 
     private final ImmutableMap<TPos, NetworkRail<TPos>> rails;
+    private final RailObjectHolder<TPos> railObjects;
 
-    public RailSection(Collection<NetworkRail<TPos>> rails){
+    public RailSection(RailObjectHolder<TPos> railObjects, Collection<NetworkRail<TPos>> rails){
         this.rails = ImmutableMap.<TPos, NetworkRail<TPos>> copyOf(rails.stream().collect(Collectors.toMap(n -> n.pos, n -> n)));
+        this.railObjects = railObjects.subSelection(rails);
     }
 
     /**
@@ -40,6 +42,10 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
 
     public Stream<TPos> getRailPositions(){
         return rails.keySet().stream();
+    }
+
+    public Stream<NetworkSignal<TPos>> getSignals(){
+        return railObjects.getSignals();
     }
 
     /**

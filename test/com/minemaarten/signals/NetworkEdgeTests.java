@@ -15,7 +15,11 @@ import com.minemaarten.signals.util.parsing.NetworkParser;
  *
  */
 public class NetworkEdgeTests{
-
+    
+    //TODO Test rail link
+    //TODO Test rail junction handling
+    //TODO Test chain signals
+    
     /**
      * Test whether the middle parts of edges are properly grouped
      */
@@ -80,7 +84,6 @@ public class NetworkEdgeTests{
                      .parse(map)
                      .validate();
     }
-    
-    //Test rail link
+  
 }
 //@formatter:on

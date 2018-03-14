@@ -48,8 +48,8 @@ public class NetworkParser{
         return this;
     }
 
-    public NetworkParser addExpectedSignal(int index, EnumHeading signalHeading, EnumLampStatus expectedStatus){
-        return addObjCreator(Character.forDigit(index, 10), pos -> new ValidatingSignal(pos, signalHeading, EnumSignalType.BLOCK){
+    public NetworkParser addExpectedSignal(int index, EnumHeading signalHeading, EnumSignalType signalType, EnumLampStatus expectedStatus){
+        return addObjCreator(Character.forDigit(index, 10), pos -> new ValidatingSignal(pos, signalHeading, signalType){
             @Override
             public void validate(TestRailNetwork network, NetworkState<Pos2D> state){
                 EnumLampStatus signalStatus = state.getLampStatus(pos);

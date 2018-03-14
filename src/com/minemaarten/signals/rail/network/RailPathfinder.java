@@ -26,7 +26,7 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
         private AStarRailNode prevNode;
         private final TPos goal;
         private final TPos pos;
-        public final RailEdge<TPos> edge;
+        public RailEdge<TPos> edge;
 
         //  public final EnumHeading pathDir;
 
@@ -37,10 +37,11 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             this.goal = goal;
         }
 
-        public boolean checkImprovementAndUpdate(AStarRailNode node, int edgeLength){
+        public boolean checkImprovementAndUpdate(AStarRailNode node, RailEdge<TPos> edge, int edgeLength){
             int nodeDist = node.distanceFromGoal + edgeLength;
             if(nodeDist < distanceFromGoal) {
                 prevNode = node;
+                this.edge = edge;
                 distanceFromGoal = nodeDist;
                 return true;
             } else {
@@ -132,7 +133,7 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
                     neighborNode = new AStarRailNode(nextPos, nextEdge, startIntersection);
                     nodeMap.put(nextPos, neighborNode);
                 }
-                if(neighborNode.checkImprovementAndUpdate(node, nextEdge.getPathLength(state))) {
+                if(neighborNode.checkImprovementAndUpdate(node, nextEdge, nextEdge.getPathLength(state))) {
                     queue.add(neighborNode);
 
                     if(neighborNode.pos.equals(startIntersection)) { //If we find the start, we have found a valid path from start to end.
@@ -153,7 +154,7 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             while(lastNode.getNextNode() != null) {
                 lastNode = lastNode.getNextNode();
             }
-            lastNode.checkImprovementAndUpdate(new AStarRailNode(start, startFakeEdge, start), startFakeEdge != null ? startFakeEdge.length : 0);
+            lastNode.checkImprovementAndUpdate(new AStarRailNode(start, startFakeEdge, start), startFakeEdge, startFakeEdge != null ? startFakeEdge.length : 0);
         }
 
         return bestRoute != null ? toRailRoute(bestRoute) : null;

@@ -48,7 +48,9 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         Set<NetworkObject<TPos>> selection = new HashSet<NetworkObject<TPos>>(rails);
         for(NetworkRail<TPos> rail : rails) {
             rail.getPotentialNeighborObjectLocations().stream().map(n -> get(n)).filter(n -> n != null).forEach(n -> {
-                selection.add(n);
+                if(!(n instanceof NetworkSignal) || ((NetworkSignal<?>)n).getRailPos().equals(rail.pos)) { //Only signals that are connected to this rail
+                    selection.add(n);
+                }
             });
         }
         return new RailObjectHolder<>(selection);
