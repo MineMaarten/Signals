@@ -4,15 +4,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.Validate;
 
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.railnode.DefaultRailNode;
+import com.minemaarten.signals.util.railnode.RailNodeExpectedEdge;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedIntersection;
+import com.minemaarten.signals.util.railnode.ValidatingRailNode;
 
 public class NetworkParser{
 
@@ -29,6 +33,27 @@ public class NetworkParser{
     public NetworkParser addExpectedIntersection(int index, EnumHeading expectedDirIn, EnumHeading expectedDirOut){
         objCreators.put(Character.forDigit(index, 10), pos -> new RailNodeExpectedIntersection(pos, index, expectedDirIn, expectedDirOut));
         return this;
+    }
+
+    public NetworkParser addEdgeGroups(String groups){
+        for(char c : groups.toCharArray()) {
+            objCreators.put(c, pos -> new RailNodeExpectedEdge(pos, c));
+        }
+        return this;
+    }
+
+    public NetworkParser addObjCreator(char c, Function<Pos2D, NetworkObject<Pos2D>> creator){
+        objCreators.put(c, creator);
+        return this;
+    }
+
+    public NetworkParser addValidator(char c, BiConsumer<NetworkRail<Pos2D>, TestRailNetwork> validator){
+        return addObjCreator(c, pos -> new ValidatingRailNode(pos){
+            @Override
+            public void validate(TestRailNetwork network){
+                validator.accept(this, network);
+            }
+        });
     }
 
     public TestRailNetwork parse(List<String> map){

@@ -84,7 +84,7 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
     public RailRoute<TPos> pathfindToDestination(TPos start, EnumHeading direction, Set<TPos> goals){
         if(goals.isEmpty()) return null;
 
-        RailEdge<TPos> startPosEdge = network.findEdge(start);
+        RailEdge<TPos> startPosEdge = null;// network.findEdge(start);
         RailEdge<TPos> startFakeEdge = startPosEdge != null ? startPosEdge.createExitPoint(start, direction) : null;
         TPos startIntersection = startFakeEdge != null ? startFakeEdge.other(start) : start;
 

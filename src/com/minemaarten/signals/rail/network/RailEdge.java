@@ -2,12 +2,14 @@ package com.minemaarten.signals.rail.network;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.Validate;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * Edge used in pathfinding. Edges may be unidirectional as a result of Signals, and Rail Links.
@@ -16,10 +18,10 @@ import org.apache.commons.lang3.Validate;
  *
  * @param <TPos>
  */
-public class RailEdge<TPos extends IPosition<TPos>> {
+public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkRail<TPos>>{
 
     private final Map<TPos, NetworkObject<TPos>> allNetworkObjects;
-    private final List<NetworkRail<TPos>> edge;
+    private final ImmutableList<NetworkRail<TPos>> edge;
     /**
      * The start and end pos, which end in an intersection. 
      */
@@ -40,7 +42,7 @@ public class RailEdge<TPos extends IPosition<TPos>> {
      */
     public final boolean unidirectional;
 
-    public RailEdge(Map<TPos, NetworkObject<TPos>> allNetworkObjects, List<NetworkRail<TPos>> edge){
+    public RailEdge(Map<TPos, NetworkObject<TPos>> allNetworkObjects, ImmutableList<NetworkRail<TPos>> edge){
         this.allNetworkObjects = allNetworkObjects;
 
         unidirectional = false; //TODO
@@ -54,8 +56,7 @@ public class RailEdge<TPos extends IPosition<TPos>> {
             int compareResult = firstPos.compareTo(lastPos);
             if(compareResult > 0) {
                 //Reverse the order
-                edge = new ArrayList<>(edge); //Prevent side effects on the supplied list.
-                Collections.reverse(edge);
+                edge = edge.reverse();
                 firstPos = edge.get(0).pos;
                 lastPos = edge.get(edge.size() - 1).pos;
             } else if(compareResult == 0) throw new IllegalStateException("Different positions should not return 0 for IComparable! First: " + firstPos + ", Last: " + lastPos);
@@ -155,8 +156,13 @@ public class RailEdge<TPos extends IPosition<TPos>> {
         return destinationIndex;
     }
 
+    @Override
+    public Iterator<NetworkRail<TPos>> iterator(){
+        return edge.iterator();
+    }
+
     private RailEdge<TPos> subEdge(int startIndex, int endIndex){
-        List<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndex + 1);
+        ImmutableList<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndex + 1);
         Map<TPos, NetworkObject<TPos>> allObjects = new HashMap<>(allNetworkObjects);
         subEdge.forEach(r -> allObjects.remove(r.pos)); //TODO prune non-rail objects better.
         return new RailEdge<TPos>(allObjects, subEdge);
@@ -164,7 +170,7 @@ public class RailEdge<TPos extends IPosition<TPos>> {
 
     @Override
     public String toString(){
-        return "Start: " + startPos + ", End: " + endPos;
+        return startPos + " -> " + endPos;
     }
 
     @SuppressWarnings("unchecked")

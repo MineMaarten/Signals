@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 
 public class RailNetwork<TPos extends IPosition<TPos>> {
@@ -83,6 +84,10 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
             Stack<NetworkRail<TPos>> edgeToTraverse = new Stack<>();
             edgeToTraverse.push(first);
+
+            boolean startHitIntersection = false;//Used to keep track if the edge stopped because of a dead end or intersection.
+            boolean endHitIntersection = false;
+
             while(!edgeToTraverse.isEmpty()) {
                 NetworkRail<TPos> curRail = edgeToTraverse.pop();
                 List<NetworkRail<TPos>> neighbors = getNeighbors(curRail.getPotentialNeighborLocations()).collect(Collectors.toList());
@@ -104,21 +109,30 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                             }
                         }
                     }
+                } else {
+                    if(edge.get(edge.size() - 1).pos.equals(curRail.pos)) endHitIntersection = true;
+                    if(edge.get(0).pos.equals(curRail.pos)) startHitIntersection = true;
                 }
             }
 
             //Only create edges of 2 or higher, as we are not interested in just intersections
             if(edge.size() > 1) {
-                addEdge(new RailEdge<>(allNetworkObjects, edge));
+                RailEdge<TPos> railEdge = new RailEdge<>(allNetworkObjects, ImmutableList.copyOf(edge));
+                if(!edge.get(0).pos.equals(railEdge.startPos)) { //If the order got reversed, switch the hit flags
+                    boolean swap = startHitIntersection;
+                    startHitIntersection = endHitIntersection;
+                    endHitIntersection = swap;
+                }
+                addEdge(railEdge, startHitIntersection, endHitIntersection);
             }
         }
     }
 
-    private void addEdge(RailEdge<TPos> edge){
+    private void addEdge(RailEdge<TPos> edge, boolean startHitIntersection, boolean endHitIntersection){
         if(allEdges.add(edge)) {
             positionsToEdgesBackward.put(edge.startPos, edge);
             positionsToEdgesBackward.put(edge.endPos, edge);
-            for(int i = 1; i < edge.length - 2; i++) {
+            for(int i = startHitIntersection ? 1 : 0; i < edge.length - (endHitIntersection ? 1 : 0); i++) {
                 railPosToRailEdges.put(edge.get(i), edge);
             }
         }
@@ -130,6 +144,10 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      */
     public RailEdge<TPos> findEdge(TPos pos){
         return railPosToRailEdges.get(pos);
+    }
+
+    public NetworkObject<TPos> findRail(TPos pos){
+        return allNetworkObjects.get(pos);
     }
 
     public Collection<RailEdge<TPos>> findConnectedEdgesBackwards(TPos intersection){
