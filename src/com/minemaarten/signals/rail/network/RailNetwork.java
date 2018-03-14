@@ -129,7 +129,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
     private void addEdge(RailEdge<TPos> edge, boolean startHitIntersection, boolean endHitIntersection){
         if(allEdges.add(edge)) {
-            positionsToEdgesBackward.put(edge.startPos, edge);
+            if(!edge.unidirectional) positionsToEdgesBackward.put(edge.startPos, edge);
             positionsToEdgesBackward.put(edge.endPos, edge);
             for(int i = startHitIntersection ? 1 : 0; i < edge.length - (endHitIntersection ? 1 : 0); i++) {
                 railPosToRailEdges.put(edge.get(i), edge);

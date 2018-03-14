@@ -82,5 +82,22 @@ public class PathfindingTests{
                      .parse(map)
                      .validate();
     }
+    
+    @Test
+    public void testDirectionalRoute(){
+        List<String> map = new ArrayList<>();
+        map.add("s+0++++    ");
+        map.add("  +^ v+ +  ");
+        map.add(" +++++1+++ ");
+        map.add(" d  > +    ");
+        map.add(" +<+ v+    ");
+        map.add(" ++2+++    ");
+        NetworkParser.createDefaultParser()
+                     .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.EAST)
+                     .addExpectedIntersection(1, EnumHeading.NORTH, EnumHeading.SOUTH)
+                     .addExpectedIntersection(2, EnumHeading.EAST, EnumHeading.WEST)
+                     .parse(map)
+                     .validate();
+    }
 }
 //@formatter:on

@@ -81,7 +81,6 @@ public class NetworkTests{
                      .validate();
     }
     
-    //Test unidirectional
     //Test rail link
 }
 //@formatter:on
