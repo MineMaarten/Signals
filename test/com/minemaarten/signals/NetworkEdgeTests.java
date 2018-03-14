@@ -14,7 +14,7 @@ import com.minemaarten.signals.util.parsing.NetworkParser;
  * @author Maarten
  *
  */
-public class NetworkTests{
+public class NetworkEdgeTests{
 
     /**
      * Test whether the middle parts of edges are properly grouped
