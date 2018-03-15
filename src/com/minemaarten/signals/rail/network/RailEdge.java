@@ -22,7 +22,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
     private static final double RED_SIGNAL_PENALTY = 10000;
 
-    private final RailObjectHolder<TPos> railObjects;
+    public final RailObjectHolder<TPos> railObjects;
     private final ImmutableList<NetworkRail<TPos>> edge;
     /**
      * The start and end pos, which end in an intersection. 

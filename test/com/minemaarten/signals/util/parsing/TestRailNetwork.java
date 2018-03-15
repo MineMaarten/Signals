@@ -42,7 +42,7 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
         if(start != null) {
             state.updateSignalStatusses(this);
             TestTrain train = (TestTrain)state.getTrainAtPos(start);
-            if(train != null) train.setPath(pathfind());
+            if(train != null) train.setPath(this, pathfind());
         }
         state.updateSignalStatusses(this);
         StreamUtils.ofInterface(IValidatingNode.class, railObjects).forEach(r -> r.validate(this, state));

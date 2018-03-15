@@ -14,7 +14,22 @@ public interface ISignal{
     }
 
     public enum EnumLampStatus implements IStringSerializable{
-        GREEN(0xFF00FF00), RED(0xFFFF0000), YELLOW(0xFFFFFF00), YELLOW_BLINKING(0xFF999900);
+        /**
+         * Cart is allowed to pass through
+         */
+        GREEN(0xFF00FF00),
+        /**
+         * Cart is not allowed to pass through, because of a cart in the way
+         */
+        RED(0xFFFF0000),
+        /**
+         * Cart is not allowed to pass through, but conditionally can be allowed through (as a result of routing through a chain signal)
+         */
+        YELLOW(0xFFFFFF00),
+        /**
+         * The signal is not configured right (placed next to an intersection or not next to a rail at all).
+         */
+        YELLOW_BLINKING(0xFF999900);
 
         public int color;
 

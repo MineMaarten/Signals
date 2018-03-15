@@ -8,7 +8,11 @@ import org.junit.Test;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
+import com.minemaarten.signals.util.Pos2D;
+import com.minemaarten.signals.util.TestTrain;
 import com.minemaarten.signals.util.parsing.NetworkParser;
+import com.minemaarten.signals.util.parsing.TestRailNetwork;
+import com.minemaarten.signals.util.railnode.RailNodeTrainProvider;
 
 //@formatter:off
 /**
@@ -208,6 +212,59 @@ public class NetworkStateTests{
                      .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.RED)
                      .addExpectedSignal(1, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.YELLOW)
                      .addExpectedSignal(2, EnumHeading.NORTH, EnumSignalType.CHAIN, EnumLampStatus.RED)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert signals turn yellow when the next section is claimed by a train
+     */
+    @Test
+    public void testSectionClaiming(){    
+        List<String> map = new ArrayList<>();
+        map.add("++++c++");
+        map.add(" 0     ");
+        NetworkParser.createDefaultParser()
+                     .addObjCreator('c', pos -> {
+                         return new RailNodeTrainProvider(pos, 'c'){
+                             @Override
+                            public TestTrain provideTrain(TestRailNetwork network){
+                                 TestTrain train = super.provideTrain(network);
+                                 train.setPosition(new Pos2D(-1, -1));//Move the train off the map
+                                 train.setClaimingSection(network.findSection(pos)); //Claim the section the train was created on
+                                 return train;
+                             }
+                         };
+                     })
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.BLOCK, EnumLampStatus.YELLOW)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert chain signals turn yellow when the 2nd section is claimed by a train
+     */
+    @Test
+    public void testSectionClaimingChained(){    
+        List<String> map = new ArrayList<>();
+        map.add("    +   ");
+        map.add("    +^  ");
+        map.add("+s++++cd");
+        map.add(" 0   1  ");
+        NetworkParser.createDefaultParser()
+                     .addObjCreator('c', pos -> {
+                         return new RailNodeTrainProvider(pos, 'c'){
+                             @Override
+                            public TestTrain provideTrain(TestRailNetwork network){
+                                 TestTrain train = super.provideTrain(network);
+                                 train.setPosition(new Pos2D(-1, -1));//Move the train off the map
+                                 train.setClaimingSection(network.findSection(pos)); //Claim the section the train was created on
+                                 return train;
+                             }
+                         };
+                     })
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.YELLOW)
+                     .addExpectedSignal(1, EnumHeading.EAST, EnumSignalType.BLOCK, EnumLampStatus.YELLOW)
                      .parse(map)
                      .validate();
     }

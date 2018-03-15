@@ -12,4 +12,10 @@ public abstract class Train<TPos extends IPosition<TPos>> {
     public abstract Set<TPos> getPositions();
 
     public abstract RailRoute<TPos> getCurRoute();
+
+    /**
+     * The sections other trains may not enter, because it has been claimed by this train.
+     * @return
+     */
+    public abstract Set<RailSection<TPos>> getClaimedSections();
 }
