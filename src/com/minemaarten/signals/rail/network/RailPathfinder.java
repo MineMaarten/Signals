@@ -2,14 +2,18 @@ package com.minemaarten.signals.rail.network;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.google.common.collect.Iterables;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 
 public class RailPathfinder<TPos extends IPosition<TPos>> {
@@ -85,14 +89,20 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
     public RailRoute<TPos> pathfindToDestination(TPos start, EnumHeading direction, Set<TPos> goals){
         if(goals.isEmpty()) return null;
 
-        RailEdge<TPos> startPosEdge = null;// network.findEdge(start);
-        RailEdge<TPos> startFakeEdge = startPosEdge != null ? startPosEdge.createExitPoint(start, direction) : null;
-        TPos startIntersection = startFakeEdge != null ? startFakeEdge.other(start) : start;
+        Map<TPos, RailEdge<TPos>> startToFirstIntersections;
 
-        if(startPosEdge != null && startFakeEdge == null) {
-            //When the start pos is in the middle of an edge, but we can't route to an end, we will never be able to route a train.
-            //Example: A signal facing in the opposite direction
-            return null;
+        RailEdge<TPos> startPosEdge = network.findEdge(start);
+        List<RailEdge<TPos>> startToFirstIntersectionList = startPosEdge != null && !startPosEdge.isAtStartOrEnd(start) ? startPosEdge.createExitPoints(start, direction) : null;
+        if(startToFirstIntersectionList == null) {
+            startToFirstIntersections = Collections.emptyMap();
+        } else {
+            if(startToFirstIntersectionList.isEmpty()) {
+                //When the start pos is in the middle of an edge, but we can't route to an end, we will never be able to route a train.
+                //Example: A signal facing in the opposite direction
+                return null;
+            } else {
+                startToFirstIntersections = startToFirstIntersectionList.stream().collect(Collectors.toMap(e -> e.other(start), e -> e));
+            }
         }
 
         Queue<AStarRailNode> queue = new PriorityQueue<>();
@@ -102,7 +112,7 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
         AStarRailNode bestRoute = null; //In practice there will only be one route, as paths are created at a signal, which cannot be on an intersection.
 
         for(TPos goal : goals) {
-            AStarRailNode goalNode = new AStarRailNode(goal, null, /*null,*/startIntersection);
+            AStarRailNode goalNode = new AStarRailNode(goal, null, /*null,*/start);
             goalNode.distanceFromGoal = 0;
             queue.add(goalNode);
             nodeMap.put(goal, goalNode);
@@ -118,25 +128,34 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             }
 
             //Find the edges that lead into this intersection
-            Collection<RailEdge<TPos>> entryEdges = network.findConnectedEdgesBackwards(node.pos);
+            Collection<RailEdge<TPos>> networkEntryEdges = network.findConnectedEdgesBackwards(node.pos);
 
             //When nothing is found, check if we are currently checking the destination nodes, if so, we may not be on an intersection
-            if(entryEdges.isEmpty() && goals.contains(node.pos)) {
+            if(networkEntryEdges.isEmpty() && goals.contains(node.pos)) {
                 RailEdge<TPos> destEdge = network.findEdge(node.pos);
-                entryEdges = destEdge.createEntryPoints(node.pos);
+                networkEntryEdges = destEdge.createEntryPoints(node.pos);
+            }
+
+            //Append the fake start edges, if applicable.
+            Iterable<RailEdge<TPos>> entryEdges;
+            RailEdge<TPos> startToIntersection = startToFirstIntersections.get(node.pos);
+            if(startToIntersection != null) {
+                entryEdges = Iterables.concat(networkEntryEdges, Collections.singleton(startToIntersection));
+            } else {
+                entryEdges = networkEntryEdges;
             }
 
             for(RailEdge<TPos> nextEdge : entryEdges) {
                 TPos nextPos = nextEdge.other(node.pos);
                 AStarRailNode neighborNode = nodeMap.get(nextPos);
                 if(neighborNode == null) {
-                    neighborNode = new AStarRailNode(nextPos, nextEdge, startIntersection);
+                    neighborNode = new AStarRailNode(nextPos, nextEdge, start);
                     nodeMap.put(nextPos, neighborNode);
                 }
                 if(neighborNode.checkImprovementAndUpdate(node, nextEdge, nextEdge.getPathLength(state))) {
                     queue.add(neighborNode);
 
-                    if(neighborNode.pos.equals(startIntersection)) { //If we find the start, we have found a valid path from start to end.
+                    if(neighborNode.pos.equals(start)) { //If we find the start, we have found a valid path from start to end.
 
                         //If it's a better solution
                         if(bestRoute == null || neighborNode.distanceFromGoal < bestRoute.distanceFromGoal) {
@@ -146,34 +165,31 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
                 }
             }
         }
-        //Log.debug("Opting for the red signalled route (if available)");
-
-        //Append the start node, so we have a complete path
-        if(bestRoute != null) {
-            AStarRailNode lastNode = bestRoute;
-            while(lastNode.getNextNode() != null) {
-                lastNode = lastNode.getNextNode();
-            }
-            lastNode.checkImprovementAndUpdate(new AStarRailNode(start, startFakeEdge, start), startFakeEdge, startFakeEdge != null ? startFakeEdge.length : 0);
-        }
 
         return bestRoute != null ? toRailRoute(bestRoute) : null;
     }
 
     private RailRoute<TPos> toRailRoute(AStarRailNode node){
-        List<RailRouteNode<TPos>> route = new ArrayList<>();
+        List<RailRouteNode<TPos>> routeNodes = new ArrayList<>();
+        List<RailEdge<TPos>> routeEdges = new ArrayList<>();
+        LinkedHashSet<NetworkRail<TPos>> routeRails = new LinkedHashSet<>();
 
+        routeRails.addAll(node.edge.traverseWithFirst(node.pos));
+        routeEdges.add(node.edge);
         AStarRailNode prevNode = node;
         node = node.getNextNode();
 
         while(node != null && node.edge != null) {
+            routeRails.addAll(node.edge.traverseWithFirst(node.pos));
+            routeEdges.add(node.edge);
+
             EnumHeading dirIn = prevNode.edge.headingForEndpoint(node.pos).getOpposite();
             EnumHeading dirOut = node.edge.headingForEndpoint(node.pos).getOpposite();
-            route.add(new RailRouteNode<TPos>(node.pos, dirIn, dirOut));
+            routeNodes.add(new RailRouteNode<TPos>(node.pos, dirIn, dirOut));
 
             prevNode = node;
             node = node.getNextNode();
         }
-        return new RailRoute<TPos>(route);
+        return new RailRoute<TPos>(routeNodes, routeRails, routeEdges);
     }
 }

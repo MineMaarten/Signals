@@ -32,7 +32,7 @@ public class NetworkParser{
         NetworkParser parser = new NetworkParser();
         parser.objCreators.put('+', pos -> new DefaultRailNode(pos));
         parser.objCreators.put('d', pos -> new DefaultRailNode(pos).setDestination());
-        parser.objCreators.put('s', pos -> new DefaultRailNode(pos).setStart());
+        parser.objCreators.put('s', pos -> new RailNodeTrainProvider(pos, 's').setStart());
 
         parser.objCreators.put('^', pos -> new NetworkSignal<>(pos, EnumHeading.NORTH, EnumSignalType.BLOCK));
         parser.objCreators.put('>', pos -> new NetworkSignal<>(pos, EnumHeading.EAST, EnumSignalType.BLOCK));

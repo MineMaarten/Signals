@@ -1,11 +1,13 @@
 package com.minemaarten.signals.rail.network;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
@@ -68,14 +70,46 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         if(blockSignalStatus == EnumLampStatus.RED) { //It is not going to get any greener if there's a train in the way
             return EnumLampStatus.RED;
         } else {
-            List<EnumLampStatus> nextSignalStatusses = chainSignal.getNextRailSection(network).getSignals().map(s -> getLampStatus(s.pos)).collect(Collectors.toList());
+            Set<EnumLampStatus> nextSignalStatusses = chainSignal.getNextRailSection(network).getSignals().map(s -> getLampStatus(s.pos)).collect(Collectors.toSet());
 
             //When we can evaluate this chain signal
             if(!nextSignalStatusses.contains(EnumLampStatus.YELLOW_BLINKING)) {
-                return nextSignalStatusses.contains(EnumLampStatus.RED) ? EnumLampStatus.RED : EnumLampStatus.GREEN;
+                if(nextSignalStatusses.size() > 1) {//Dependent on the routing
+                    Train<TPos> routedTrain = getTrainAtPos(chainSignal.getRailPos());
+                    if(routedTrain != null && routedTrain.getCurRoute() != null) {
+                        return evaluateCurRoutedTrain(network, routedTrain, chainSignal, new HashSet<>());
+                    } else {
+                        return EnumLampStatus.YELLOW; //If we are not routing a train, the status of this signal is not certain
+                    }
+                }
+                if(nextSignalStatusses.isEmpty()) return EnumLampStatus.GREEN; //No signals, is OK
+                return nextSignalStatusses.iterator().next(); //Copy the status of the only other status.
             } else {
                 return EnumLampStatus.YELLOW_BLINKING;
             }
+        }
+    }
+
+    private EnumLampStatus evaluateCurRoutedTrain(RailNetwork<TPos> network, Train<TPos> train, NetworkSignal<TPos> curSignal, Set<NetworkSignal<TPos>> traversed){
+        RailRoute<TPos> route = train.getCurRoute();
+
+        Stream<NetworkSignal<TPos>> nextSignals = curSignal.getNextRailSection(network).getSignals();
+
+        //The signals that crosses the route
+        NetworkSignal<TPos> signalInRoute = nextSignals.filter(s -> route.routeEdges.stream().anyMatch(e -> e.contains(s.pos))).findFirst().orElse(null);
+        if(signalInRoute != null) {
+            EnumLampStatus nextSignalStatus = getLampStatus(signalInRoute.pos);
+            if(nextSignalStatus == EnumLampStatus.YELLOW) {
+                if(traversed.add(signalInRoute)) {
+                    return evaluateCurRoutedTrain(network, train, signalInRoute, traversed);
+                } else {
+                    return EnumLampStatus.YELLOW_BLINKING; //Recursive call
+                }
+            } else {
+                return nextSignalStatus; //copy whatever the next signal says (even YELLOW_BLINKING)
+            }
+        } else {
+            return EnumLampStatus.GREEN;
         }
     }
 
@@ -96,5 +130,9 @@ public class NetworkState<TPos extends IPosition<TPos>> {
 
     public EnumLampStatus getLampStatus(TPos signalPos){
         return signalToLampStatusses.getOrDefault(signalPos, EnumLampStatus.YELLOW_BLINKING);
+    }
+
+    public Train<TPos> getTrainAtPos(TPos pos){
+        return trains.stream().filter(t -> t.getPositions().contains(pos)).findFirst().orElse(null);
     }
 }

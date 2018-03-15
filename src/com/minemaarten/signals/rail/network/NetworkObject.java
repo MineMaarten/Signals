@@ -13,4 +13,9 @@ public abstract class NetworkObject<TPos> {
     public NetworkObject(TPos pos){
         this.pos = pos;
     }
+
+    @Override
+    public String toString(){
+        return pos.toString();
+    }
 }

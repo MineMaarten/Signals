@@ -1,20 +1,37 @@
 package com.minemaarten.signals.rail.network;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class RailRoute<TPos> {
+public class RailRoute<TPos extends IPosition<TPos>> {
 
-    public final List<RailRouteNode<TPos>> route;
+    /**
+     * All intersections part of this route
+     */
+    public final List<RailRouteNode<TPos>> routeNodes;
 
-    public RailRoute(List<RailRouteNode<TPos>> route){
-        this.route = route;
+    /**
+     * All (partial) edges part of this route.
+     */
+    public final List<RailEdge<TPos>> routeEdges;
+
+    /**
+     * All individual rails part of this route, in order.
+     */
+    private final LinkedHashSet<NetworkRail<TPos>> routeRails;
+
+    public RailRoute(List<RailRouteNode<TPos>> routeNodes, LinkedHashSet<NetworkRail<TPos>> routeRails,
+            List<RailEdge<TPos>> routeEdges){
+        this.routeNodes = routeNodes;
+        this.routeRails = routeRails;
+        this.routeEdges = routeEdges;
     }
 
     @Override
     public String toString(){
-        return StringUtils.join(route, " -> ");
+        return StringUtils.join(routeNodes, " -> ");
     }
 
     public static class RailRouteNode<TPos> {

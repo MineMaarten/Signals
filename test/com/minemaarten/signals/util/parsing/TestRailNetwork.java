@@ -11,6 +11,7 @@ import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.util.Pos2D;
+import com.minemaarten.signals.util.TestTrain;
 import com.minemaarten.signals.util.railnode.DefaultRailNode;
 import com.minemaarten.signals.util.railnode.IValidatingNode;
 import com.minemaarten.signals.util.railnode.RailNodeTrainProvider;
@@ -38,6 +39,11 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
     }
 
     public void validate(){
+        if(start != null) {
+            state.updateSignalStatusses(this);
+            TestTrain train = (TestTrain)state.getTrainAtPos(start);
+            if(train != null) train.setPath(pathfind());
+        }
         state.updateSignalStatusses(this);
         StreamUtils.ofInterface(IValidatingNode.class, railObjects).forEach(r -> r.validate(this, state));
     }

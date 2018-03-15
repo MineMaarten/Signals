@@ -17,8 +17,6 @@ import com.minemaarten.signals.util.parsing.NetworkParser;
  *
  */
 public class NetworkStateTests{
-
-    //TODO Test chain signals with pathfinding
     /**
      * Test whether the sections are properly grouped
      */
@@ -88,6 +86,128 @@ public class NetworkStateTests{
         NetworkParser.createDefaultParser()
                      .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.GREEN)
                      .addExpectedSignal(1, EnumHeading.WEST, EnumSignalType.CHAIN, EnumLampStatus.GREEN)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that Chain Signals turn yellow if the following signals don't agree
+     */
+    @Test
+    public void testChainUnresolved(){    
+        List<String> map = new ArrayList<>();
+        map.add("    t  ");
+        map.add("    +^ ");
+        map.add("+++++++");
+        map.add(" 0   > ");
+        NetworkParser.createDefaultParser()
+                     .addTrainGroups("t")
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.YELLOW)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that Chain Signals turn red if the following signals are all red
+     */
+    @Test
+    public void testChainRed(){    
+        List<String> map = new ArrayList<>();
+        map.add("    t  ");
+        map.add("    +^ ");
+        map.add("++++++a");
+        map.add(" 0   > ");
+        NetworkParser.createDefaultParser()
+                     .addTrainGroups("ta")
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.RED)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that Chain Signals turn green if the following signals are all green
+     */
+    @Test
+    public void testChainGreen(){    
+        List<String> map = new ArrayList<>();
+        map.add("    +  ");
+        map.add("    +^ ");
+        map.add("+++++++");
+        map.add(" 0   > ");
+        NetworkParser.createDefaultParser()
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.GREEN)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that Chain Signals can turn green for a given cart, as long as the cart routed is routed through a green signal.
+     */
+    @Test
+    public void testBasicRouteDependentChainGreen(){    
+        List<String> map = new ArrayList<>();
+        map.add("    t  ");
+        map.add("    +^ ");
+        map.add("s+++++d");
+        map.add("0    > ");
+        NetworkParser.createDefaultParser()
+                     .addTrainGroups("t")
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.GREEN)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that Chain Signals turn red for a given cart, when the cart is routed through a red signal.
+     */
+    @Test
+    public void testBasicRouteDependentChainRed(){    
+        List<String> map = new ArrayList<>();
+        map.add("    +   ");
+        map.add("    +^  ");
+        map.add("s+++++td");
+        map.add("0    >  ");
+        NetworkParser.createDefaultParser()
+                     .addTrainGroups("t")
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.RED)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that Chain Signals can turn green for a given cart, as long as the cart routed is routed through a green signal.
+     */
+    @Test
+    public void testRouteDependentChainGreen(){    
+        List<String> map = new ArrayList<>();
+        map.add("    t  +++++++b");
+        map.add("    +^ +2   +> ");
+        map.add("s++++++++a v+  ");
+        map.add("0    1  >   d  ");
+        NetworkParser.createDefaultParser()
+                     .addTrainGroups("abt")
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.GREEN)
+                     .addExpectedSignal(1, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.YELLOW)
+                     .addExpectedSignal(2, EnumHeading.NORTH, EnumSignalType.CHAIN, EnumLampStatus.YELLOW)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that Chain Signals turn red for a given cart, when the cart is routed through a red signal.
+     */
+    @Test
+    public void testRouteDependentChainRed(){    
+        List<String> map = new ArrayList<>();
+        map.add("    +  ++++++++");
+        map.add("    +^ +2   t> ");
+        map.add("s+++++++++ v+  ");
+        map.add("0    1  >   d  ");
+        NetworkParser.createDefaultParser()
+                     .addTrainGroups("t")
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.RED)
+                     .addExpectedSignal(1, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.YELLOW)
+                     .addExpectedSignal(2, EnumHeading.NORTH, EnumSignalType.CHAIN, EnumLampStatus.RED)
                      .parse(map)
                      .validate();
     }

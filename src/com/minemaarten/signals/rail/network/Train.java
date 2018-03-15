@@ -2,7 +2,7 @@ package com.minemaarten.signals.rail.network;
 
 import java.util.Set;
 
-public abstract class Train<TPos> {
+public abstract class Train<TPos extends IPosition<TPos>> {
 
     /**
      * The positions the train is on.
@@ -10,4 +10,6 @@ public abstract class Train<TPos> {
      * @return
      */
     public abstract Set<TPos> getPositions();
+
+    public abstract RailRoute<TPos> getCurRoute();
 }

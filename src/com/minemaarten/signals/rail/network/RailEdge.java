@@ -145,6 +145,14 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         return edge.get(index).pos;
     }
 
+    public boolean contains(TPos pos){
+        return railObjects.get(pos) != null;
+    }
+
+    public boolean isAtStartOrEnd(TPos pos){
+        return pos.equals(startPos) || pos.equals(endPos);
+    }
+
     public TPos other(TPos pos){
         if(pos.equals(startPos)) return endPos;
         if(pos.equals(endPos)) return startPos;
@@ -203,19 +211,22 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
      * 
      * Only edges that can accept a direction from start to end will be added, and that match the given direction
      */
-    public RailEdge<TPos> createExitPoint(TPos from, EnumHeading direction){
+    public List<RailEdge<TPos>> createExitPoints(TPos from, EnumHeading direction){
+        List<RailEdge<TPos>> exitEdges = new ArrayList<>(2);
+
         int destinationIndex = getIndex(from);
+
         TPos nextNeighbor = edge.get(destinationIndex + 1).pos;
         if(direction == null || nextNeighbor.getRelativeHeading(from) == direction) {
-            return subEdge(destinationIndex, edge.size() - 1);
-        } else {
-            TPos prevNeighbor = edge.get(destinationIndex - 1).pos;
-            if(prevNeighbor.getRelativeHeading(from) == direction) {
-                RailEdge<TPos> subEdge = subEdge(0, destinationIndex);
-                if(!subEdge.unidirectional) return subEdge;//When not unidirectional we can evaluate 'f -> s'
-            }
+            exitEdges.add(subEdge(destinationIndex, edge.size() - 1));
         }
-        return null;
+
+        TPos prevNeighbor = edge.get(destinationIndex - 1).pos;
+        if(direction == null || prevNeighbor.getRelativeHeading(from) == direction) {
+            RailEdge<TPos> subEdge = subEdge(0, destinationIndex);
+            if(!subEdge.unidirectional) exitEdges.add(subEdge);//When not unidirectional we can evaluate 'f -> s'
+        }
+        return exitEdges;
     }
 
     public int getPathLength(NetworkState<TPos> state){
@@ -235,6 +246,12 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     @Override
     public Iterator<NetworkRail<TPos>> iterator(){
         return edge.iterator();
+    }
+
+    public ImmutableList<NetworkRail<TPos>> traverseWithFirst(TPos firstPos){
+        if(startPos.equals(firstPos)) return edge;
+        if(endPos.equals(firstPos)) return edge.reverse();
+        throw new IllegalStateException("Pos " + firstPos + " not start/end of edge " + this);
     }
 
     private RailEdge<TPos> subEdge(int startIndex, int endIndex){

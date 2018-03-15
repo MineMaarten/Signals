@@ -27,7 +27,17 @@ public class PathfindingTests{
         TestRailNetwork network = NetworkParser.createDefaultParser().parse(map);
         RailRoute<Pos2D> route = network.pathfind();
         Assert.assertNotNull(route);
-        Assert.assertEquals(0, route.route.size());
+        Assert.assertEquals(0, route.routeNodes.size());
+    }
+    
+    @Test
+    public void testBasicNonEndStartPath(){
+        List<String> map = new ArrayList<>();
+        map.add("+s++d");
+        TestRailNetwork network = NetworkParser.createDefaultParser().parse(map);
+        RailRoute<Pos2D> route = network.pathfind();
+        Assert.assertNotNull(route);
+        Assert.assertEquals(0, route.routeNodes.size());
     }
 
     @Test
