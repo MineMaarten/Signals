@@ -213,5 +213,41 @@ public class PathfindingTests{
                                                .parse(map);
         Assert.assertNull(network.pathfind());
     }
+    
+    /**
+     * Expect that the train is routed straight through the rail crossing, requiring a detour
+     */
+    @Test
+    public void testRailCrossingDetourPath(){
+        List<String> map = new ArrayList<>();
+        map.add("      s    ");
+        map.add("      +    ");
+        map.add(" +++++#    ");
+        map.add(" d    ++++ ");
+        map.add(" +  +    + ");
+        map.add(" +++0+++++ ");
+        NetworkParser.createDefaultParser()
+                     .addExpectedIntersection(0, EnumHeading.EAST, EnumHeading.WEST)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Expect that the train is routed straight through the rail crossing, passing it twice
+     */
+    @Test
+    public void testRailCrossingPath(){
+        List<String> map = new ArrayList<>();
+        map.add("      s    ");
+        map.add("      +    ");
+        map.add(" +++++#+++ ");
+        map.add(" d    +  + ");
+        map.add(" +    +++0 ");
+        map.add("         + ");
+        NetworkParser.createDefaultParser()
+                     .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.NORTH)
+                     .parse(map)
+                     .validate();
+    }
 }
 //@formatter:on

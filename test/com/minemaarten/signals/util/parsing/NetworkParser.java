@@ -20,6 +20,7 @@ import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.railnode.DefaultRailNode;
 import com.minemaarten.signals.util.railnode.IPreNetworkParseListener;
+import com.minemaarten.signals.util.railnode.RailNodeCrossing;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedEdge;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedIntersection;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedSection;
@@ -34,6 +35,7 @@ public class NetworkParser{
     public static NetworkParser createDefaultParser(){
         NetworkParser parser = new NetworkParser();
         parser.objCreators.put('+', pos -> new DefaultRailNode(pos));
+        parser.objCreators.put('#', pos -> new RailNodeCrossing(pos));
         parser.objCreators.put('d', pos -> new DefaultRailNode(pos).setDestination());
         parser.objCreators.put('s', pos -> new RailNodeTrainProvider(pos, 's').setStart());
 

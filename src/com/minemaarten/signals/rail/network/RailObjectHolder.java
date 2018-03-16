@@ -38,7 +38,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
             NetworkObject<TPos> railObj = get(signal.getRailPos());
             if(railObj instanceof NetworkRail) {
                 NetworkRail<TPos> rail = (NetworkRail<TPos>)railObj;
-                long neighborCount = rail.getNeighborRails(this).count();
+                long neighborCount = rail.getSectionNeighborRails(this).count();
                 if(neighborCount > 2) {
                     toRemove.add(signal.pos); //Invalid: Attached to an intersection.
                 }

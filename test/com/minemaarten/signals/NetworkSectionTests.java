@@ -37,6 +37,25 @@ public class NetworkSectionTests{
     }
     
     /**
+     * Assert that rail crossings don't influence how sections are grouped.
+     */
+    @Test
+    public void testCrossingSectionGrouping(){    
+        List<String> map = new ArrayList<>();
+        map.add("   <       ");
+        map.add("11#22 3    ");
+        map.add("  1   3<4  ");
+        map.add(" 1#113#444 ");
+        map.add(" 1  >v3    ");
+        map.add(" 1 1< 5    ");
+        map.add(" 11#555    ");
+        NetworkParser.createDefaultParser()
+                     .addSectionGroups("012345")
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
      * Assert that signals placed next to intersections, or not next to rails, get removed from the network.
      */
     @Test

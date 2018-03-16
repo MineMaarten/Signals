@@ -2,7 +2,9 @@ package com.minemaarten.signals.util.railnode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.util.Pos2D;
 
@@ -36,8 +38,18 @@ public class DefaultRailNode extends NetworkRail<Pos2D>{
     }
 
     @Override
+    public List<EnumHeading> getPotentialNeighborRailHeadings(){
+        return EnumHeading.valuesStream().collect(Collectors.toList());
+    }
+
+    @Override
     public List<Pos2D> getPotentialNeighborObjectLocations(){
         return getPotentialNeighborRailLocations();
+    }
+
+    @Override
+    public List<Pos2D> getPotentialPathfindNeighbors(EnumHeading entryDir){
+        return EnumHeading.valuesStream().map(pos::offset).collect(Collectors.toList());
     }
 
 }

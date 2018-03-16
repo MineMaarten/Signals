@@ -11,6 +11,9 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -67,7 +70,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
             while(!sectionToTraverse.isEmpty()) {
                 NetworkRail<TPos> curRail = sectionToTraverse.pop();
-                List<NetworkRail<TPos>> neighbors = curRail.getNeighborRails(railObjects).collect(Collectors.toList());
+                List<NetworkRail<TPos>> neighbors = curRail.getSectionNeighborRails(railObjects).collect(Collectors.toList());
 
                 for(NetworkRail<TPos> neighbor : neighbors) {
                     EnumHeading dir = neighbor.pos.getRelativeHeading(curRail.pos);
@@ -102,34 +105,39 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     }
 
     private void buildRailEdges(){
-        //Wrap in HashSet because java doesn't guarantee mutability with Collectors.toSet()
-        Set<NetworkRail<TPos>> toTraverse = new HashSet<>(railObjects.getRails().collect(Collectors.toList()));
+        //All rails need to be traversed, in every direction, because a rail may be a junction, in which case a single block is part of multiple edges.
+        Set<Pair<NetworkRail<TPos>, EnumHeading>> toTraverse = new HashSet<>();
+        railObjects.getRails().forEach(rail -> {
+            for(EnumHeading heading : rail.getPotentialNeighborRailHeadings()) {
+                toTraverse.add(new ImmutablePair<NetworkRail<TPos>, EnumHeading>(rail, heading));
+            }
+        });
 
         while(!toTraverse.isEmpty()) {
-            Iterator<NetworkRail<TPos>> toTraverseIterator = toTraverse.iterator();
-            NetworkRail<TPos> first = toTraverseIterator.next();
+            Pair<NetworkRail<TPos>, EnumHeading> first = toTraverse.iterator().next();
 
             List<NetworkRail<TPos>> edge = new ArrayList<>();
             Set<NetworkRail<TPos>> edgeSet = new HashSet<>();
-            edge.add(first);
-            edgeSet.add(first);
+            edge.add(first.getLeft());
+            edgeSet.add(first.getLeft());
 
-            Stack<NetworkRail<TPos>> edgeToTraverse = new Stack<>();
+            Stack<Pair<NetworkRail<TPos>, EnumHeading>> edgeToTraverse = new Stack<>();
             edgeToTraverse.push(first);
 
             boolean startHitIntersection = false;//Used to keep track if the edge stopped because of a dead end or intersection.
             boolean endHitIntersection = false;
 
             while(!edgeToTraverse.isEmpty()) {
-                NetworkRail<TPos> curRail = edgeToTraverse.pop();
-                List<NetworkRail<TPos>> neighbors = curRail.getNeighborRails(railObjects).collect(Collectors.toList());
+                Pair<NetworkRail<TPos>, EnumHeading> curEntry = edgeToTraverse.pop();
+                NetworkRail<TPos> curRail = curEntry.getLeft();
+                List<NetworkRail<TPos>> neighbors = curRail.getPathfindingNeighborRails(railObjects, curEntry.getRight()).collect(Collectors.toList());
                 if(neighbors.size() < 3) { //If not on an intersection, expand further
-                    toTraverse.remove(curRail);
+                    toTraverse.remove(curEntry);
                     for(NetworkRail<TPos> neighbor : neighbors) {
                         //Add to the current edge, make sure the list is in sequence, so that index 0 is a neighbor of index 1, which is
                         //a neighbor of index 2, etc.
                         if(edgeSet.add(neighbor)) {
-                            edgeToTraverse.push(neighbor);
+                            edgeToTraverse.push(new ImmutablePair<NetworkRail<TPos>, EnumHeading>(neighbor, neighbor.pos.getRelativeHeading(curRail.pos)));
                             if(edge.get(edge.size() - 1).pos.equals(curRail.pos)) {
                                 edge.add(neighbor);
                             } else if(edge.get(0).pos.equals(curRail.pos)) {
@@ -140,10 +148,11 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                         }
                     }
                 } else if(edge.size() == 1) { //when evaluating starting from an intersection, we can create edges that span only 2 blocks, from one intersection to the next
-                    toTraverse.remove(curRail);
+                    toTraverse.remove(curEntry);
                     //When evaluating from an intersection, only look at directly neighboring intersections.
                     for(NetworkRail<TPos> neighbor : neighbors) {
-                        List<NetworkRail<TPos>> neighborNeighbors = neighbor.getNeighborRails(railObjects).collect(Collectors.toList());
+                        EnumHeading heading = neighbor.pos.getRelativeHeading(curRail.pos);
+                        List<NetworkRail<TPos>> neighborNeighbors = neighbor.getPathfindingNeighborRails(railObjects, heading).collect(Collectors.toList());
                         if(neighborNeighbors.size() > 2) { //When the neighbor also is on an intersection, we have an edge
                             RailEdge<TPos> railEdge = new RailEdge<>(railObjects, ImmutableList.of(curRail, neighbor));
                             addEdge(railEdge, curRail.pos, true, true);
@@ -198,7 +207,6 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      * @return a route, or null, if no path was found
      */
     public RailRoute<TPos> pathfind(NetworkState<TPos> state, TPos from, EnumHeading direction, Set<TPos> destinations){
-
         return new RailPathfinder<TPos>(this, state).pathfindToDestination(from, direction, destinations);
     }
 }

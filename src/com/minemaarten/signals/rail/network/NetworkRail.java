@@ -13,26 +13,37 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
 
     public abstract List<TPos> getPotentialNeighborRailLocations();
 
+    public abstract List<EnumHeading> getPotentialNeighborRailHeadings();
+
     /**
      * Signals, Rail Links, Station markers
      * @return
      */
     public abstract List<TPos> getPotentialNeighborObjectLocations();
 
-    //TODO rail junction handling
-    //public abstract Map<TPos, EnumHeading> getPotentialPathfindNeighbors()
+    public abstract List<TPos> getPotentialPathfindNeighbors(EnumHeading entryDir);
 
     //@formatter:off
-    public Stream<NetworkRail<TPos>> getNeighborRails(RailObjectHolder<TPos> railObjects){
-        Stream<NetworkRail<TPos>> normalNeighbors = railObjects.getNeighborRails(getPotentialNeighborRailLocations());
+    public Stream<NetworkRail<TPos>> getRailLinkConnectedRails(RailObjectHolder<TPos> railObjects){
         Stream<NetworkRail<TPos>> linkedToNeighbors = railObjects.getNeighborRailLinks(getPotentialNeighborObjectLocations())
-                                                                 .filter(l -> l.getDestinationPos() != null)
-                                                                 .map(l -> railObjects.get(l.getDestinationPos()))
-                                                                 .filter(r -> r instanceof NetworkRail)
-                                                                 .map(r -> ((NetworkRail<TPos>)r));
-        
+                .filter(l -> l.getDestinationPos() != null)
+                .map(l -> railObjects.get(l.getDestinationPos()))
+                .filter(r -> r instanceof NetworkRail)
+                .map(r -> ((NetworkRail<TPos>)r));
+
         //The actual neighbors, the connecting rail links connecting elsewhere, and the rail links that connect to this rail.
-        return Streams.concat(normalNeighbors, linkedToNeighbors, railObjects.findRailsLinkingTo(pos));
+        return Streams.concat(linkedToNeighbors, railObjects.findRailsLinkingTo(pos));
     }
     //@formatter:on
+
+    public Stream<NetworkRail<TPos>> getSectionNeighborRails(RailObjectHolder<TPos> railObjects){
+        Stream<NetworkRail<TPos>> normalNeighbors = railObjects.getNeighborRails(getPotentialNeighborRailLocations());
+        return Streams.concat(normalNeighbors, getRailLinkConnectedRails(railObjects));
+    }
+
+    public Stream<NetworkRail<TPos>> getPathfindingNeighborRails(RailObjectHolder<TPos> railObjects, EnumHeading entryDir){
+        if(entryDir == null) return getSectionNeighborRails(railObjects); //When stuff with Rail Link, we can't properly use pathfind directions
+        Stream<NetworkRail<TPos>> normalNeighbors = railObjects.getNeighborRails(getPotentialPathfindNeighbors(entryDir));
+        return Streams.concat(normalNeighbors, getRailLinkConnectedRails(railObjects));
+    }
 }

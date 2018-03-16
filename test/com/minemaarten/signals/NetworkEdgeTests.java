@@ -16,8 +16,6 @@ import com.minemaarten.signals.util.parsing.NetworkParser;
  */
 public class NetworkEdgeTests{
     
-    //TODO Test rail junction handling
-    
     /**
      * Test whether the middle parts of edges are properly grouped
      */
@@ -32,6 +30,21 @@ public class NetworkEdgeTests{
         map.add(" 33+555 b  ");
         NetworkParser.createDefaultParser()
                      .addEdgeGroups("0123456789ab")
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Test whether junctions properly separate edges
+     */
+    @Test
+    public void testBasicJunctionEdgeGrouping(){    
+        List<String> map = new ArrayList<>();
+        map.add("  0 ");
+        map.add(" 1#1");
+        map.add("  0 ");
+        NetworkParser.createDefaultParser()
+                     .addEdgeGroups("01")
                      .parse(map)
                      .validate();
     }
