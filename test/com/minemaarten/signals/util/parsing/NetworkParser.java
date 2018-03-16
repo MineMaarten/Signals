@@ -12,6 +12,7 @@ import org.junit.Assert;
 
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.network.EnumHeading;
+import com.minemaarten.signals.rail.network.INetworkObjectProvider;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.NetworkSignal;
@@ -30,7 +31,9 @@ import com.minemaarten.signals.util.railnode.TestRailLink;
 import com.minemaarten.signals.util.railnode.ValidatingRailNode;
 import com.minemaarten.signals.util.railnode.ValidatingSignal;
 
-public class NetworkParser{
+public class NetworkParser implements INetworkObjectProvider<Pos2D>{
+
+    private List<String> map;
 
     public static NetworkParser createDefaultParser(){
         NetworkParser parser = new NetworkParser();
@@ -105,33 +108,59 @@ public class NetworkParser{
     }
 
     public TestRailNetwork parse(List<String> map){
-        Validate.noNullElements(map);
-        if(map.isEmpty()) throw new IllegalArgumentException("Empty network is not allowed!");
-
+        setMap(map);
         int xSize = map.get(0).length();
+
         List<NetworkObject<Pos2D>> networkObjects = new ArrayList<>();
 
         for(int y = 0; y < map.size(); y++) {
-            String yLine = map.get(y);
-            if(yLine.length() != xSize) throw new IllegalArgumentException("Inconsistent map lengths! Violating row: " + y + ", expecting " + xSize + ", got " + yLine.length());
-
             for(int x = 0; x < xSize; x++) {
                 Pos2D pos = new Pos2D(x, y);
-                char c = yLine.charAt(x);
-
-                if(c != ' ') {
-                    Function<Pos2D, NetworkObject<Pos2D>> objCreator = objCreators.get(c);
-                    if(objCreator != null) {
-                        networkObjects.add(objCreator.apply(pos));
-                    } else {
-                        throw new IllegalArgumentException("Unknown character at " + x + ", " + y + ": '" + c + "'!");
-                    }
+                NetworkObject<Pos2D> networkObject = provide(pos);
+                if(networkObject != null) {
+                    networkObjects.add(networkObject);
                 }
             }
         }
 
         networkObjects.stream().filter(o -> o instanceof IPreNetworkParseListener).forEach(o -> ((IPreNetworkParseListener)o).onPreNetworkParsing(networkObjects));
 
-        return new TestRailNetwork(networkObjects);
+        return new TestRailNetwork(this, networkObjects);
+    }
+
+    private void setMap(List<String> map){
+        Validate.noNullElements(map);
+        if(map.isEmpty()) throw new IllegalArgumentException("Empty network is not allowed!");
+        int xSize = map.get(0).length();
+        for(int y = 0; y < map.size(); y++) {
+            String yLine = map.get(y);
+            if(yLine.length() != xSize) throw new IllegalArgumentException("Inconsistent map lengths! Violating row: " + y + ", expecting " + xSize + ", got " + yLine.length());
+        }
+        this.map = map;
+    }
+
+    public int getMapWidth(){
+        return map.get(0).length();
+    }
+
+    public int getMapHeight(){
+        return map.size();
+    }
+
+    @Override
+    public NetworkObject<Pos2D> provide(Pos2D pos){
+        if(pos.y >= getMapHeight() || pos.y < 0 || pos.x >= getMapWidth() || pos.x < 0) return null;
+
+        char c = map.get(pos.y).charAt(pos.x);
+        if(c != ' ') {
+            Function<Pos2D, NetworkObject<Pos2D>> objCreator = objCreators.get(c);
+            if(objCreator != null) {
+                return objCreator.apply(pos);
+            } else {
+                throw new IllegalArgumentException("Unknown character at " + pos + ": '" + c + "'!");
+            }
+        } else {
+            return null;
+        }
     }
 }

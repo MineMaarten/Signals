@@ -2,13 +2,10 @@ package com.minemaarten.signals.rail.network.mc;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
@@ -24,6 +21,8 @@ import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.NetworkState;
+import com.minemaarten.signals.rail.network.NetworkUpdater;
+import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.tileentity.TileEntityBase;
 
 public class RailNetworkManager{
@@ -35,9 +34,9 @@ public class RailNetworkManager{
         return FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT ? CLIENT_INSTANCE : SERVER_INSTANCE;
     }
 
-    private MCRailNetwork network = new MCRailNetwork(Collections.emptyMap());
+    private RailNetwork<MCPos> network = new RailNetwork<MCPos>(Collections.emptyMap());
     private NetworkState<MCPos> state = new NetworkState<>(Collections.emptySet());
-    private final Set<MCPos> dirtyPositions = new HashSet<>(); //Positions that have possibly changed
+    private final NetworkUpdater<MCPos> networkUpdater = new NetworkUpdater<>(new NetworkObjectProvider());
 
     private RailNetworkManager(){
 
@@ -94,7 +93,7 @@ public class RailNetworkManager{
                 }
             }
         }
-        network = new MCRailNetwork(allNetworkObjects);
+        network = new RailNetwork<MCPos>(allNetworkObjects);
     }
 
     private void updateState(){
@@ -121,52 +120,12 @@ public class RailNetworkManager{
 
     public void markDirty(MCPos pos){
         validateOnServer();
-        dirtyPositions.add(pos);
+        networkUpdater.markDirty(pos);
     }
 
     //TODO threading?
     public void onPreServerTick(){
-        if(!dirtyPositions.isEmpty()) {
-            updateNetwork();
-            dirtyPositions.clear();
-        }
-    }
-
-    /**
-     * Updates the network, using the positions that have been reported dirty.
-     * 1. positions already in the network marked dirty get re-acquired.
-     * 2. Neighbors of the positions marked dirty get re-acquired, and possibly cause a recursive look-up. For example, a rail section that wasn't part of the network before now may, because of a gap being filled in with a new rail
-     */
-    private void updateNetwork(){
-        Map<MCPos, NetworkObject<MCPos>> allObjects = new HashMap<>(network.railObjects.getAllNetworkObjects());
-
-        //Remove all existing objects that were marked dirty.
-        for(MCPos dirtyPos : dirtyPositions) {
-            allObjects.remove(dirtyPos);
-        }
-
-        //Re-acquire positions that were marked dirty, and possibly recursively look up other parts.
-        NetworkObjectProvider objProvider = new NetworkObjectProvider();
-        Stack<MCPos> toEvaluate = new Stack<>();
-        dirtyPositions.forEach(pos -> toEvaluate.push(pos));
-        while(!toEvaluate.isEmpty()) {
-            MCPos curPos = toEvaluate.pop();
-
-            if(!allObjects.containsKey(curPos)) {
-                NetworkObject<MCPos> networkObject = objProvider.provide(curPos);
-                if(networkObject != null) {
-                    allObjects.put(curPos, networkObject);
-
-                    if(networkObject instanceof NetworkRail) {
-                        for(MCPos neighborPos : ((NetworkRail<MCPos>)networkObject).getPotentialNeighborRailLocations()) {
-                            toEvaluate.push(neighborPos);
-                        }
-                    }
-                }
-            }
-        }
-
-        network = new MCRailNetwork(allObjects);
+        network = networkUpdater.updateNetwork(network);
     }
 
     public void onPostServerTick(){

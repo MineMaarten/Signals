@@ -14,6 +14,7 @@ import net.minecraft.world.World;
 import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.lib.HeadingUtils;
 import com.minemaarten.signals.rail.RailManager;
+import com.minemaarten.signals.rail.network.INetworkObjectProvider;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRailLink;
 import com.minemaarten.signals.rail.network.NetworkSignal;
@@ -21,8 +22,9 @@ import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.tileentity.TileEntityRailLink;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
-public class NetworkObjectProvider{
+public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
 
+    @Override
     public NetworkObject<MCPos> provide(MCPos pos){
         return provide(pos.getWorld(), pos.getPos());
     }
