@@ -182,7 +182,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
             if(!railEdge.unidirectional) positionsToEdgesBackward.put(railEdge.startPos, railEdge);
             positionsToEdgesBackward.put(railEdge.endPos, railEdge);
             for(int i = startHitIntersection ? 1 : 0; i < railEdge.length - (endHitIntersection ? 1 : 0); i++) {
-                railPosToRailEdges.put(railEdge.get(i), railEdge);
+                railPosToRailEdges.put(railEdge.get(i).pos, railEdge);
             }
         }
     }

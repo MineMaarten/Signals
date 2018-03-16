@@ -12,6 +12,7 @@ public class DefaultRailNode extends NetworkRail<Pos2D>{
 
     public boolean isDestination;
     public boolean isStart;
+    private static final Object railType = new Object();
 
     public DefaultRailNode(Pos2D pos){
         super(pos);
@@ -50,6 +51,11 @@ public class DefaultRailNode extends NetworkRail<Pos2D>{
     @Override
     public List<Pos2D> getPotentialPathfindNeighbors(EnumHeading entryDir){
         return EnumHeading.valuesStream().map(pos::offset).collect(Collectors.toList());
+    }
+
+    @Override
+    public Object getRailType(){
+        return railType;
     }
 
 }

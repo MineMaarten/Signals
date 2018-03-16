@@ -162,6 +162,24 @@ public class NetworkStateTests{
     }
     
     /**
+     * Assert that Chain Signals can turn green for a given cart, as long as the cart routed (one block away from the signal) is routed through a green signal.
+     * 
+     */
+    @Test
+    public void testBasicRouteDependentChainInFrontGreen(){    
+        List<String> map = new ArrayList<>();
+        map.add("    t  ");
+        map.add("    +^ ");
+        map.add("s+++++d");
+        map.add(" 0   > ");
+        NetworkParser.createDefaultParser()
+                     .addTrainGroups("t")
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.GREEN)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
      * Assert that Chain Signals turn red for a given cart, when the cart is routed through a red signal.
      */
     @Test

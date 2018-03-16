@@ -3,6 +3,7 @@ package com.minemaarten.signals.util.parsing;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.minemaarten.signals.lib.StreamUtils;
 import com.minemaarten.signals.rail.network.NetworkObject;
@@ -41,7 +42,7 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
     public void validate(){
         if(start != null) {
             state.updateSignalStatusses(this);
-            TestTrain train = (TestTrain)state.getTrainAtPos(start);
+            TestTrain train = (TestTrain)state.getTrainAtPositions(Stream.of(start));
             if(train != null) train.setPath(this, pathfind());
         }
         state.updateSignalStatusses(this);

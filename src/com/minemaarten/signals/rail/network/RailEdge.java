@@ -161,8 +161,8 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         return EnumDirectionalityResult.ZERODIRECTIONAL;
     }
 
-    public TPos get(int index){
-        return edge.get(index).pos;
+    public NetworkRail<TPos> get(int index){
+        return edge.get(index);
     }
 
     public boolean contains(TPos pos){
@@ -257,7 +257,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         return length + pathPenalty;
     }
 
-    private int getIndex(TPos pos){
+    public int getIndex(TPos pos){
         NetworkObject<TPos> destObj = railObjects.get(pos);
         Validate.notNull(destObj);
         int destinationIndex = edge.indexOf(destObj);

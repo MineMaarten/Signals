@@ -1,5 +1,6 @@
 package com.minemaarten.signals.rail.network;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
  *
  */
 public class NetworkState<TPos extends IPosition<TPos>> {
+    private static final int MAX_RAILS_IN_FRONT_SIGNAL = 5;
     private final Set<Train<TPos>> trains;
     private Map<TPos, EnumLampStatus> signalToLampStatusses;
 
@@ -76,7 +78,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
             //When we can evaluate this chain signal
             if(!nextSignalStatusses.contains(EnumLampStatus.YELLOW_BLINKING)) {
                 if(nextSignalStatusses.size() > 1) {//Multiple different statusses -> dependent on the routing
-                    Train<TPos> routedTrain = getTrainAtPos(chainSignal.getRailPos());
+                    Train<TPos> routedTrain = getTrainAtSignal(network, chainSignal);
                     if(routedTrain != null && routedTrain.getCurRoute() != null) {
                         return evaluateCurRoutedTrain(network, routedTrain, chainSignal, new HashSet<>());
                     } else {
@@ -132,7 +134,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
                 return EnumLampStatus.RED;
             } else {
                 Train<TPos> trainClaimingSection = getClaimingTrain(nextSection);
-                if(trainClaimingSection != null && !trainClaimingSection.equals(getTrainAtPos(signal.getRailPos()))) {
+                if(trainClaimingSection != null && !trainClaimingSection.equals(getTrainAtSignal(network, signal))) {
                     return EnumLampStatus.YELLOW; //Claimed by another train.
                 } else {
                     return EnumLampStatus.GREEN;
@@ -143,12 +145,54 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         }
     }
 
-    public EnumLampStatus getLampStatus(TPos signalPos){
-        return signalToLampStatusses.getOrDefault(signalPos, EnumLampStatus.YELLOW_BLINKING);
+    /**
+     * Gets up to 5 rails part of the same edge in front of the given signal, in order of the closest rail to the farthest.
+     * @param network
+     * @param signal
+     * @return
+     */
+    private Stream<TPos> getPositionsInFront(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
+        RailEdge<TPos> edge = network.findEdge(signal.getRailPos());
+        TPos firstPosInFront = signal.getRailPos().offset(signal.heading.getOpposite());
+        int index = edge.getIndex(signal.getRailPos());
+        Object blockType = edge.get(index).getRailType();
+        boolean countingUp = firstPosInFront.equals(edge.get(index + 1));
+
+        List<TPos> positions = new ArrayList<>(MAX_RAILS_IN_FRONT_SIGNAL);
+        if(countingUp) {
+            int maxIndex = Math.min(index + MAX_RAILS_IN_FRONT_SIGNAL, edge.length);
+            for(int i = index; i < maxIndex; i++) {
+                NetworkRail<TPos> rail = edge.get(i);
+                if(blockType.equals(rail.getRailType())) {
+                    positions.add(rail.pos);
+                } else {
+                    break;
+                }
+            }
+        } else {
+            int minIndex = Math.max(index - MAX_RAILS_IN_FRONT_SIGNAL + 1, 0);
+            for(int i = index; i >= minIndex; i--) {
+                NetworkRail<TPos> rail = edge.get(i);
+                if(blockType.equals(rail.getRailType())) {
+                    positions.add(rail.pos);
+                } else {
+                    break;
+                }
+            }
+        }
+        return positions.stream();
     }
 
-    public Train<TPos> getTrainAtPos(TPos pos){
-        return trains.stream().filter(t -> t.getPositions().contains(pos)).findFirst().orElse(null);
+    public Train<TPos> getTrainAtPositions(Stream<TPos> positions){
+        return positions.flatMap(pos -> trains.stream().filter(t -> t.getPositions().contains(pos))).findFirst().orElse(null);
+    }
+
+    public Train<TPos> getTrainAtSignal(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
+        return getTrainAtPositions(getPositionsInFront(network, signal));
+    }
+
+    public EnumLampStatus getLampStatus(TPos signalPos){
+        return signalToLampStatusses.getOrDefault(signalPos, EnumLampStatus.YELLOW_BLINKING);
     }
 
     public Train<TPos> getClaimingTrain(RailSection<TPos> section){

@@ -11,6 +11,12 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
         super(pos);
     }
 
+    /**
+     * Arbitrary object to determine if rail types are equal or different. Used to take the rails in front of signals.
+     * @return
+     */
+    public abstract Object getRailType();
+
     public abstract List<TPos> getPotentialNeighborRailLocations();
 
     public abstract List<EnumHeading> getPotentialNeighborRailHeadings();
