@@ -22,7 +22,7 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
     public abstract List<EnumHeading> getPotentialNeighborRailHeadings();
 
     /**
-     * Signals, Rail Links, Station markers
+     * Signals, Rail Links, Station markers. This should always be equal to, or a subset of getPotentialNeighborRailLocations
      * @return
      */
     public abstract List<TPos> getPotentialNeighborObjectLocations();

@@ -9,6 +9,7 @@ import net.minecraftforge.common.DimensionManager;
 import com.minemaarten.signals.block.BlockRailLink;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
+import com.minemaarten.signals.rail.network.mc.MCPos;
 
 public class TileEntityRailLink extends TileEntityBase implements ITickable{
     private BlockPos linkedPos;
@@ -29,6 +30,10 @@ public class TileEntityRailLink extends TileEntityBase implements ITickable{
             }
         }
         return linkedRail;
+    }
+
+    public MCPos getLinkedPosition(){
+        return linkedPos != null ? new MCPos(linkedDimension, linkedPos) : null;
     }
 
     public void onLinkedRailInvalidated(){
@@ -56,7 +61,7 @@ public class TileEntityRailLink extends TileEntityBase implements ITickable{
 
     private void updateLinkState(){
         world.setBlockState(getPos(), world.getBlockState(getPos()).withProperty(BlockRailLink.CONNECTED, linkedRail != null), 2);
-	    world.notifyNeighborsOfStateChange(getPos(), getBlockType(), true); //Guarantee a block update
+        world.notifyNeighborsOfStateChange(getPos(), getBlockType(), true); //Guarantee a block update
     }
 
     @Override

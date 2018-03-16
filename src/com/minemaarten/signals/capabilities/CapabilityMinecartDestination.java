@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import com.minemaarten.signals.api.access.IDestinationAccessor;
-import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.inventory.EngineItemHandler;
 import com.minemaarten.signals.lib.SignalsUtils;
@@ -48,7 +47,6 @@ import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.tileentity.IGUITextFieldSensitive;
-import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
 public class CapabilityMinecartDestination implements IGUITextFieldSensitive, IDestinationAccessor{
     @CapabilityInject(CapabilityMinecartDestination.class)
@@ -360,12 +358,12 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                     if(rail == null) {
                         shouldRun = false;
                     } else {
-                        TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(rail, cartDir.getOpposite());
-                        shouldRun = signal == null || signal.getLampStatus() != EnumLampStatus.RED;
-                        if(!shouldRun) {
-                            cart.motionX = 0;
-                            cart.motionZ = 0;
-                        }
+                        /* TODO    TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(rail, cartDir.getOpposite());
+                             shouldRun = signal == null || signal.getLampStatus() != EnumLampStatus.RED;
+                             if(!shouldRun) {
+                                 cart.motionX = 0;
+                                 cart.motionZ = 0;
+                             }*/
                     }
                 }
 

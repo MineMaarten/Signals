@@ -5,6 +5,7 @@ import static com.minemaarten.signals.lib.StreamUtils.ofType;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,6 +30,14 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
 
     public RailObjectHolder(Stream<NetworkObject<TPos>> allNetworkObjects){
         this.allNetworkObjects = ImmutableMap.copyOf(allNetworkObjects.collect(Collectors.toMap((NetworkObject<TPos> n) -> n.pos, n -> n)));
+    }
+    
+    public RailObjectHolder(Map<TPos, NetworkObject<TPos>> allNetworkObjects){
+        this.allNetworkObjects = ImmutableMap.copyOf(allNetworkObjects);
+    }
+
+    public ImmutableMap<TPos, NetworkObject<TPos>> getAllNetworkObjects(){
+        return allNetworkObjects;
     }
 
     //Filter invalid signals, signals that are placed next to intersections, or not next to rails

@@ -27,6 +27,8 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
 
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
@@ -36,6 +38,8 @@ import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.proxy.CommonProxy;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailManager;
+import com.minemaarten.signals.rail.network.mc.MCPos;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class EventHandler implements IWorldEventListener{
     @SubscribeEvent
@@ -128,7 +132,24 @@ public class EventHandler implements IWorldEventListener{
 
     @SubscribeEvent
     public void onNeighborChange(NeighborNotifyEvent event){
-        if(!event.getWorld().isRemote) RailCacheManager.getInstance(event.getWorld()).onNeighborChanged(event);
+        if(!event.getWorld().isRemote) {
+            RailCacheManager.getInstance(event.getWorld()).onNeighborChanged(event);
+            RailNetworkManager.getInstance().markDirty(new MCPos(event.getWorld(), event.getPos()));
+        }
+    }
+
+    @SubscribeEvent
+    public void onPreServerTick(ServerTickEvent event){
+        if(event.phase == Phase.START) {
+            RailNetworkManager.getInstance().onPreServerTick();
+        }
+    }
+
+    @SubscribeEvent
+    public void onPostServerTick(ServerTickEvent event){
+        if(event.phase == Phase.END) {
+            RailNetworkManager.getInstance().onPostServerTick();
+        }
     }
 
     @Override

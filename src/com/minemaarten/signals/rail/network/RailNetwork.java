@@ -31,11 +31,6 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     private Set<RailEdge<TPos>> allEdges = new HashSet<>();
 
     /**
-     * Given a position of a path node, which edges move away from this node?
-     */
-    //  private Multimap<TPos, RailEdge<TPos>> positionsToEdgesForward = ArrayListMultimap.create();//TODO
-
-    /**
      * Given a position of a path node, which edges can end up in this node?
      */
     private Multimap<TPos, RailEdge<TPos>> positionsToEdgesBackward = ArrayListMultimap.create();
@@ -46,7 +41,14 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      */
     private Map<TPos, RailEdge<TPos>> railPosToRailEdges = new HashMap<>();
 
-    public RailNetwork(List<NetworkObject<TPos>> allNetworkObjects){
+    public RailNetwork(Collection<NetworkObject<TPos>> allNetworkObjects){
+        this.railObjects = new RailObjectHolder<>(allNetworkObjects).filterInvalidSignals();
+
+        buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
+        buildRailEdges();
+    }
+
+    public RailNetwork(Map<TPos, NetworkObject<TPos>> allNetworkObjects){
         this.railObjects = new RailObjectHolder<>(allNetworkObjects).filterInvalidSignals();
 
         buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.

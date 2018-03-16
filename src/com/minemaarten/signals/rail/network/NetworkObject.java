@@ -18,4 +18,15 @@ public abstract class NetworkObject<TPos> {
     public String toString(){
         return pos.toString();
     }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(Object obj){
+        return obj instanceof NetworkObject && ((NetworkObject<TPos>)obj).pos.equals(pos);
+    }
+
+    @Override
+    public int hashCode(){
+        return pos.hashCode();
+    }
 }

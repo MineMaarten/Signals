@@ -50,7 +50,7 @@ public class ClientEventHandler{
         b.setTranslation(0, 0, 0);
 
         List<TileEntity> tes = player.world.loadedTileEntityList;
-        /*if(player.isSneaking())*/blockSectionRenderer.render(b, tes);
+        /*if(player.isSneaking())*///TODO blockSectionRenderer.render(b, tes);
 
         b.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
@@ -59,9 +59,9 @@ public class ClientEventHandler{
             if(player.isSneaking() && te instanceof TileEntitySignalBase) {
                 TileEntitySignalBase teSignal = (TileEntitySignalBase)te;
 
-                for(TileEntitySignalBase signal : teSignal.getNextSignals()) {
+                /*TODO for(TileEntitySignalBase signal : teSignal.getNextSignals()) {
                     drawBetween(b, signal.getPos(), te.getPos(), 0.5, 1, 1, 1, 1);
-                }
+                }*/
             } else if(te instanceof TileEntityStationMarker) {
                 markers.add((TileEntityStationMarker)te);
             }

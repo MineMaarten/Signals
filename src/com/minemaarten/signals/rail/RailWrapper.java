@@ -114,27 +114,6 @@ public class RailWrapper extends BlockPos{
         signals = null;
     }
 
-    public Map<EnumFacing, TileEntitySignalBase> getSignals(){
-        if(signals == null) {
-            EnumRailDirection railDir = getRailDir();
-            if(isStraightTrack(railDir) && getNeighbors().size() <= 2) {
-                for(EnumFacing d : getDirections(railDir)) {
-                    d = d.rotateY(); //Check for signals perpendicular to the rail direction
-                    TileEntity te = world.getTileEntity(offset(d));
-                    if(te instanceof TileEntitySignalBase) {
-                        TileEntitySignalBase signal = (TileEntitySignalBase)te;
-                        if(signal.getNeighborPos().equals(this)) {
-                            if(signals == null) signals = new HashMap<>(1); //Be conservative with instantiating, as not many rails usually have multiple signals.
-                            signals.put(d, signal);
-                        }
-                    }
-                }
-            }
-            if(signals == null) signals = Collections.emptyMap();
-        }
-        return signals;
-    }
-
     public void updateNeighborCache(){
         allNeighbors = null;
         exitsForEntries = null;

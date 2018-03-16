@@ -23,6 +23,7 @@ import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.proxy.CommonProxy.EnumGuiId;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 import com.minemaarten.signals.tileentity.TileEntityRailLink;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
@@ -60,6 +61,9 @@ public class ItemRailConfigurator extends ItemSignals{
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand){
         if(!worldIn.isRemote && playerIn.isSneaking()) {
+            long milli = System.currentTimeMillis();
+            RailNetworkManager.getInstance().initialize();
+            playerIn.sendMessage(new TextComponentString("Time: " + (System.currentTimeMillis() - milli) + "ms"));
             RailCacheManager.getInstance(worldIn).onWorldUnload(worldIn);
             RailCacheManager cacheManager = RailCacheManager.getInstance(worldIn);
             for(TileEntity te : worldIn.loadedTileEntityList) {

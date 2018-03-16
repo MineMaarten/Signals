@@ -35,7 +35,7 @@ public class BlockSectionRenderer{
     private SignalBlockSectionColored getBlockSection(TileEntitySignalBase te){
         SignalBlockSectionColored blockSection = signalsToColors.get(te);
         if(blockSection == null) {
-            SignalBlockSectionColored newSection = new SignalBlockSectionColored(te.getSignalBlockInfo());
+            SignalBlockSectionColored newSection = null;//TODO new SignalBlockSectionColored(te.getSignalBlockInfo());
             Optional<SignalBlockSectionColored> matchingSection = signalsToColors.values().stream().filter(x -> x.equals(newSection)).findFirst();
             if(matchingSection.isPresent()) {
                 blockSection = matchingSection.get();
@@ -114,7 +114,7 @@ public class BlockSectionRenderer{
 
     private void renderSignalDirection(BufferBuilder buffer, TileEntitySignalBase signal){
         EnumFacing signalFacing = signal.getFacing().getOpposite();
-        SignalBlockNode rootNode = signal.getSignalBlockInfo();
+        SignalBlockNode rootNode = null;//TODO signal.getSignalBlockInfo();
         int heightOffset = getRailHeightOffset(rootNode.railDir, signalFacing);
 
         EnumFacing rotatedFacing = signalFacing.rotateY();

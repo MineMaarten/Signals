@@ -1,6 +1,7 @@
 package com.minemaarten.signals.rail.network;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,7 +22,7 @@ import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 public class NetworkState<TPos extends IPosition<TPos>> {
     private static final int MAX_RAILS_IN_FRONT_SIGNAL = 5;
     private final Set<Train<TPos>> trains;
-    private Map<TPos, EnumLampStatus> signalToLampStatusses;
+    private Map<TPos, EnumLampStatus> signalToLampStatusses = Collections.emptyMap();
 
     public NetworkState(Set<Train<TPos>> trains){
         this.trains = trains;

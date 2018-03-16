@@ -17,7 +17,6 @@ import org.apache.commons.lang3.Validate;
 
 import com.minemaarten.signals.api.access.IStationMarker;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
-import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketSpawnParticle;
@@ -101,12 +100,13 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
     }
 
     public void updateNeighborMinecarts(){
-        for(EntityMinecart cart : TileEntitySignalBase.getMinecarts(world, getNeighborRails())) {
-            CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-            if(cap.getCurrentDestinationRegex().matcher(getStationName()).matches()) {
-                cap.nextDestination();
-            }
-        }
+        //TODO
+        /* for(EntityMinecart cart : TileEntitySignalBase.getMinecarts(world, getNeighborRails())) {
+             CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+             if(cap.getCurrentDestinationRegex().matcher(getStationName()).matches()) {
+                 cap.nextDestination();
+             }
+         }*/
     }
 
     @Override

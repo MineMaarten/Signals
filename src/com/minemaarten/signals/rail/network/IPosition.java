@@ -5,7 +5,7 @@ public interface IPosition<TPos> extends Comparable<TPos>{
 
     /**
      * Should take 'this - from' , and use those diffs to determine a heading.
-     * This is meant to be the opposite from 'offset', it is expected that this.offset(heading) == from
+     * This is meant to be the opposite from 'offset', it is expected that this.offset(heading) == from (when not considering y)
      * If no heading suits, return null, indicating that 'from' is not a direct neighbor.
      * @param from
      * @return
