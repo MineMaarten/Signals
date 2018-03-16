@@ -53,6 +53,53 @@ public class NetworkSectionTests{
         Assert.assertEquals(0, network.railObjects.getSignals().count());
     }
     
-    //Test rail link
+    /**
+     * Assert that rail sections linked with a Rail Link are a single section
+     */
+    @Test
+    public void testRailLinkSectionGrouping1(){    
+        List<String> map = new ArrayList<>();
+        map.add("0    0     ");
+        map.add("0f   0t    ");
+        map.add("0    0     ");
+        NetworkParser.createDefaultParser()
+                     .addSectionGroups("0")
+                     .addRailLink('f', 't')
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that rail sections linked with a Rail Link are a single section
+     */
+    @Test
+    public void testRailLinkSectionGrouping2(){    
+        List<String> map = new ArrayList<>();
+        map.add("0    0     ");
+        map.add("0t   0f    ");
+        map.add("0    0     ");
+        NetworkParser.createDefaultParser()
+                     .addSectionGroups("0")
+                     .addRailLink('f', 't')
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that 3 rail sections linked with two Rail Links are a single section
+     */
+    @Test
+    public void testRailLinkSectionTwoLinks(){    
+        List<String> map = new ArrayList<>();
+        map.add("0    0   0 ");
+        map.add("0f   0t  0v");
+        map.add("0    0u  0 ");
+        NetworkParser.createDefaultParser()
+                     .addSectionGroups("0")
+                     .addRailLink('f', 't')
+                     .addRailLink('v', 'u')
+                     .parse(map)
+                     .validate();
+    }
 }
 //@formatter:on

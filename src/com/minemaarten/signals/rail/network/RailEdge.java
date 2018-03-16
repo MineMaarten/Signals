@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.Validate;
@@ -63,10 +64,10 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         ZERODIRECTIONAL
     }
 
-    public RailEdge(RailObjectHolder<TPos> railObjects, ImmutableList<NetworkRail<TPos>> edge){
-        this.railObjects = railObjects.subSelection(edge);
+    public RailEdge(RailObjectHolder<TPos> allRailObjects, ImmutableList<NetworkRail<TPos>> edge){
+        this.railObjects = allRailObjects.subSelection(edge);
 
-        switch(determineDirectionality(edge)){
+        switch(determineDirectionality(allRailObjects, edge)){
             case BIDIRECTIONAL:
                 unidirectional = false;
                 break;
@@ -110,12 +111,15 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
     /**
      * Check connecting signals and determine which way trains can be routed.
+     * @param allRailObjects 
      * @param edge
      * @return
      */
-    private EnumDirectionalityResult determineDirectionality(ImmutableList<NetworkRail<TPos>> edge){
+    private EnumDirectionalityResult determineDirectionality(RailObjectHolder<TPos> allRailObjects, ImmutableList<NetworkRail<TPos>> edge){
         boolean forwardsOk = true;
         boolean backwardsOk = true;
+
+        //Check signals
         for(int i = 1; i < edge.size() - 1; i++) {
             NetworkRail<TPos> prev = edge.get(i - 1);
             NetworkRail<TPos> cur = edge.get(i);
@@ -123,7 +127,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
             EnumHeading prevDir = cur.pos.getRelativeHeading(prev.pos);
             EnumHeading nextDir = next.pos.getRelativeHeading(cur.pos);
 
-            if(prevDir == nextDir) { //Only evaluate signals on a straight
+            if(prevDir == nextDir && prevDir != null) { //Only evaluate signals on a straight
                 List<NetworkSignal<TPos>> signals = railObjects.getNeighborSignals(cur.getPotentialNeighborObjectLocations()).collect(Collectors.toList());
                 for(NetworkSignal<TPos> signal : signals) {
                     if(signal.heading == nextDir) {
@@ -131,6 +135,22 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
                     } else if(signal.heading == nextDir.getOpposite()) {
                         forwardsOk = false;
                     }
+                }
+            }
+        }
+
+        //Check rail links
+        for(int i = 1; i < edge.size(); i++) {
+            NetworkRail<TPos> prev = edge.get(i - 1);
+            NetworkRail<TPos> cur = edge.get(i);
+            EnumHeading dir = cur.pos.getRelativeHeading(prev.pos);
+            if(dir == null) { //When not a direct neighbor, we have a rail link
+
+                //When we found that there's a link from prev -> cur, forwards is ok, backwards isn't
+                if(allRailObjects.findRailsLinkingTo(cur.pos).anyMatch(r -> r.pos.equals(prev.pos))) {
+                    backwardsOk = false;
+                } else { //If not, it must be the other way around.
+                    forwardsOk = false;
                 }
             }
         }
@@ -217,12 +237,14 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         int destinationIndex = getIndex(from);
 
         TPos nextNeighbor = edge.get(destinationIndex + 1).pos;
-        if(direction == null || nextNeighbor.getRelativeHeading(from) == direction) {
+        EnumHeading nextNeighborHeading = nextNeighbor.getRelativeHeading(from);
+        if(direction == null || nextNeighborHeading == null || nextNeighborHeading == direction) {
             exitEdges.add(subEdge(destinationIndex, edge.size() - 1));
         }
 
         TPos prevNeighbor = edge.get(destinationIndex - 1).pos;
-        if(direction == null || prevNeighbor.getRelativeHeading(from) == direction) {
+        EnumHeading prevNeighborHeading = prevNeighbor.getRelativeHeading(from);
+        if(direction == null || prevNeighborHeading == null || prevNeighborHeading == direction) {
             RailEdge<TPos> subEdge = subEdge(0, destinationIndex);
             if(!subEdge.unidirectional) exitEdges.add(subEdge);//When not unidirectional we can evaluate 'f -> s'
         }
@@ -269,7 +291,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     public boolean equals(Object other){
         if(other instanceof RailEdge) {
             RailEdge<TPos> edge = (RailEdge<TPos>)other;
-            return startPos.equals(edge.startPos) && endPos.equals(edge.endPos) && startHeading.equals(edge.startHeading) && endHeading.equals(edge.endHeading) && unidirectional == edge.unidirectional;
+            return startPos.equals(edge.startPos) && endPos.equals(edge.endPos) && Objects.equals(startHeading, edge.startHeading) && Objects.equals(endHeading, edge.endHeading) && unidirectional == edge.unidirectional;
         } else {
             return false;
         }
@@ -279,8 +301,8 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     public int hashCode(){
         int hash = startPos.hashCode() * 13;
         hash = hash * 13 + endPos.hashCode();
-        hash = hash * 13 + startHeading.hashCode();
-        hash = hash * 13 + endHeading.hashCode();
+        hash = hash * 13 + (startHeading == null ? 5 : startHeading.hashCode());
+        hash = hash * 13 + (endHeading == null ? 5 : endHeading.hashCode());
         return hash;
     }
 }

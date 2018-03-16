@@ -3,14 +3,15 @@ package com.minemaarten.signals.rail.network;
 import static com.minemaarten.signals.lib.StreamUtils.ofType;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimaps;
 
 /**
  * Helper class to allow querying network objects. Designed to be immutable.
@@ -20,28 +21,37 @@ import com.google.common.collect.ImmutableMap;
  */
 public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<NetworkObject<TPos>>{
     private final ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects;
+    private ImmutableListMultimap<TPos, NetworkRailLink<TPos>> destinationsToRailLinks;
 
     public RailObjectHolder(Collection<NetworkObject<TPos>> allNetworkObjects){
-        HashMap<TPos, NetworkObject<TPos>> mutableNetworkMap = new HashMap<>(allNetworkObjects.stream().collect(Collectors.toMap((NetworkObject<TPos> n) -> n.pos, n -> n)));
+        this(allNetworkObjects.stream());
+    }
 
-        //Filter invalid signals, signals that are placed next to intersections, or not next to rails
-        for(NetworkObject<TPos> obj : allNetworkObjects) {
-            if(obj instanceof NetworkSignal) {
-                NetworkSignal<TPos> signal = (NetworkSignal<TPos>)obj;
-                NetworkObject<TPos> railObj = mutableNetworkMap.get(signal.getRailPos());
-                if(railObj instanceof NetworkRail) {
-                    NetworkRail<TPos> rail = (NetworkRail<TPos>)railObj;
-                    long neighborCount = ofType(NetworkRail.class, rail.getPotentialNeighborRailLocations().stream().map(mutableNetworkMap::get)).count();
-                    if(neighborCount > 2) {
-                        mutableNetworkMap.remove(signal.pos); //Invalid: Attached to an intersection.
-                    }
-                } else {
-                    mutableNetworkMap.remove(signal.pos); //Invalid: Not attached to a rail.
+    public RailObjectHolder(Stream<NetworkObject<TPos>> allNetworkObjects){
+        this.allNetworkObjects = ImmutableMap.copyOf(allNetworkObjects.collect(Collectors.toMap((NetworkObject<TPos> n) -> n.pos, n -> n)));
+    }
+
+    //Filter invalid signals, signals that are placed next to intersections, or not next to rails
+    public RailObjectHolder<TPos> filterInvalidSignals(){
+        Set<TPos> toRemove = new HashSet<>();
+        getSignals().forEach(signal -> {
+            NetworkObject<TPos> railObj = get(signal.getRailPos());
+            if(railObj instanceof NetworkRail) {
+                NetworkRail<TPos> rail = (NetworkRail<TPos>)railObj;
+                long neighborCount = rail.getNeighborRails(this).count();
+                if(neighborCount > 2) {
+                    toRemove.add(signal.pos); //Invalid: Attached to an intersection.
                 }
+            } else {
+                toRemove.add(signal.pos); //Invalid: Not attached to a rail.
             }
-        }
+        });
 
-        this.allNetworkObjects = ImmutableMap.copyOf(mutableNetworkMap);
+        if(toRemove.isEmpty()) {
+            return this;//Short cut
+        } else {
+            return new RailObjectHolder<>(allNetworkObjects.values().stream().filter(o -> !toRemove.contains(o.pos)));
+        }
     }
 
     public RailObjectHolder<TPos> subSelection(Collection<NetworkRail<TPos>> rails){
@@ -58,6 +68,17 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
 
     public NetworkObject<TPos> get(TPos pos){
         return allNetworkObjects.get(pos);
+    }
+
+    private Collection<NetworkRailLink<TPos>> findRailLinksConnectingTo(TPos pos){
+        if(destinationsToRailLinks == null) {
+            destinationsToRailLinks = Multimaps.index(getRailLinks().iterator(), NetworkRailLink::getDestinationPos);
+        }
+        return destinationsToRailLinks.get(pos);
+    }
+
+    public Stream<NetworkRail<TPos>> findRailsLinkingTo(TPos pos){
+        return findRailLinksConnectingTo(pos).stream().flatMap(l -> l.getNeighborRails(this)).distinct();
     }
 
     public <T extends NetworkObject<TPos>> Stream<T> networkObjectsOfType(Class<T> clazz){
@@ -78,6 +99,14 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
 
     public Stream<NetworkSignal<TPos>> getNeighborSignals(Collection<TPos> potentialNeighbors){
         return ofType(NetworkSignal.class, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
+    }
+
+    public Stream<NetworkRailLink<TPos>> getRailLinks(){
+        return ofType(NetworkRailLink.class, allNetworkObjects.values().stream());
+    }
+
+    public Stream<NetworkRailLink<TPos>> getNeighborRailLinks(Collection<TPos> potentialNeighbors){
+        return ofType(NetworkRailLink.class, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
     }
 
     @Override

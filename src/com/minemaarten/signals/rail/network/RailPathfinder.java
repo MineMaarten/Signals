@@ -183,8 +183,8 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             routeRails.addAll(node.edge.traverseWithFirst(node.pos));
             routeEdges.add(node.edge);
 
-            EnumHeading dirIn = prevNode.edge.headingForEndpoint(node.pos).getOpposite();
-            EnumHeading dirOut = node.edge.headingForEndpoint(node.pos).getOpposite();
+            EnumHeading dirIn = EnumHeading.getOpposite(prevNode.edge.headingForEndpoint(node.pos));
+            EnumHeading dirOut = EnumHeading.getOpposite(node.edge.headingForEndpoint(node.pos));
             routeNodes.add(new RailRouteNode<TPos>(node.pos, dirIn, dirOut));
 
             prevNode = node;

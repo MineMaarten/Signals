@@ -59,6 +59,31 @@ public class PathfindingTests{
                      .parse(map)
                      .validate();
     }
+    
+    @Test
+    public void testShortEdgedPath(){
+        List<String> map = new ArrayList<>();
+        map.add("s+01+d");
+        map.add("  ++  ");
+        NetworkParser.createDefaultParser()
+                     .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.EAST)
+                     .addExpectedIntersection(1, EnumHeading.WEST, EnumHeading.EAST)
+                     .parse(map)
+                     .validate();
+    }
+    
+    @Test
+    public void testShortEdgedPath2(){
+        List<String> map = new ArrayList<>();
+        map.add("s+01+d");
+        map.add("  ++  ");
+        map.add("  ++  ");
+        NetworkParser.createDefaultParser()
+                     .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.EAST)
+                     .addExpectedIntersection(1, EnumHeading.WEST, EnumHeading.EAST)
+                     .parse(map)
+                     .validate();
+    }
 
     @Test
     public void testComplicatedIntersectionPath(){
@@ -129,6 +154,64 @@ public class PathfindingTests{
                      .addExpectedIntersection(2, EnumHeading.EAST, EnumHeading.WEST)
                      .parse(map)
                      .validate();
+    }
+    
+    /**
+     * Assert that a path can be created when two networks are bridged via a Rail Link.
+     */
+    @Test
+    public void testBasicRailLinkPath(){
+        List<String> map = new ArrayList<>();
+        map.add("s+0++");
+        map.add("  + f");
+        map.add("     ");
+        map.add("  +  ");
+        map.add("t+1+d");
+        NetworkParser.createDefaultParser()
+                     .addRailLink('f', 't')
+                     .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.EAST)
+                     .addExpectedIntersection(1, EnumHeading.WEST, EnumHeading.EAST)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * Assert that a path can be created when two networks are bridged via a Rail Link.
+     */
+    @Test
+    public void testBasicRailLinkPathIntersection(){
+        List<String> map = new ArrayList<>();
+        map.add(" s+0+1+");
+        map.add("   + f ");
+        map.add("       ");
+        map.add("   +   ");
+        map.add("+t+3+d ");
+        NetworkParser.createDefaultParser()
+                     .addRailLink('f', 't')
+                     .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.EAST)
+                     .addExpectedIntersection(1, EnumHeading.WEST, null)
+                     .addExpectedIntersection(3, EnumHeading.WEST, EnumHeading.EAST)
+                     .parse(map)
+                     .validate();
+    }
+    
+    /**
+     * A Rail Link is unidirectional, when reversed it should not result in a path.
+     */
+    @Test
+    public void testBasicRailLinkReverseNoPath(){
+        List<String> map = new ArrayList<>();
+        map.add("s+0+t");
+        map.add("  +  ");
+        map.add("     ");
+        map.add("f +  ");
+        map.add("++1+d");
+        TestRailNetwork network = NetworkParser.createDefaultParser()
+                                               .addRailLink('f', 't')
+                                               .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.EAST)
+                                               .addExpectedIntersection(1, EnumHeading.WEST, EnumHeading.EAST)
+                                               .parse(map);
+        Assert.assertNull(network.pathfind());
     }
 }
 //@formatter:on

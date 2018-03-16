@@ -41,12 +41,16 @@ public class Pos2D implements IPosition<Pos2D>{
     @Override
     public EnumHeading getRelativeHeading(Pos2D from){
         int xDiff = x - from.x;
-        if(xDiff > 0) return EnumHeading.EAST;
-        if(xDiff < 0) return EnumHeading.WEST;
         int yDiff = y - from.y;
-        if(yDiff > 0) return EnumHeading.SOUTH;
-        if(yDiff < 0) return EnumHeading.NORTH;
-        throw new IllegalStateException("No heading for pos " + this + " and from " + from);
+        if(yDiff == 0) {
+            if(xDiff == 1) return EnumHeading.EAST;
+            if(xDiff == -1) return EnumHeading.WEST;
+        }
+        if(xDiff == 0) {
+            if(yDiff == 1) return EnumHeading.SOUTH;
+            if(yDiff == -1) return EnumHeading.NORTH;
+        }
+        return null;//throw new IllegalStateException("No heading for pos " + this + " and from " + from);
     }
 
     @Override

@@ -19,10 +19,13 @@ import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.railnode.DefaultRailNode;
+import com.minemaarten.signals.util.railnode.IPreNetworkParseListener;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedEdge;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedIntersection;
 import com.minemaarten.signals.util.railnode.RailNodeExpectedSection;
+import com.minemaarten.signals.util.railnode.RailNodeRailLinkDestination;
 import com.minemaarten.signals.util.railnode.RailNodeTrainProvider;
+import com.minemaarten.signals.util.railnode.TestRailLink;
 import com.minemaarten.signals.util.railnode.ValidatingRailNode;
 import com.minemaarten.signals.util.railnode.ValidatingSignal;
 
@@ -79,6 +82,12 @@ public class NetworkParser{
         return this;
     }
 
+    public NetworkParser addRailLink(char link, char destinationRail){
+        objCreators.put(link, pos -> new TestRailLink(pos, destinationRail));
+        objCreators.put(destinationRail, pos -> new RailNodeRailLinkDestination(pos, destinationRail));
+        return this;
+    }
+
     public NetworkParser addObjCreator(char c, Function<Pos2D, NetworkObject<Pos2D>> creator){
         objCreators.put(c, creator);
         return this;
@@ -118,6 +127,8 @@ public class NetworkParser{
                 }
             }
         }
+
+        networkObjects.stream().filter(o -> o instanceof IPreNetworkParseListener).forEach(o -> ((IPreNetworkParseListener)o).onPreNetworkParsing(networkObjects));
 
         return new TestRailNetwork(networkObjects);
     }

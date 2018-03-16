@@ -1,5 +1,8 @@
 package com.minemaarten.signals.rail.network;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 public enum EnumHeading{
     NORTH, EAST, SOUTH, WEST;
 
@@ -13,6 +16,14 @@ public enum EnumHeading{
 
     public EnumHeading rotateCCW(){
         return EnumHeading.values()[(ordinal() + 3) % 4];
+    }
+
+    public static Stream<EnumHeading> valuesStream(){
+        return Arrays.stream(EnumHeading.values());
+    }
+
+    public static EnumHeading getOpposite(EnumHeading heading){
+        return heading == null ? null : heading.getOpposite();
     }
 
     @Override

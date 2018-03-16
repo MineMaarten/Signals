@@ -16,9 +16,7 @@ import com.minemaarten.signals.util.parsing.NetworkParser;
  */
 public class NetworkEdgeTests{
     
-    //TODO Test rail link
     //TODO Test rail junction handling
-    //TODO Test chain signals
     
     /**
      * Test whether the middle parts of edges are properly grouped
@@ -85,5 +83,22 @@ public class NetworkEdgeTests{
                      .validate();
     }
   
+    /**
+     * Assert that a path can be created when two networks are bridged via a Rail Link.
+     */
+    @Test
+    public void testBasicRailLinkEdges(){
+        List<String> map = new ArrayList<>();
+        map.add("00+22");
+        map.add("  1 f");
+        map.add("     ");
+        map.add("  3  ");
+        map.add("t2+44");
+        NetworkParser.createDefaultParser()
+                    .addRailLink('f', 't')
+                    .addEdgeGroups("0123456789ab")
+                    .parse(map)
+                    .validate();
+    }
 }
 //@formatter:on
