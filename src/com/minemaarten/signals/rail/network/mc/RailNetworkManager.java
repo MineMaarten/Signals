@@ -1,6 +1,7 @@
 package com.minemaarten.signals.rail.network.mc;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -9,15 +10,22 @@ import java.util.Set;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 
+import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
+import com.minemaarten.signals.network.NetworkHandler;
+import com.minemaarten.signals.network.PacketClearNetwork;
+import com.minemaarten.signals.network.PacketSpawnParticle;
+import com.minemaarten.signals.network.PacketUpdateNetwork;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.NetworkState;
@@ -93,6 +101,9 @@ public class RailNetworkManager{
                 }
             }
         }
+
+        NetworkHandler.sendToAll(new PacketClearNetwork());
+        NetworkHandler.sendToAll(new PacketUpdateNetwork(allNetworkObjects));
         network = new RailNetwork<MCPos>(allNetworkObjects);
     }
 
@@ -111,9 +122,10 @@ public class RailNetworkManager{
         state.updateSignalStatusses(network);
     }
 
-    /* public RailNetwork<MCPos> getNetwork(){
-         return network;
-     }*/
+    public RailNetwork<MCPos> getNetwork(){
+        return network;
+    }
+
     public EnumLampStatus getLampStatus(World world, BlockPos pos){
         return state.getLampStatus(new MCPos(world, pos));
     }
@@ -123,13 +135,37 @@ public class RailNetworkManager{
         networkUpdater.markDirty(pos);
     }
 
-    //TODO threading?
     public void onPreServerTick(){
-        network = networkUpdater.updateNetwork(network);
+        Collection<NetworkObject<MCPos>> updates = networkUpdater.getNetworkUpdates(network);
+        if(!updates.isEmpty()) {
+            for(NetworkObject<MCPos> obj : updates) {
+                //TODO remove
+                NetworkHandler.sendToAll(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, obj.pos.getX() + 0.5, obj.pos.getY() + 0.5, obj.pos.getZ() + 0.5, 0, 0, 0));
+            }
+
+            NetworkHandler.sendToAll(new PacketUpdateNetwork(updates)); //TODO check if stuff actually changed
+            applyUpdates(updates);
+        }
+    }
+
+    //TODO threading?
+    public void applyUpdates(Collection<NetworkObject<MCPos>> changedObjects){
+        network = networkUpdater.applyUpdates(network, changedObjects);
+        Signals.proxy.onRailNetworkUpdated();
+    }
+
+    public void clearNetwork(){
+        network = new RailNetwork<>(Collections.emptyList());
+        Signals.proxy.onRailNetworkUpdated();
     }
 
     public void onPostServerTick(){
         validateOnServer();
         updateState();
+    }
+
+    public void onPlayerJoin(EntityPlayerMP player){
+        NetworkHandler.sendTo(new PacketClearNetwork(), player);
+        NetworkHandler.sendTo(new PacketUpdateNetwork(network.railObjects.getAllNetworkObjects().values()), player);
     }
 }

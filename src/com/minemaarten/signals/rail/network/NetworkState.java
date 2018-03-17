@@ -74,6 +74,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
             return blockSignalStatus;
         } else {
             RailSection<TPos> nextRailSection = chainSignal.getNextRailSection(network);
+            if(nextRailSection == null) return EnumLampStatus.GREEN; //No next section is OK
             Set<EnumLampStatus> nextSignalStatusses = nextRailSection.getSignals().map(s -> getLampStatus(s.pos)).collect(Collectors.toSet());
 
             //When we can evaluate this chain signal
@@ -100,6 +101,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         RailRoute<TPos> route = train.getCurRoute();
 
         RailSection<TPos> nextRailSection = curSignal.getNextRailSection(network);
+        if(nextRailSection == null) return EnumLampStatus.GREEN; //No next section is OK
         Train<TPos> trainClaimingSection = getClaimingTrain(nextRailSection);
         if(trainClaimingSection != null && !trainClaimingSection.equals(train)) {
             return EnumLampStatus.YELLOW; //Claimed by another train.

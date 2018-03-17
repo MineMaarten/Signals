@@ -5,6 +5,7 @@ import static com.minemaarten.signals.lib.StreamUtils.ofType;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,7 +32,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
     public RailObjectHolder(Stream<NetworkObject<TPos>> allNetworkObjects){
         this.allNetworkObjects = ImmutableMap.copyOf(allNetworkObjects.collect(Collectors.toMap((NetworkObject<TPos> n) -> n.pos, n -> n)));
     }
-    
+
     public RailObjectHolder(Map<TPos, NetworkObject<TPos>> allNetworkObjects){
         this.allNetworkObjects = ImmutableMap.copyOf(allNetworkObjects);
     }
@@ -47,9 +48,14 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
             NetworkObject<TPos> railObj = get(signal.getRailPos());
             if(railObj instanceof NetworkRail) {
                 NetworkRail<TPos> rail = (NetworkRail<TPos>)railObj;
-                long neighborCount = rail.getSectionNeighborRails(this).count();
-                if(neighborCount > 2) {
+                List<NetworkRail<TPos>> neighbors = rail.getSectionNeighborRails(this).collect(Collectors.toList());
+                if(neighbors.size() > 2) {
                     toRemove.add(signal.pos); //Invalid: Attached to an intersection.
+                } else {
+                    EnumHeading signalHeading = signal.heading;
+                    if(neighbors.stream().map(n -> n.pos.getRelativeHeading(rail.pos)).anyMatch(h -> h != signalHeading && h != signalHeading.getOpposite())) {
+                        toRemove.add(signal.pos);//Invalid: Not on a straight.
+                    }
                 }
             } else {
                 toRemove.add(signal.pos); //Invalid: Not attached to a rail.
@@ -67,8 +73,10 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         Set<NetworkObject<TPos>> selection = new HashSet<NetworkObject<TPos>>(rails);
         for(NetworkRail<TPos> rail : rails) {
             rail.getPotentialNeighborObjectLocations().stream().map(n -> get(n)).filter(n -> n != null).forEach(n -> {
-                if(!(n instanceof NetworkSignal) || ((NetworkSignal<?>)n).getRailPos().equals(rail.pos)) { //Only signals that are connected to this rail
-                    selection.add(n);
+                if(!(n instanceof NetworkRail)) {
+                    if(!(n instanceof NetworkSignal) || ((NetworkSignal<?>)n).getRailPos().equals(rail.pos)) { //Only signals that are connected to this rail
+                        selection.add(n);
+                    }
                 }
             });
         }

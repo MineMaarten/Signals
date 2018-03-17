@@ -28,6 +28,7 @@ import com.minemaarten.signals.util.railnode.RailNodeExpectedSection;
 import com.minemaarten.signals.util.railnode.RailNodeRailLinkDestination;
 import com.minemaarten.signals.util.railnode.RailNodeTrainProvider;
 import com.minemaarten.signals.util.railnode.TestRailLink;
+import com.minemaarten.signals.util.railnode.TestRemovalNode;
 import com.minemaarten.signals.util.railnode.ValidatingRailNode;
 import com.minemaarten.signals.util.railnode.ValidatingSignal;
 
@@ -162,5 +163,10 @@ public class NetworkParser implements INetworkObjectProvider<Pos2D>{
         } else {
             return null;
         }
+    }
+
+    @Override
+    public NetworkObject<Pos2D> provideRemovalMarker(Pos2D pos){
+        return new TestRemovalNode(pos);
     }
 }

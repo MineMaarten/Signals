@@ -6,6 +6,7 @@ import com.minemaarten.signals.rail.network.EnumHeading;
 
 public class HeadingUtils{
     public static EnumFacing toFacing(EnumHeading heading){
+        if(heading == null) return null;
         switch(heading){
             case NORTH:
                 return EnumFacing.NORTH;
@@ -21,6 +22,7 @@ public class HeadingUtils{
     }
 
     public static EnumHeading fromFacing(EnumFacing facing){
+        if(facing == null) return null;
         switch(facing){
             case NORTH:
                 return EnumHeading.NORTH;

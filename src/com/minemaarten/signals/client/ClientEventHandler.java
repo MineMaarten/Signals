@@ -3,6 +3,7 @@ package com.minemaarten.signals.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.block.BlockRailBase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -27,7 +28,7 @@ import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class ClientEventHandler{
 
-    private final BlockSectionRenderer blockSectionRenderer = new BlockSectionRenderer();
+    public final BlockSectionRenderer blockSectionRenderer = new BlockSectionRenderer();
 
     @SubscribeEvent
     public void onWorldRender(RenderWorldLastEvent event){
@@ -50,7 +51,7 @@ public class ClientEventHandler{
         b.setTranslation(0, 0, 0);
 
         List<TileEntity> tes = player.world.loadedTileEntityList;
-        /*if(player.isSneaking())*///TODO blockSectionRenderer.render(b, tes);
+        /*if(player.isSneaking())*/blockSectionRenderer.render(b);
 
         b.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
@@ -90,7 +91,7 @@ public class ClientEventHandler{
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayer player = mc.player;
         Item item = player.inventory.getCurrentItem().getItem();
-        if(item == ModItems.RAIL_CONFIGURATOR || (item instanceof ItemBlock) && ((ItemBlock)item).getBlock() instanceof BlockSignalBase) {
+        if(item == ModItems.RAIL_CONFIGURATOR || (item instanceof ItemBlock) && (((ItemBlock)item).getBlock() instanceof BlockSignalBase || ((ItemBlock)item).getBlock() instanceof BlockRailBase)) {//TODO remove
             return true;
         }
 

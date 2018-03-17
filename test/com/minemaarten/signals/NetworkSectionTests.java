@@ -36,6 +36,17 @@ public class NetworkSectionTests{
                      .validate();
     }
     
+    @Test
+    public void testBasicSectionGrouping2(){    
+        List<String> map = new ArrayList<>();
+        map.add("112  ");
+        map.add(" >222");
+        NetworkParser.createDefaultParser()
+                     .addSectionGroups("12")
+                     .parse(map)
+                     .validate();
+    }
+    
     /**
      * Assert that rail crossings don't influence how sections are grouped.
      */
@@ -56,18 +67,18 @@ public class NetworkSectionTests{
     }
     
     /**
-     * Assert that signals placed next to intersections, or not next to rails, get removed from the network.
+     * Assert that signals placed next to intersections, not next to rails, or placed on a corner, get removed from the network.
      */
     @Test
     public void testInvalidSignalErasure(){    
         List<String> map = new ArrayList<>();
         map.add("  <        ");
         map.add("+++++ + >  ");
-        map.add("  +   + +  ");
+        map.add(" <+   + +  ");
         map.add(" +++++++++ ");
         map.add(" +> < + >  ");
         map.add(" + +  +    ");
-        map.add(" ++++++    ");
+        map.add(" ++++++^   ");
         TestRailNetwork network = NetworkParser.createDefaultParser().parse(map);
         Assert.assertEquals(0, network.railObjects.getSignals().count());
     }

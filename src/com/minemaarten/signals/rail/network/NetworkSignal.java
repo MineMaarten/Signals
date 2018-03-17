@@ -9,7 +9,9 @@ package com.minemaarten.signals.rail.network;
 public class NetworkSignal<TPos extends IPosition<TPos>> extends NetworkObject<TPos>{
 
     public static enum EnumSignalType{
-        BLOCK, CHAIN
+        BLOCK, CHAIN;
+
+        public static EnumSignalType[] VALUES = values();
     }
 
     public final EnumHeading heading;

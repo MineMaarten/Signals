@@ -128,7 +128,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
             EnumHeading nextDir = next.pos.getRelativeHeading(cur.pos);
 
             if(prevDir == nextDir && prevDir != null) { //Only evaluate signals on a straight
-                List<NetworkSignal<TPos>> signals = railObjects.getNeighborSignals(cur.getPotentialNeighborObjectLocations()).collect(Collectors.toList());
+                List<NetworkSignal<TPos>> signals = railObjects.getNeighborSignals(cur.getPotentialNeighborObjectLocations()).filter(s -> s.getRailPos().equals(cur.pos)).collect(Collectors.toList());
                 for(NetworkSignal<TPos> signal : signals) {
                     if(signal.heading == nextDir) {
                         backwardsOk = false;

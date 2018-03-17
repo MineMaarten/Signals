@@ -16,8 +16,6 @@ import com.minemaarten.signals.lib.HeadingUtils;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.network.INetworkObjectProvider;
 import com.minemaarten.signals.rail.network.NetworkObject;
-import com.minemaarten.signals.rail.network.NetworkRailLink;
-import com.minemaarten.signals.rail.network.NetworkSignal;
 import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.tileentity.TileEntityRailLink;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
@@ -34,19 +32,19 @@ public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
         IBlockState state = world.getBlockState(pos);
         IRail rail = RailManager.getInstance().getRail(world, pos, state);
         if(rail != null) {
-            return new MCNetworkRail(mcPos, state.getBlock());
+            return new MCNetworkRail(mcPos, state.getBlock(), rail.getDirection(world, pos, state), rail.getValidDirections(world, pos, state));
         }
 
         TileEntity te = world.getTileEntity(pos);
         if(te instanceof TileEntityRailLink) {
             TileEntityRailLink railLink = (TileEntityRailLink)te;
             MCPos linkedPos = railLink.getLinkedPosition();
-            if(linkedPos != null) return new NetworkRailLink<MCPos>(mcPos, linkedPos);
+            if(linkedPos != null) return new MCNetworkRailLink(mcPos, linkedPos);
         }
 
         if(te instanceof TileEntitySignalBase) {
             TileEntitySignalBase signal = (TileEntitySignalBase)te;
-            return new NetworkSignal<MCPos>(mcPos, HeadingUtils.fromFacing(signal.getFacing()), signal.getSignalType());
+            return new MCNetworkSignal(mcPos, HeadingUtils.fromFacing(signal.getFacing()), signal.getSignalType());
         }
 
         return null;
@@ -64,5 +62,10 @@ public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
         }
 
         return cartGroups.stream().map(MCTrain::new).collect(Collectors.toSet());
+    }
+
+    @Override
+    public NetworkObject<MCPos> provideRemovalMarker(MCPos pos){
+        return new NetworkRemovalMarker(pos);
     }
 }

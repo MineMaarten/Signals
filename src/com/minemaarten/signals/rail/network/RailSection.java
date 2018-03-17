@@ -11,7 +11,7 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * A rail section is a collection of rails that are separated by signals.
- * It is that collection that may only contain one train at a time.
+ * It is that collection of rails that may only contain one train at a time.
  * @author Maarten
  *
  * @param <TPos>
@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableMap;
 public class RailSection<TPos extends IPosition<TPos>> implements Iterable<NetworkRail<TPos>>{
 
     private final ImmutableMap<TPos, NetworkRail<TPos>> rails;
-    private final RailObjectHolder<TPos> railObjects;
+    public final RailObjectHolder<TPos> railObjects;
 
     public RailSection(RailObjectHolder<TPos> railObjects, Collection<NetworkRail<TPos>> rails){
         this.rails = ImmutableMap.<TPos, NetworkRail<TPos>> copyOf(rails.stream().collect(Collectors.toMap(n -> n.pos, n -> n)));
@@ -55,6 +55,10 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
      */
     public boolean containsRail(TPos pos){
         return rails.containsKey(pos);
+    }
+
+    public boolean isAdjacent(RailSection<TPos> section){
+        return rails.keySet().stream().flatMap(TPos::allHorizontalNeighbors).anyMatch(section::containsRail);
     }
 
     @Override

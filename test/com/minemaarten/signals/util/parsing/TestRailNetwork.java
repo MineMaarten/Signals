@@ -76,7 +76,7 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
 
     public void updateAndCompare(List<String> newMap, List<String> expectedDiffs){
         TestRailNetwork expected = parser.parse(newMap);
-        RailNetwork<Pos2D> actual = networkUpdater.updateNetwork(this);
+        RailNetwork<Pos2D> actual = networkUpdater.applyUpdates(this, networkUpdater.getNetworkUpdates(this));
 
         Collection<NetworkObject<Pos2D>> expectedObjects = expected.railObjects.getAllNetworkObjects().values();
         Collection<NetworkObject<Pos2D>> actualObjects = actual.railObjects.getAllNetworkObjects().values();

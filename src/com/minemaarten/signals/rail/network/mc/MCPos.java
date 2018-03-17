@@ -1,5 +1,10 @@
 package com.minemaarten.signals.rail.network.mc;
 
+import io.netty.buffer.ByteBuf;
+
+import java.util.stream.Stream;
+
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -23,12 +28,48 @@ public class MCPos implements IPosition<MCPos>{
         this.pos = pos;
     }
 
+    public MCPos(NBTTagCompound tag){
+        this.dimID = tag.getInteger("d");
+        this.pos = new BlockPos(tag.getInteger("x"), tag.getInteger("y"), tag.getInteger("z"));
+    }
+
+    public MCPos(ByteBuf b){
+        this.dimID = b.readInt();
+        this.pos = new BlockPos(b.readInt(), b.readInt(), b.readInt());
+    }
+
+    public void writeToNBT(NBTTagCompound tag){
+        tag.setInteger("d", dimID);
+        tag.setInteger("x", pos.getX());
+        tag.setInteger("y", pos.getY());
+        tag.setInteger("z", pos.getZ());
+    }
+
+    public void writeToBuf(ByteBuf b){
+        b.writeInt(dimID);
+        b.writeInt(pos.getX());
+        b.writeInt(pos.getY());
+        b.writeInt(pos.getZ());
+    }
+
     public World getWorld(){
         return DimensionManager.getWorld(dimID);
     }
 
     public BlockPos getPos(){
         return pos;
+    }
+
+    public int getX(){
+        return pos.getX();
+    }
+
+    public int getY(){
+        return pos.getY();
+    }
+
+    public int getZ(){
+        return pos.getZ();
     }
 
     @Override
@@ -73,6 +114,11 @@ public class MCPos implements IPosition<MCPos>{
 
     public MCPos offset(EnumFacing facing){
         return new MCPos(dimID, pos.offset(facing));
+    }
+
+    @Override
+    public Stream<MCPos> allHorizontalNeighbors(){
+        return EnumHeading.valuesStream().map(this::offset);
     }
 
     @Override

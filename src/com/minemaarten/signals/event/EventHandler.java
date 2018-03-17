@@ -19,6 +19,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.EntityTravelToDimensionEvent;
 import net.minecraftforge.event.entity.minecart.MinecartInteractEvent;
 import net.minecraftforge.event.entity.minecart.MinecartUpdateEvent;
@@ -112,6 +113,13 @@ public class EventHandler implements IWorldEventListener{
         CapabilityMinecartDestination cap = event.getEntity().getCapability(CapabilityMinecartDestination.INSTANCE, null);
         if(cap != null) {
             cap.travelingBetweenDimensions = !event.isCanceled();
+        }
+    }
+
+    @SubscribeEvent
+    public void onJoinWorld(EntityJoinWorldEvent event){
+        if(!event.getWorld().isRemote && event.getEntity() instanceof EntityPlayer) {
+            RailNetworkManager.getInstance().onPlayerJoin((EntityPlayerMP)event.getEntity());
         }
     }
 

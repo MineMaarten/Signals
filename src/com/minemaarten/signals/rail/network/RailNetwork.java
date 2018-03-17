@@ -29,6 +29,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     public final RailObjectHolder<TPos> railObjects;
     private Map<TPos, RailSection<TPos>> railPosToRailSections = new HashMap<>();
     private Set<RailEdge<TPos>> allEdges = new HashSet<>();
+    private Set<RailSection<TPos>> allSections = new HashSet<>();
 
     /**
      * Given a position of a path node, which edges can end up in this node?
@@ -93,10 +94,15 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     }
 
     private NetworkSignal<TPos> getSignalInDir(NetworkRail<TPos> rail, EnumHeading dir){
-        return railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.heading == dir).findFirst().orElse(null);
+        return railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.heading == dir && s.getRailPos().equals(rail.pos)).findFirst().orElse(null);
+    }
+
+    public Iterable<RailSection<TPos>> getAllSections(){
+        return allSections;
     }
 
     private void addSection(RailSection<TPos> section){
+        allSections.add(section);
         section.getRailPositions().forEach(pos -> {
             railPosToRailSections.put(pos, section);
         });

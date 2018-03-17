@@ -1,5 +1,7 @@
 package com.minemaarten.signals.rail.network;
 
+import java.util.stream.Stream;
+
 public interface IPosition<TPos> extends Comparable<TPos>{
     public double distanceSq(TPos other);
 
@@ -13,4 +15,6 @@ public interface IPosition<TPos> extends Comparable<TPos>{
     public EnumHeading getRelativeHeading(TPos from);
 
     public TPos offset(EnumHeading heading);
+
+    public Stream<TPos> allHorizontalNeighbors();
 }

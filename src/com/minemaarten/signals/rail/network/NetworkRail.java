@@ -1,5 +1,7 @@
 package com.minemaarten.signals.rail.network;
 
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -17,9 +19,13 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
      */
     public abstract Object getRailType();
 
+    /**
+     * All potential positions a neighboring rail could be. This does not take entry directions into account.
+     * @return
+     */
     public abstract List<TPos> getPotentialNeighborRailLocations();
 
-    public abstract List<EnumHeading> getPotentialNeighborRailHeadings();
+    public abstract EnumSet<EnumHeading> getPotentialNeighborRailHeadings();
 
     /**
      * Signals, Rail Links, Station markers. This should always be equal to, or a subset of getPotentialNeighborRailLocations
@@ -27,7 +33,7 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
      */
     public abstract List<TPos> getPotentialNeighborObjectLocations();
 
-    public abstract List<TPos> getPotentialPathfindNeighbors(EnumHeading entryDir);
+    public abstract Collection<TPos> getPotentialPathfindNeighbors(EnumHeading entryDir);
 
     //@formatter:off
     public Stream<NetworkRail<TPos>> getRailLinkConnectedRails(RailObjectHolder<TPos> railObjects){

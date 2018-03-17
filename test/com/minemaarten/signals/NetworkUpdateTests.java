@@ -34,5 +34,16 @@ public class NetworkUpdateTests{
                      .parse(Arrays.asList("++ ++"))
                      .updateAndCompare(Arrays.asList("+++++"), Arrays.asList("  m  "));
     }
+    
+    /**
+     * Test whether the network gets updated properly when a rail gets removed and the right position is invalided.
+     */
+    @Test
+    public void testBasicNetworkRemoval(){    
+        NetworkParser.createDefaultParser()
+                     .parse(Arrays.asList("+++++"))
+                     .markDirty(Arrays.asList("  x  "))
+                     .updateAndCompare(Arrays.asList("++ ++"));
+    }
 }
 //@formatter:on

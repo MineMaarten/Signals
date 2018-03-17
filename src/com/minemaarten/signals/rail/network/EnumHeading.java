@@ -6,6 +6,8 @@ import java.util.stream.Stream;
 public enum EnumHeading{
     NORTH, EAST, SOUTH, WEST;
 
+    public static EnumHeading[] VALUES = EnumHeading.values();
+
     public EnumHeading getOpposite(){
         return EnumHeading.values()[ordinal() ^ 2];
     }

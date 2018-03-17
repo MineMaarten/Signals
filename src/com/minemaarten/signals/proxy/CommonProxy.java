@@ -27,6 +27,8 @@ public class CommonProxy implements IGuiHandler{
 
     public void postInit(){}
 
+    public void onRailNetworkUpdated(){}
+
     public EntityPlayer getPlayer(){
         return null;
     }

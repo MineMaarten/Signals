@@ -261,10 +261,6 @@ public class RailWrapper extends BlockPos{
         return isStraightTrack(getRailDir());
     }
 
-    public static EnumRailDirection getRailDir(EnumSet<EnumFacing> facings){
-        return DIRS_TO_RAIL_DIR.get(facings);
-    }
-
     private static boolean isStraightTrack(EnumRailDirection railDir){
         switch(railDir){
             case NORTH_SOUTH:

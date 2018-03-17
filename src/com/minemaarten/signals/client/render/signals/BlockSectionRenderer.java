@@ -1,10 +1,11 @@
 package com.minemaarten.signals.client.render.signals;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -13,92 +14,84 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemDye;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import org.lwjgl.opengl.GL11;
 
 import com.minemaarten.signals.client.RectRenderer;
-import com.minemaarten.signals.lib.SignalBlockNode;
-import com.minemaarten.signals.lib.SignalBlockSection;
-import com.minemaarten.signals.lib.SignalsUtils;
+import com.minemaarten.signals.lib.HeadingUtils;
 import com.minemaarten.signals.lib.Vec3iUtils;
-import com.minemaarten.signals.tileentity.TileEntitySignalBase;
+import com.minemaarten.signals.rail.network.NetworkRail;
+import com.minemaarten.signals.rail.network.RailObjectHolder;
+import com.minemaarten.signals.rail.network.RailSection;
+import com.minemaarten.signals.rail.network.mc.MCNetworkRail;
+import com.minemaarten.signals.rail.network.mc.MCPos;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class BlockSectionRenderer{
 
-    private Map<TileEntitySignalBase, SignalBlockSectionColored> signalsToColors = new HashMap<>();
-    private int refreshCounter = 0;
+    private Map<RailSection<MCPos>, SectionRenderer> sectionsToRenderer = new HashMap<>();
 
-    private SignalBlockSectionColored getBlockSection(TileEntitySignalBase te){
-        SignalBlockSectionColored blockSection = signalsToColors.get(te);
-        if(blockSection == null) {
-            SignalBlockSectionColored newSection = null;//TODO new SignalBlockSectionColored(te.getSignalBlockInfo());
-            Optional<SignalBlockSectionColored> matchingSection = signalsToColors.values().stream().filter(x -> x.equals(newSection)).findFirst();
-            if(matchingSection.isPresent()) {
-                blockSection = matchingSection.get();
-            } else {
-                blockSection = newSection;
+    private SectionRenderer getSectionRenderer(RailSection<MCPos> section){
+        SectionRenderer renderer = sectionsToRenderer.get(section);
+        if(renderer == null) {
+            renderer = new SectionRenderer(section);
 
-                Set<Integer> invalidColors = getAdjacentBlockSections(blockSection).map(x -> x.colorIndex).collect(Collectors.toSet());
-                int availableColors = 16 - invalidColors.size();
-                if(availableColors > 0) { //If there are colors left (it would be very exceptional if there weren't.
-                    int usedIndex = blockSection.getRootNode().hashCode() % availableColors; //Use a deterministic way to generate a color index.
-                    for(int i = 0; i < 16; i++) {
-                        if(!invalidColors.contains(i)) {
-                            if(usedIndex-- <= 0) {
-                                blockSection.colorIndex = i;
-                                break;
-                            }
+            Set<Integer> invalidColors = getAdjacentBlockSections(section).map(x -> x.colorIndex).collect(Collectors.toSet());
+            int availableColors = 16 - invalidColors.size();
+            if(availableColors > 0) { //If there are colors left (it would be very exceptional if there weren't.
+                int usedIndex = Math.abs(section.iterator().next().hashCode()) % availableColors; //Use a deterministic way to generate a color index.
+                for(int i = 0; i < 16; i++) {
+                    if(!invalidColors.contains(i)) {
+                        if(usedIndex-- <= 0) {
+                            renderer.colorIndex = i;
+                            break;
                         }
                     }
                 }
-
-                blockSection.compileRender();
             }
 
-            signalsToColors.put(te, blockSection);
+            renderer.compileRender();
+
+            sectionsToRenderer.put(section, renderer);
         }
-        return blockSection;
+        return renderer;
     }
 
-    private Stream<SignalBlockSectionColored> getAdjacentBlockSections(SignalBlockSectionColored blockSection){
-        return signalsToColors.values().stream().filter(otherSection -> otherSection.isAdjacent(blockSection));
+    private Stream<SectionRenderer> getAdjacentBlockSections(RailSection<MCPos> section){
+        return sectionsToRenderer.entrySet().stream().filter(e -> e.getKey().isAdjacent(section)).map(e -> e.getValue());
     }
 
-    public void render(BufferBuilder b, List<TileEntity> tes){
-        if(refreshCounter++ >= 100) {
-            refreshCounter = 0;
-            signalsToColors.clear();
+    public void updateSectionRenderers(){
+        Iterable<RailSection<MCPos>> allSections = RailNetworkManager.getInstance().getNetwork().getAllSections();
+        sectionsToRenderer.clear();
 
-            for(TileEntity te : tes) {
-                if(te instanceof TileEntitySignalBase) {
-                    TileEntitySignalBase teSignal = (TileEntitySignalBase)te;
-                    getBlockSection(teSignal);
-                }
-            }
+        for(RailSection<MCPos> section : allSections) {
+            getSectionRenderer(section);
         }
+    }
 
-        b.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION_COLOR);
+    public void render(BufferBuilder b){
+
+        /*b.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION_COLOR);
         for(TileEntity te : tes) {
             if(te instanceof TileEntitySignalBase) {
                 TileEntitySignalBase teSignal = (TileEntitySignalBase)te;
-                renderSignalDirection(b, teSignal);
+             TODO   renderSignalDirection(b, teSignal);
             }
         }
-        Tessellator.getInstance().draw();
+        Tessellator.getInstance().draw();*/
 
         b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-        for(SignalBlockSectionColored blockSection : signalsToColors.values()) {
+        for(SectionRenderer blockSection : sectionsToRenderer.values()) {
             blockSection.rectRenderer.render(b);
         }
         Tessellator.getInstance().draw();
     }
 
-    private int getRailHeightOffset(EnumRailDirection railDir, EnumFacing dir){
-        switch(railDir){
+    private static int getRailHeightOffset(NetworkRail<MCPos> rail, EnumFacing dir){
+        switch(((MCNetworkRail)rail).getCurDir()){
             case ASCENDING_EAST:
                 return dir == EnumFacing.EAST ? 1 : (dir == EnumFacing.WEST ? -1 : 0);
             case ASCENDING_NORTH:
@@ -112,7 +105,7 @@ public class BlockSectionRenderer{
         }
     }
 
-    private void renderSignalDirection(BufferBuilder buffer, TileEntitySignalBase signal){
+    /*private void renderSignalDirection(BufferBuilder buffer, TileEntitySignalBase signal){
         EnumFacing signalFacing = signal.getFacing().getOpposite();
         SignalBlockNode rootNode = null;//TODO signal.getSignalBlockInfo();
         int heightOffset = getRailHeightOffset(rootNode.railDir, signalFacing);
@@ -144,38 +137,16 @@ public class BlockSectionRenderer{
             //buffer.pos(shiftedPosVec.x, shiftedPosVec.y, shiftedPosVec.z).color(r, g, b, 1).endVertex();
             buffer.pos(c2.x, c2.y, c2.z).color(r, g, b, 1).endVertex();
         }
-    }
+    }*/
 
-    private void renderSignalBlocks(RectRenderer rectRenderer, SignalBlockNode node, boolean goingDown){
-        for(SignalBlockNode neighbor : node.nextNeighbors) {
-            boolean isLowerNeighbor = neighbor.railPos.getY() < node.railPos.getY();
-            boolean isHigherNeighbor = neighbor.railPos.getY() > node.railPos.getY();
-
-            Vec3d interpolated = Vec3iUtils.interpolate(node.railPos, neighbor.railPos);
-            EnumFacing dir = SignalsUtils.getRelativeHorizonal(node.railPos, neighbor.railPos);
-
-            if(dir != null) { //When adjacent
-                boolean neighborsNeighborIsHigher = getRailHeightOffset(neighbor.railDir, dir) == 1;
-
-                rectRenderer.pos(node.railPos.getX() + 0.5, node.railPos.getY() + (isHigherNeighbor || goingDown ? 0.6 : 0.1), node.railPos.getZ() + 0.5);
-                rectRenderer.pos(interpolated.x + 0.5, node.railPos.getY() + (isHigherNeighbor ? 1.1 : 0.1), interpolated.z + 0.5);
-                rectRenderer.pos(interpolated.x + 0.5, node.railPos.getY() + (isHigherNeighbor ? 1.1 : 0.1), interpolated.z + 0.5);
-                rectRenderer.pos(neighbor.railPos.getX() + 0.5, neighbor.railPos.getY() + (isLowerNeighbor || neighborsNeighborIsHigher ? 0.6 : 0.1), neighbor.railPos.getZ() + 0.5);
-            } else { //When not adjacent (Rail Link, for example)
-                isLowerNeighbor = false;
-            }
-
-            renderSignalBlocks(rectRenderer, neighbor, isLowerNeighbor);
-        }
-    }
-
-    private class SignalBlockSectionColored extends SignalBlockSection{
+    private static class SectionRenderer{
 
         public int colorIndex;
         public RectRenderer rectRenderer;
+        private final RailSection<MCPos> section;
 
-        public SignalBlockSectionColored(SignalBlockNode rootNode){
-            super(rootNode);
+        public SectionRenderer(RailSection<MCPos> section){
+            this.section = section;
         }
 
         public void compileRender(){
@@ -186,17 +157,48 @@ public class BlockSectionRenderer{
             float g = (color >> 8 & 255) / 256F;
             float b = (color & 255) / 256F;
             rectRenderer.setColor(r, g, b);
-            SignalBlockNode rootNode = getRootNode();
-            boolean goingDown = false;
 
-            //Determine going down for the first node
-            if(!rootNode.nextNeighbors.isEmpty()) {
-                SignalBlockNode neighbor = rootNode.nextNeighbors.get(0); //The first node can only have one neighbor.
-                EnumFacing relDir = SignalsUtils.getRelativeHorizonal(rootNode.railPos, neighbor.railPos);
-                goingDown = getRailHeightOffset(rootNode.railDir, relDir) == -1;
+            NetworkRail<MCPos> rootNode = section.iterator().next();
+            Set<NetworkRail<MCPos>> traversed = new HashSet<>();
+            traversed.add(rootNode);
+
+            Stack<NetworkRail<MCPos>> toTraverse = new Stack<>();
+            RailObjectHolder<MCPos> networkObjs = RailNetworkManager.getInstance().getNetwork().railObjects;
+
+            toTraverse.push(rootNode);
+
+            while(!toTraverse.isEmpty()) {
+                NetworkRail<MCPos> node = toTraverse.pop();
+                EnumRailDirection railDir = ((MCNetworkRail)node).getCurDir();
+
+                List<NetworkRail<MCPos>> neighbors = node.getSectionNeighborRails(networkObjs).collect(Collectors.toList());
+                for(NetworkRail<MCPos> neighbor : neighbors) {
+                    rectRenderer.pos(node.pos.getX() + 0.5, node.pos.getY() + (railDir.isAscending() ? 0.6 : 0.1), node.pos.getZ() + 0.5);
+
+                    EnumFacing dir = HeadingUtils.toFacing(neighbor.pos.getRelativeHeading(node.pos));
+                    int offset = getRailHeightOffset(node, dir);
+                    //                    boolean isHigherNeighbor = neighbor.pos.getY() > node.pos.getY();
+                    Vec3d interpolated = Vec3iUtils.interpolate(node.pos.getPos(), neighbor.pos.getPos());
+                    rectRenderer.pos(interpolated.x + 0.5, node.pos.getY() + (offset == 1 ? 1.1 : 0.1), interpolated.z + 0.5);
+
+                    /* Vec3d interpolated = Vec3iUtils.interpolate(node.pos.getPos(), neighbor.pos.getPos());
+                     EnumFacing dir = HeadingUtils.toFacing(neighbor.pos.getRelativeHeading(node.pos));
+
+                     if(dir != null) { //When adjacent
+                         boolean neighborsNeighborIsHigher = getRailHeightOffset(neighbor, dir) == 1;
+
+                         rectRenderer.pos(node.pos.getX() + 0.5, node.pos.getY() + (isHigherNeighbor || goingDown ? 0.6 : 0.1), node.pos.getZ() + 0.5);
+                         rectRenderer.pos(interpolated.x + 0.5, node.pos.getY() + (isHigherNeighbor ? 1.1 : 0.1), interpolated.z + 0.5);
+                         rectRenderer.pos(interpolated.x + 0.5, node.pos.getY() + (isHigherNeighbor ? 1.1 : 0.1), interpolated.z + 0.5);
+                         rectRenderer.pos(neighbor.pos.getX() + 0.5, neighbor.pos.getY() + (isLowerNeighbor || neighborsNeighborIsHigher ? 0.6 : 0.1), neighbor.pos.getZ() + 0.5);
+                     } else { //When not adjacent (Rail Link, for example)
+                         isLowerNeighbor = false;
+                     }*/
+                    if(section.containsRail(neighbor.pos) && traversed.add(neighbor)) {
+                        toTraverse.push(neighbor);
+                    }
+                }
             }
-
-            renderSignalBlocks(rectRenderer, rootNode, goingDown);
         }
     }
 }

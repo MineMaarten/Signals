@@ -1,5 +1,7 @@
 package com.minemaarten.signals.util;
 
+import java.util.stream.Stream;
+
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.IPosition;
 
@@ -74,5 +76,10 @@ public class Pos2D implements IPosition<Pos2D>{
         int xComp = Integer.compare(x, o.x);
         if(xComp != 0) return xComp;
         return Integer.compare(y, o.y);
+    }
+
+    @Override
+    public Stream<Pos2D> allHorizontalNeighbors(){
+        return EnumHeading.valuesStream().map(this::offset);
     }
 }

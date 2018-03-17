@@ -27,6 +27,6 @@ public abstract class NetworkObject<TPos> {
 
     @Override
     public int hashCode(){
-        return pos.hashCode();
+        return pos.hashCode() * 13; //Do multiply to prevent that key.hashCode() == value.hashCode(), because this will cancel out https://stackoverflow.com/questions/26599345/hashmap-yields-same-hashcode-for-different-contents
     }
 }
