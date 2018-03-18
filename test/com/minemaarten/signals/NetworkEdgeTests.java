@@ -49,6 +49,19 @@ public class NetworkEdgeTests{
                      .validate();
     }
     
+    @Test
+    public void testEightFigureEdgeGrouping(){    
+        List<String> map = new ArrayList<>();
+        map.add("  1   ");
+        map.add("22+000");
+        map.add("  0  0");
+        map.add("  0000");
+        NetworkParser.createDefaultParser()
+                     .addEdgeGroups("012")
+                     .parse(map)
+                     .validate();
+    }
+    
     /**
      * Test whether edges properly 'attach' to intersections
      */

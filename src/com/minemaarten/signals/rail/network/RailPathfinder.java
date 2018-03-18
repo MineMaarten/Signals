@@ -187,6 +187,8 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             EnumHeading dirOut = EnumHeading.getOpposite(node.edge.headingForEndpoint(node.pos));
             routeNodes.add(new RailRouteNode<TPos>(node.pos, dirIn, dirOut));
 
+            routeNodes.addAll(node.edge.getIntersectionsWithFirst(node.pos));
+
             prevNode = node;
             node = node.getNextNode();
         }

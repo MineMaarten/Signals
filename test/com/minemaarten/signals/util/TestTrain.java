@@ -6,6 +6,7 @@ import java.util.Set;
 import org.apache.commons.lang3.NotImplementedException;
 
 import com.minemaarten.signals.rail.network.EnumHeading;
+import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 import com.minemaarten.signals.rail.network.RailSection;
@@ -15,13 +16,13 @@ public class TestTrain extends Train<Pos2D>{
 
     private final char trainID;
 
-    public TestTrain(Set<Pos2D> positions, char trainID){
-        setPositions(positions);
+    public TestTrain(RailNetwork<Pos2D> network, Set<Pos2D> positions, char trainID){
+        setPositions(network, positions);
         this.trainID = trainID;
     }
 
-    public void setPosition(Pos2D pos){
-        setPositions(Collections.singleton(pos));
+    public void setPosition(RailNetwork<Pos2D> network, Pos2D pos){
+        setPositions(network, Collections.singleton(pos));
     }
 
     public void setClaimingSection(RailSection<Pos2D> section){

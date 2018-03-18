@@ -44,6 +44,10 @@ public class RailRoute<TPos extends IPosition<TPos>> {
             this.dirOut = dirOut;
         }
 
+        public RailRouteNode<TPos> reverse(){
+            return new RailRouteNode<TPos>(pos, dirOut.getOpposite(), dirIn.getOpposite());
+        }
+
         @Override
         public String toString(){
             return dirIn.shortString() + "_(" + pos + ")_" + dirOut.shortString();

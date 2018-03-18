@@ -178,7 +178,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     private void pathfindTrains(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
         Train<TPos> trainAtSignal = getTrainAtSignal(network, signal);
         if(trainAtSignal != null) {
-            trainAtSignal.setPath(network, trainAtSignal.pathfind(signal.getRailPos(), signal.heading));
+            trainAtSignal.setPath(network, this, trainAtSignal.pathfind(signal.getRailPos(), signal.heading));
         }
     }
 }

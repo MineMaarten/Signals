@@ -66,6 +66,8 @@ public class NetworkSerializer{
                 return MCNetworkSignal.fromTag(tag);
             case REMOVAL_MARKER:
                 return NetworkRemovalMarker.fromTag(tag);
+            case RAIL_LINK:
+                return MCNetworkRailLink.fromTag(tag);
             default:
                 throw new IllegalStateException("Unsupported type: " + type);
         }
@@ -105,6 +107,8 @@ public class NetworkSerializer{
                 return MCNetworkSignal.fromByteBuf(b);
             case REMOVAL_MARKER:
                 return NetworkRemovalMarker.fromByteBuf(b);
+            case RAIL_LINK:
+                return MCNetworkRailLink.fromByteBuf(b);
             default:
                 throw new IllegalStateException("Unsupported type: " + type);
         }

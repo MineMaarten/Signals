@@ -1,8 +1,12 @@
 package com.minemaarten.signals.rail.network;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 
 /**
@@ -31,10 +35,11 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         return positions;
     }
 
-    public final void setPositions(Set<TPos> positions){
+    public final void setPositions(RailNetwork<TPos> network, Set<TPos> positions){
         if(!this.positions.equals(positions)) { //When the train has moved
             this.positions = positions;
             updateIntersections();
+            updateClaimedSections(network);
         }
     }
 
@@ -49,26 +54,55 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         }
     }
 
+    private void updateClaimedSections(RailNetwork<TPos> network){
+        if(!claimedSections.isEmpty()) {
+            //Remove the sections the train is now on from the claim list.
+            Set<RailSection<TPos>> curSections = positions.stream().map(network::findSection).collect(Collectors.toSet());
+            claimedSections.removeAll(curSections);
+        }
+    }
+
     public RailRoute<TPos> getCurRoute(){
         return path;
     }
 
-    //@formatter:off
-    public void setPath(RailNetwork<TPos> network, RailRoute<TPos> path){
-        this.path = path;
-        if(path != null){
-            curIntersection = 0;
-            //Take from the signals on the way, their sections.
-            /*TODO claimedSections = path.routeEdges.stream()
-                                             .flatMap(e -> e.railObjects.getSignals())
-                                             .map(s -> network.findSection(s.getRailPos()))
-                                             .filter(s -> s != null)
-                                             .collect(Collectors.toSet());//TODO only claim up to the next block signal*/
-        }else{
+    public void setPath(RailNetwork<TPos> network, NetworkState<TPos> state, RailRoute<TPos> path){
+        if(trySetClaims(network, state, path)) {
+            this.path = path;
+        }
+        curIntersection = 0;
+    }
+
+    private boolean trySetClaims(RailNetwork<TPos> network, NetworkState<TPos> state, RailRoute<TPos> path){
+        if(path != null) {
+            claimedSections = new HashSet<>();
+            for(RailEdge<TPos> edge : path.routeEdges) {
+                List<NetworkSignal<TPos>> signals = edge.railObjects.getSignals().collect(Collectors.toList());
+                boolean containsBlockSignal = signals.stream().anyMatch(s -> s.type == EnumSignalType.BLOCK);
+                boolean containsChainSignal = signals.stream().anyMatch(s -> s.type == EnumSignalType.CHAIN);
+
+                if(containsChainSignal) {
+                    for(NetworkSignal<TPos> signal : signals) {
+                        RailSection<TPos> section = signal.getNextRailSection(network);
+                        if(section != null) {
+                            Train<TPos> claimingTrain = state.getClaimingTrain(section);
+                            if(claimingTrain == null || claimingTrain.equals(this)) {
+                                claimedSections.add(section);
+                            } else {
+                                claimedSections = Collections.emptySet();
+                                return false;
+                            }
+                        }
+                    }
+                }
+
+                if(containsBlockSignal) break;
+            }
+        } else {
             claimedSections = Collections.emptySet();
         }
+        return true;
     }
-    //@formatter:on
 
     /**
      * The sections other trains may not enter, because it has been claimed by this train.

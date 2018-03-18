@@ -56,7 +56,7 @@ public class MCTrain extends Train<MCPos>{
     public void updatePositions(){
         Set<MCPos> positions = getCarts().stream().map(c -> new MCPos(c.world, c.getPosition())).collect(Collectors.toSet());
         if(!positions.isEmpty()) { //Update if any cart is loaded, currently.
-            setPositions(positions);
+            setPositions(RailNetworkManager.getInstance().getNetwork(), positions);
         }
     }
 

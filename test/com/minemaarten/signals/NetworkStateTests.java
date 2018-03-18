@@ -248,7 +248,7 @@ public class NetworkStateTests{
                              @Override
                             public TestTrain provideTrain(TestRailNetwork network){
                                  TestTrain train = super.provideTrain(network);
-                                 train.setPosition(new Pos2D(-1, -1));//Move the train off the map
+                                 train.setPosition(network, new Pos2D(-1, -1));//Move the train off the map
                                  train.setClaimingSection(network.findSection(pos)); //Claim the section the train was created on
                                  return train;
                              }
@@ -275,7 +275,7 @@ public class NetworkStateTests{
                              @Override
                             public TestTrain provideTrain(TestRailNetwork network){
                                  TestTrain train = super.provideTrain(network);
-                                 train.setPosition(new Pos2D(-1, -1));//Move the train off the map
+                                 train.setPosition(network, new Pos2D(-1, -1));//Move the train off the map
                                  train.setClaimingSection(network.findSection(pos)); //Claim the section the train was created on
                                  return train;
                              }

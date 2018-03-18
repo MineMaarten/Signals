@@ -19,6 +19,6 @@ public class RailNodeTrainProvider extends DefaultRailNode{
     public TestTrain provideTrain(TestRailNetwork network){
         final Set<Pos2D> positions = network.railObjects.networkObjectsOfType(RailNodeTrainProvider.class).filter(r -> r.trainID == trainID).map(r -> r.pos).collect(Collectors.toSet());
 
-        return new TestTrain(positions, trainID);
+        return new TestTrain(network, positions, trainID);
     }
 }

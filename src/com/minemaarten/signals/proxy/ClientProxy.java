@@ -150,6 +150,7 @@ public class ClientProxy extends CommonProxy{
     public void onRailNetworkUpdated(){
         if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
             eventHandler.blockSectionRenderer.updateSectionRenderers();
+            eventHandler.edgeRenderer.updateSectionRenderers();
         }
     }
 }

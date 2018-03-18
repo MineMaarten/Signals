@@ -2,8 +2,6 @@ package com.minemaarten.signals.tileentity;
 
 import net.minecraft.entity.item.EntityMinecart;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 
 public class TileEntityPathSignal extends TileEntitySignalBase{
@@ -88,7 +86,7 @@ public class TileEntityPathSignal extends TileEntitySignalBase{
 
     @Override
     public EnumSignalType getSignalType(){
-        throw new NotImplementedException("Path signals are not supported!");
+        return EnumSignalType.BLOCK; //throw new NotImplementedException("Path signals are not supported!");
     }
 
 }

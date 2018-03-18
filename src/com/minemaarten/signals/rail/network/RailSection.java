@@ -75,7 +75,8 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
     @Override
     public boolean equals(Object other){
         if(other instanceof RailSection) {
-            return rails.equals(((RailSection<TPos>)other).rails);
+            boolean eq = rails.keySet().equals(((RailSection<TPos>)other).rails.keySet());
+            return eq;
         } else {
             return false;
         }
@@ -83,6 +84,7 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
 
     @Override
     public int hashCode(){
-        return rails.hashCode();
+        int hash = rails.keySet().hashCode();
+        return hash;
     }
 }

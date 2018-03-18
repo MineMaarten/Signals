@@ -11,6 +11,7 @@ import org.apache.commons.lang3.Validate;
 
 import com.google.common.collect.ImmutableList;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
+import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 
 /**
  * Edge used in pathfinding. Edges may be unidirectional as a result of Signals, and Rail Links.
@@ -24,7 +25,14 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     private static final double RED_SIGNAL_PENALTY = 10000;
 
     public final RailObjectHolder<TPos> railObjects;
-    private final ImmutableList<NetworkRail<TPos>> edge;
+    public final ImmutableList<NetworkRail<TPos>> edge;
+
+    /**
+     * Intersection on this edge. This can happen for rail crossings, where for pathfinding the intersection is considered a straight line,
+     * while for actually changing the rail junctions these positions need to be considered.
+     */
+    private final List<RailRouteNode<TPos>> intersections, intersectionsReversed;
+
     /**
      * The start and end pos, which end in an intersection. 
      */
@@ -65,7 +73,17 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     }
 
     public RailEdge(RailObjectHolder<TPos> allRailObjects, ImmutableList<NetworkRail<TPos>> edge){
+        this(allRailObjects, edge, null);
+    }
+
+    public RailEdge(RailObjectHolder<TPos> allRailObjects, ImmutableList<NetworkRail<TPos>> edge,
+            List<RailRouteNode<TPos>> intersections){
         this.railObjects = allRailObjects.subSelection(edge);
+
+        //Filter intersections
+        if(intersections != null) {
+            intersections = intersections.stream().filter(i -> railObjects.get(i.pos) != null).collect(Collectors.toList());
+        }
 
         switch(determineDirectionality(allRailObjects, edge)){
             case BIDIRECTIONAL:
@@ -87,17 +105,25 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
         TPos firstPos = edge.get(0).pos;
         TPos lastPos = edge.get(edge.size() - 1).pos;
-        if(firstPos.equals(lastPos)) throw new IllegalStateException("First and last pos may not be equal! First: " + firstPos + ", Last: " + lastPos);
 
         //if bidirectional, save in a deterministic form for equals/hashcode purposes
         if(!unidirectional) {
             int compareResult = firstPos.compareTo(lastPos);
+
+            if(compareResult == 0) { //When startPos == endPos (happens in looped tracks), we need to check the other with the neighboring positions
+                compareResult = edge.get(1).pos.compareTo(edge.get(edge.size() - 2).pos);
+                if(compareResult == 0) {
+                    throw new IllegalStateException("");
+                }
+            }
+
             if(compareResult > 0) {
                 //Reverse the order
                 edge = edge.reverse();
+                if(intersections != null) intersections = reverseIntersections(intersections);
                 firstPos = edge.get(0).pos;
                 lastPos = edge.get(edge.size() - 1).pos;
-            } else if(compareResult == 0) throw new IllegalStateException("Different positions should not return 0 for IComparable! First: " + firstPos + ", Last: " + lastPos);
+            }
         }
 
         this.edge = edge;
@@ -107,6 +133,32 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         endHeading = endPos.getRelativeHeading(edge.get(edge.size() - 2).pos);
 
         length = edge.size();
+
+        this.intersections = intersections == null ? computeIntersections(allRailObjects) : intersections;
+        intersectionsReversed = reverseIntersections(this.intersections);
+    }
+
+    private List<RailRouteNode<TPos>> reverseIntersections(List<RailRouteNode<TPos>> intersections){
+        List<RailRouteNode<TPos>> intersectionsReversed = new ArrayList<>(intersections.size());
+        for(int i = intersections.size() - 1; i >= 0; i--) {
+            intersectionsReversed.add(intersections.get(i).reverse());
+        }
+        return intersectionsReversed;
+    }
+
+    private List<RailRouteNode<TPos>> computeIntersections(RailObjectHolder<TPos> allRailObjects){
+        List<RailRouteNode<TPos>> inter = new ArrayList<>();
+        for(int i = 1; i < edge.size() - 1; i++) {
+            NetworkRail<TPos> rail = edge.get(i);
+            if(allRailObjects.getNeighborRails(rail.getPotentialNeighborRailLocations()).count() > 2) {
+                NetworkRail<TPos> prev = edge.get(i - 1);
+                NetworkRail<TPos> next = edge.get(i + 1);
+                EnumHeading dirIn = rail.pos.getRelativeHeading(prev.pos);
+                EnumHeading dirOut = rail.pos.getRelativeHeading(next.pos);
+                inter.add(new RailRouteNode<TPos>(rail.pos, dirIn, dirOut));
+            }
+        }
+        return inter;
     }
 
     /**
@@ -276,9 +328,16 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         throw new IllegalStateException("Pos " + firstPos + " not start/end of edge " + this);
     }
 
+    public List<RailRouteNode<TPos>> getIntersectionsWithFirst(TPos firstPos){
+        if(startPos.equals(firstPos)) return intersections;
+        if(endPos.equals(firstPos)) return intersectionsReversed;
+        throw new IllegalStateException("Pos " + firstPos + " not start/end of edge " + this);
+    }
+
+    //FIXME transfer intersections?
     private RailEdge<TPos> subEdge(int startIndex, int endIndex){
         ImmutableList<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndex + 1);
-        return new RailEdge<TPos>(railObjects, subEdge);
+        return new RailEdge<TPos>(railObjects, subEdge, intersections);
     }
 
     @Override
