@@ -3,9 +3,8 @@ package com.minemaarten.signals.tileentity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
@@ -13,24 +12,25 @@ import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
+
+import org.apache.commons.lang3.NotImplementedException;
 
 import com.minemaarten.signals.api.access.ISignal;
 import com.minemaarten.signals.block.BlockSignalBase;
-import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
-import com.minemaarten.signals.network.NetworkHandler;
-import com.minemaarten.signals.network.PacketUpdateMessage;
-import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.NetworkController;
-import com.minemaarten.signals.rail.RailManager;
+import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.NetworkSignal;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
+import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public abstract class TileEntitySignalBase extends TileEntityBase implements ITickable, ISignal{
 
     private boolean firstTick = true;
-    private List<EntityMinecart> routedMinecarts = new ArrayList<>();
+    private List<EntityMinecart> cartsOnBlock = new ArrayList<>();
     private String text = "";
     private String arguments = "";
     private EnumForceMode forceMode = EnumForceMode.NONE; //TODO
@@ -44,13 +44,9 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return state != null && state.getBlock() instanceof BlockSignalBase ? state.getValue(BlockSignalBase.FACING) : EnumFacing.NORTH;
     }
 
-    protected void setLampStatus(EnumLampStatus lampStatus){
-        setLampStatus(lampStatus, this::getNeighborMinecarts, cart -> routeCart(cart, getFacing(), true));
-    }
-
     public abstract EnumSignalType getSignalType();
 
-    protected void setLampStatus(EnumLampStatus lampStatus, Supplier<List<EntityMinecart>> neighborMinecartGetter, Function<EntityMinecart, AStarRailNode> pathfinder){
+    protected void setLampStatus(EnumLampStatus lampStatus){
         if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
             lampStatus = EnumLampStatus.GREEN;
         } else if(forceMode == EnumForceMode.FORCED_RED) {
@@ -63,14 +59,14 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             NetworkController.getInstance(getWorld()).updateColor(this, getPos());
             if(lampStatus == EnumLampStatus.GREEN) {
                 //Push carts when they're standing still.
-                List<EntityMinecart> neighborMinecarts = neighborMinecartGetter.get();
+                List<EntityMinecart> neighborMinecarts = getNeighborMinecarts();
                 for(EntityMinecart cart : neighborMinecarts) {
                     if(new Vec3d(cart.motionX, cart.motionY, cart.motionZ).lengthVector() < 0.01 || EnumFacing.getFacingFromVector((float)cart.motionX, 0, (float)cart.motionZ) == getFacing()) {
                         cart.motionX += getFacing().getFrontOffsetX() * 0.1;
                         cart.motionZ += getFacing().getFrontOffsetZ() * 0.1;
                         long start = System.nanoTime();
 
-                        AStarRailNode path = pathfinder.apply(cart);
+                        //TODO path
                         //TODO if(path != null) updateSwitches(path, cart, true);
                         Log.debug((System.nanoTime() - start) / 1000 + "ns");
                     }
@@ -90,81 +86,33 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return EnumLampStatus.YELLOW_BLINKING;
     }
 
+    private NetworkSignal<MCPos> getSignal(){
+        NetworkObject<MCPos> obj = RailNetworkManager.getInstance().getNetwork().railObjects.get(getMCPos());
+        return obj instanceof NetworkSignal ? (NetworkSignal<MCPos>)obj : null;
+    }
+
     protected List<EntityMinecart> getNeighborMinecarts(){
-        return Collections.emptyList();//TODO getMinecarts(world, getConnectedRails());
+        NetworkSignal<MCPos> signal = getSignal();
+        if(signal == null) return Collections.emptyList();
+        return getNeighborMinecarts(RailNetworkManager.getInstance().getNetwork().getPositionsInFront(signal));
     }
 
-    protected AStarRailNode routeCart(EntityMinecart cart, EnumFacing cartDir, boolean submitMessages){
-        CapabilityMinecartDestination capability = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-        String destination = capability.getCurrentDestination();
-        Pattern destinationRegex = capability.getCurrentDestinationRegex();
-        List<PacketUpdateMessage> messages = new ArrayList<>();
-        AStarRailNode path = null;
-        if(!destination.isEmpty()) {
-            messages.add(new PacketUpdateMessage(this, cart, "signals.message.routing_cart", destination));
-            EnumFacing facing = getFacing();
-            if(facing == cartDir) {
-                path = null;//TODO DestinationPathFinder.pathfindToDestination(getConnectedRail(), cart, destinationRegex, facing);
-                if(path == null) { //If there's no path
-                    messages.add(new PacketUpdateMessage(this, cart, "signals.message.no_path_found"));
-                } else {
-                    messages.add(new PacketUpdateMessage(this, cart, "signals.message.path_found"));
-                }
-            }
-        } else {
-            messages.add(new PacketUpdateMessage(this, cart, "signals.message.no_destination"));
-        }
-
-        if(submitMessages) {
-            for(PacketUpdateMessage message : messages) {
-                NetworkHandler.sendToAllAround(message, getWorld());
-            }
-        }
-        capability.setPath(cart, path);
-
-        if(destination.isEmpty()) { //When this cart is not being routed, rely on its linked carts, if any.
-            return RailManager.getInstance().getPath(cart);
-        } else {
-            return path; //When this cart is supposed to be routed, do not rely on its linked carts.
-        }
+    public static List<EntityMinecart> getNeighborMinecarts(Stream<MCPos> positions){
+        return positions.flatMap(TileEntitySignalBase::getCartsAt).collect(Collectors.toList());
     }
 
-    /*protected void updateSwitches(AStarRailNode pathNode, EntityMinecart cart, boolean submitMessages){
-        List<PacketUpdateMessage> messages = new ArrayList<>();
-        EnumFacing lastHeading = pathNode.getPathDir();
-        while(pathNode != null) {
-            Map<RailWrapper, EnumFacing> neighbors = pathNode.getRail().getNeighborsForEntryDir(lastHeading);
-            EnumFacing heading = pathNode.getNextNode() != null ? neighbors.get(pathNode.getNextNode().getRail()) : null;
-            if(neighbors.size() > 2 && heading != null && lastHeading != null) { //If on an intersection
-                EnumRailDirection railDir = RailWrapper.getRailDir(EnumSet.of(heading, lastHeading.getOpposite()));
+    private static Stream<EntityMinecart> getCartsAt(MCPos pos){
+        return pos.getWorld().getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(pos.getPos())).stream();
+    }
 
-                String[] args = {Integer.toString(pathNode.getRail().getX()), Integer.toString(pathNode.getRail().getY()), Integer.toString(pathNode.getRail().getZ()), "signals.dir." + lastHeading.toString().toLowerCase(), "signals.dir." + heading.toString().toLowerCase()};
-
-                if(pathNode.getRail().setRailDir(railDir)) {
-                    messages.add(new PacketUpdateMessage(this, cart, "signals.message.changing_junction", args));
-                } else {
-                    messages.add(new PacketUpdateMessage(this, cart, "signals.message.changing_junction", args));//FIXME
-                }
-            }
-            lastHeading = heading;
-            pathNode = pathNode.getNextNode();
-            if(pathNode != null && heading != null && getNeighborSignal(pathNode.getRail(), heading.getOpposite()) != null) {
-                break;
-            }
-        }
-        if(submitMessages) {
-            for(PacketUpdateMessage message : messages) {
-                NetworkHandler.sendToAllAround(message, getWorld());
-            }
-        }
-    }*/
+    private MCPos getConnectedRail(){
+        throw new NotImplementedException("");
+    }
 
     @Override
     public void invalidate(){
         super.invalidate();
         if(!world.isRemote) {
-            // RailWrapper neighbor = getConnectedRail();
-            //  if(neighbor != null) neighbor.updateSignalCache(); //TODO
             NetworkController.getInstance(getWorld()).updateColor((TileEntitySignalBase)null, getPos());
         }
     }
@@ -174,34 +122,32 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         if(!world.isRemote) {
             if(firstTick) {
                 firstTick = false;
-                // RailWrapper neighbor = getConnectedRail();
-                // if(neighbor != null) neighbor.updateSignalCache(); TODO
                 NetworkController.getInstance(getWorld()).updateColor(this, getPos());
             }
             List<EntityMinecart> carts = getNeighborMinecarts();
             for(EntityMinecart cart : carts) {
-                if(!routedMinecarts.contains(cart)) {
+                if(!cartsOnBlock.contains(cart)) {
                     cart.timeUntilPortal = 0;
                     onCartEnteringBlock(cart);
                 }
             }
-            for(EntityMinecart cart : routedMinecarts) {
+            for(EntityMinecart cart : cartsOnBlock) {
                 if(!carts.contains(cart)) onCartLeavingBlock(cart);
             }
-            routedMinecarts = carts;
+            cartsOnBlock = carts;
 
+            //TODO on event 
             EnumLampStatus lampStatus = RailNetworkManager.getInstance().getLampStatus(world, pos);
             setLampStatus(lampStatus);
         }
     }
 
-    protected abstract void onCartEnteringBlock(EntityMinecart cart);
+    protected void onCartEnteringBlock(EntityMinecart cart){}
 
     protected void onCartLeavingBlock(EntityMinecart cart){
         if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
             setForceMode(EnumForceMode.NONE);
         }
-        //TODO getNextSignals().forEach(signal -> signal.setClaimingCart(null));
     }
 
     protected void setMessage(String message, Object... arguments){

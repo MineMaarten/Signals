@@ -22,16 +22,6 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class RailWrapper extends BlockPos{
-    private static Map<EnumSet<EnumFacing>, EnumRailDirection> DIRS_TO_RAIL_DIR = new HashMap<>(6);
-
-    static {
-        DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumFacing.NORTH, EnumFacing.SOUTH), EnumRailDirection.NORTH_SOUTH);
-        DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumFacing.EAST, EnumFacing.WEST), EnumRailDirection.EAST_WEST);
-        DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumFacing.NORTH, EnumFacing.EAST), EnumRailDirection.NORTH_EAST);
-        DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumFacing.EAST, EnumFacing.SOUTH), EnumRailDirection.SOUTH_EAST);
-        DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumFacing.SOUTH, EnumFacing.WEST), EnumRailDirection.SOUTH_WEST);
-        DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumFacing.WEST, EnumFacing.NORTH), EnumRailDirection.NORTH_WEST);
-    }
 
     public final IRail rail;
     public final World world;

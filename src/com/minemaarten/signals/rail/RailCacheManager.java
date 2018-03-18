@@ -1,7 +1,6 @@
 package com.minemaarten.signals.rail;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketSyncStationNames;
+import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class RailCacheManager{
@@ -157,8 +157,8 @@ public class RailCacheManager{
         NetworkController.getInstance(marker.getWorld()).updateColor((TileEntityStationMarker)null, marker.getPos());
     }
 
-    public Collection<RailWrapper> getStationRails(EntityMinecart cart, Pattern destinationRegex){
-        Set<RailWrapper> rails = new HashSet<>();
+    public Set<MCPos> getStationRails(EntityMinecart cart, Pattern destinationRegex){
+        Set<MCPos> rails = new HashSet<>();
         Set<String> validNames = new HashSet<>();
         for(TileEntityStationMarker station : stations) {
             if(station.isCartApplicable(cart, destinationRegex)) {

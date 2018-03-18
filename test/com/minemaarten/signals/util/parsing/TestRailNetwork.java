@@ -41,7 +41,8 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
         destinations = railObjects.networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isDestination).map(r -> r.pos).collect(Collectors.toSet());
 
         Set<Train<Pos2D>> trains = railObjects.networkObjectsOfType(RailNodeTrainProvider.class).map(r -> r.provideTrain(this)).collect(Collectors.toSet());
-        state = new NetworkState<Pos2D>(trains);
+        state = new NetworkState<Pos2D>();
+        state.setTrains(trains);
     }
 
     public RailRoute<Pos2D> pathfind(){

@@ -17,11 +17,15 @@ import org.apache.commons.lang3.Validate;
 
 import com.minemaarten.signals.api.access.IStationMarker;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
+import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.rail.RailCacheManager;
-import com.minemaarten.signals.rail.RailWrapper;
+import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.NetworkRail;
+import com.minemaarten.signals.rail.network.mc.MCPos;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class TileEntityStationMarker extends TileEntityBase implements ITickable, IGUITextFieldSensitive,
         IStationMarker{
@@ -61,17 +65,12 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
         sendUpdatePacket();
     }
 
-    private void updateNeighborRailCache(){
-        for(RailWrapper rail : getNeighborRails()) {
-            rail.updateStationCache();
-        }
-    }
-
-    public List<RailWrapper> getNeighborRails(){
-        List<RailWrapper> neighbors = new ArrayList<>(1);
+    public List<MCPos> getNeighborRails(){
+        List<MCPos> neighbors = new ArrayList<>(1);
         for(EnumFacing d : EnumFacing.values()) {
-            RailWrapper rail = RailCacheManager.getInstance(getWorld()).getRail(getWorld(), getPos().offset(d));
-            if(rail != null) neighbors.add(rail);
+            MCPos neighborPos = getMCPos().offset(d);
+            NetworkObject<MCPos> rail = RailNetworkManager.getInstance().getNetwork().railObjects.get(neighborPos);
+            if(rail instanceof NetworkRail) neighbors.add(rail.pos);
         }
         return neighbors;
     }
@@ -80,7 +79,6 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
     public void invalidate(){
         super.invalidate();
         if(!world.isRemote) {
-            updateNeighborRailCache();
             RailCacheManager.getInstance(getWorld()).removeStationMarker(this);
         }
     }
@@ -90,7 +88,6 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
         if(!world.isRemote) {
             if(firstTick) {
                 firstTick = false;
-                updateNeighborRailCache();
                 if(!world.isRemote) {
                     RailCacheManager.getInstance(getWorld()).addStationMarker(this);
                 }
@@ -100,13 +97,12 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
     }
 
     public void updateNeighborMinecarts(){
-        //TODO
-        /* for(EntityMinecart cart : TileEntitySignalBase.getMinecarts(world, getNeighborRails())) {
-             CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-             if(cap.getCurrentDestinationRegex().matcher(getStationName()).matches()) {
-                 cap.nextDestination();
-             }
-         }*/
+        for(EntityMinecart cart : TileEntitySignalBase.getNeighborMinecarts(getNeighborRails().stream())) {
+            CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+            if(cap.getCurrentDestinationRegex().matcher(getStationName()).matches()) {
+                cap.nextDestination();
+            }
+        }
     }
 
     @Override

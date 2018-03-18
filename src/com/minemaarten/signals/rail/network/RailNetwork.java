@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -25,7 +26,7 @@ import com.google.common.collect.Multimap;
  * @param <TPos>
  */
 public class RailNetwork<TPos extends IPosition<TPos>> {
-
+    private static final int MAX_RAILS_IN_FRONT_SIGNAL = 5;
     public final RailObjectHolder<TPos> railObjects;
     private Map<TPos, RailSection<TPos>> railPosToRailSections = new HashMap<>();
     private Set<RailEdge<TPos>> allEdges = new HashSet<>();
@@ -216,5 +217,43 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      */
     public RailRoute<TPos> pathfind(NetworkState<TPos> state, TPos from, EnumHeading direction, Set<TPos> destinations){
         return new RailPathfinder<TPos>(this, state).pathfindToDestination(from, direction, destinations);
+    }
+
+    /**
+     * Gets up to 5 rails part of the same edge in front of the given signal, in order of the closest rail to the farthest.
+     * @param network
+     * @param signal
+     * @return
+     */
+    public Stream<TPos> getPositionsInFront(NetworkSignal<TPos> signal){
+        RailEdge<TPos> edge = findEdge(signal.getRailPos());
+        TPos firstPosInFront = signal.getRailPos().offset(signal.heading.getOpposite());
+        int index = edge.getIndex(signal.getRailPos());
+        Object blockType = edge.get(index).getRailType();
+        boolean countingUp = index < edge.length - 1 && firstPosInFront.equals(edge.get(index + 1));
+
+        List<TPos> positions = new ArrayList<>(MAX_RAILS_IN_FRONT_SIGNAL);
+        if(countingUp) {
+            int maxIndex = Math.min(index + MAX_RAILS_IN_FRONT_SIGNAL, edge.length);
+            for(int i = index; i < maxIndex; i++) {
+                NetworkRail<TPos> rail = edge.get(i);
+                if(blockType.equals(rail.getRailType())) {
+                    positions.add(rail.pos);
+                } else {
+                    break;
+                }
+            }
+        } else {
+            int minIndex = Math.max(index - MAX_RAILS_IN_FRONT_SIGNAL + 1, 0);
+            for(int i = index; i >= minIndex; i--) {
+                NetworkRail<TPos> rail = edge.get(i);
+                if(blockType.equals(rail.getRailType())) {
+                    positions.add(rail.pos);
+                } else {
+                    break;
+                }
+            }
+        }
+        return positions.stream();
     }
 }

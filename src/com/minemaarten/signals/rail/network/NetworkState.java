@@ -1,6 +1,5 @@
 package com.minemaarten.signals.rail.network;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,12 +19,15 @@ import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
  *
  */
 public class NetworkState<TPos extends IPosition<TPos>> {
-    private static final int MAX_RAILS_IN_FRONT_SIGNAL = 5;
-    private final Set<Train<TPos>> trains;
+    private Set<? extends Train<TPos>> trains = Collections.emptySet();
     private Map<TPos, EnumLampStatus> signalToLampStatusses = Collections.emptyMap();
 
-    public NetworkState(Set<Train<TPos>> trains){
+    public void setTrains(Set<? extends Train<TPos>> trains){
         this.trains = trains;
+    }
+
+    public Set<? extends Train<TPos>> getTrains(){
+        return trains;
     }
 
     public void updateSignalStatusses(RailNetwork<TPos> network){
@@ -148,50 +150,12 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         }
     }
 
-    /**
-     * Gets up to 5 rails part of the same edge in front of the given signal, in order of the closest rail to the farthest.
-     * @param network
-     * @param signal
-     * @return
-     */
-    private Stream<TPos> getPositionsInFront(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
-        RailEdge<TPos> edge = network.findEdge(signal.getRailPos());
-        TPos firstPosInFront = signal.getRailPos().offset(signal.heading.getOpposite());
-        int index = edge.getIndex(signal.getRailPos());
-        Object blockType = edge.get(index).getRailType();
-        boolean countingUp = firstPosInFront.equals(edge.get(index + 1));
-
-        List<TPos> positions = new ArrayList<>(MAX_RAILS_IN_FRONT_SIGNAL);
-        if(countingUp) {
-            int maxIndex = Math.min(index + MAX_RAILS_IN_FRONT_SIGNAL, edge.length);
-            for(int i = index; i < maxIndex; i++) {
-                NetworkRail<TPos> rail = edge.get(i);
-                if(blockType.equals(rail.getRailType())) {
-                    positions.add(rail.pos);
-                } else {
-                    break;
-                }
-            }
-        } else {
-            int minIndex = Math.max(index - MAX_RAILS_IN_FRONT_SIGNAL + 1, 0);
-            for(int i = index; i >= minIndex; i--) {
-                NetworkRail<TPos> rail = edge.get(i);
-                if(blockType.equals(rail.getRailType())) {
-                    positions.add(rail.pos);
-                } else {
-                    break;
-                }
-            }
-        }
-        return positions.stream();
-    }
-
     public Train<TPos> getTrainAtPositions(Stream<TPos> positions){
         return positions.flatMap(pos -> trains.stream().filter(t -> t.getPositions().contains(pos))).findFirst().orElse(null);
     }
 
     public Train<TPos> getTrainAtSignal(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
-        return getTrainAtPositions(getPositionsInFront(network, signal));
+        return getTrainAtPositions(network.getPositionsInFront(signal));
     }
 
     public EnumLampStatus getLampStatus(TPos signalPos){
@@ -200,5 +164,21 @@ public class NetworkState<TPos extends IPosition<TPos>> {
 
     public Train<TPos> getClaimingTrain(RailSection<TPos> section){
         return trains.stream().filter(t -> t.getClaimedSections().contains(section)).findFirst().orElse(null);
+    }
+
+    public void pathfindTrains(RailNetwork<TPos> network){
+        List<NetworkSignal<TPos>> allSignals = network.railObjects.getSignals().collect(Collectors.toList());
+        for(NetworkSignal<TPos> signal : allSignals) {
+            if(signal.type == EnumSignalType.CHAIN || getLampStatus(signal.pos) == EnumLampStatus.GREEN) {
+                pathfindTrains(network, signal); //Only check signals that signal green, or are route dependent
+            }
+        }
+    }
+
+    private void pathfindTrains(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
+        Train<TPos> trainAtSignal = getTrainAtSignal(network, signal);
+        if(trainAtSignal != null) {
+            trainAtSignal.setPath(network, trainAtSignal.pathfind(signal.getRailPos(), signal.heading));
+        }
     }
 }

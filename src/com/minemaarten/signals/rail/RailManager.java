@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -30,10 +28,8 @@ import com.minemaarten.signals.api.Signals;
 import com.minemaarten.signals.api.access.SignalsAccessorProvidingEvent;
 import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
-import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.lib.Log;
-import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 
 public class RailManager{
     private static final RailManager INSTANCE = new RailManager();
@@ -157,16 +153,5 @@ public class RailManager{
 
     public boolean areLinked(EntityMinecart cart1, EntityMinecart cart2){
         return cartLinkers.stream().anyMatch(x -> x.getLinkedCarts(cart1).contains(cart2));
-    }
-
-    public AStarRailNode getPath(EntityMinecart cart){
-        Stream<EntityMinecart> linkedCarts = cartLinkers.stream().flatMap(cartLinker -> cartLinker.getLinkedCarts(cart).stream());
-        linkedCarts = Stream.concat(Stream.of(cart), linkedCarts).distinct(); //Append the passed cart, just in case.
-
-        return linkedCarts.map(this::getStoredPath).filter(Objects::nonNull).findFirst().orElse(null);
-    }
-
-    private AStarRailNode getStoredPath(EntityMinecart cart){
-        return cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getPath(cart.world);
     }
 }

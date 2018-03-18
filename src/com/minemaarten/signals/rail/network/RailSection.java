@@ -31,7 +31,7 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
      * @param trains
      * @return the only train that should be on this block, or null.
      */
-    public Train<TPos> getTrain(Iterable<Train<TPos>> trains){
+    public Train<TPos> getTrain(Iterable<? extends Train<TPos>> trains){
         for(Train<TPos> train : trains) {
             for(TPos trainPos : train.getPositions()) {
                 if(rails.get(trainPos) != null) return train;

@@ -16,7 +16,6 @@ import com.minemaarten.signals.lib.HeadingUtils;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.network.INetworkObjectProvider;
 import com.minemaarten.signals.rail.network.NetworkObject;
-import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.tileentity.TileEntityRailLink;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
@@ -50,7 +49,7 @@ public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
         return null;
     }
 
-    public Set<Train<MCPos>> provideTrains(List<EntityMinecart> carts){
+    public Set<MCTrain> provideTrains(List<EntityMinecart> carts){
         List<List<EntityMinecart>> cartGroups = new ArrayList<>();
         for(EntityMinecart cart : carts) {
             List<EntityMinecart> cartGroup = cartGroups.stream().filter(c -> RailManager.getInstance().areLinked(c.get(0), cart)).findFirst().orElse(null);

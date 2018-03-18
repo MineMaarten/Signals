@@ -113,7 +113,7 @@ public class NetworkController{
         Tessellator t = Tessellator.getInstance();
         BufferBuilder buffer = t.getBuffer();
         for(EntityMinecart cart : world.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(startX, 0, startZ, startX + width, 255, startZ + height))) {
-            List<BlockPos> path = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getNBTPath();
+            List<BlockPos> path = null;//TODO cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getNBTPath();
             if(path != null) {
                 for(BlockPos pathPos : path) {
                     int pathX = pathPos.getX() - startX;
@@ -193,6 +193,7 @@ public class NetworkController{
     }
 
     public void updateColor(TileEntitySignalBase signal, BlockPos pos){
+        //TODO
         updateColor(signal != null ? signal.getLampStatus().color : NOTHING_COLOR, pos);
     }
 

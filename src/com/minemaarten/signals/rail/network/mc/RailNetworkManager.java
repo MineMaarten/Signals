@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
@@ -26,11 +27,13 @@ import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketClearNetwork;
 import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.network.PacketUpdateNetwork;
+import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.NetworkUpdater;
 import com.minemaarten.signals.rail.network.RailNetwork;
+import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.tileentity.TileEntityBase;
 
 public class RailNetworkManager{
@@ -43,7 +46,8 @@ public class RailNetworkManager{
     }
 
     private RailNetwork<MCPos> network = new RailNetwork<MCPos>(Collections.emptyMap());
-    private NetworkState<MCPos> state = new NetworkState<>(Collections.emptySet());
+    private final NetworkState<MCPos> state = new NetworkState<>();
+    private Set<MCTrain> trains = Collections.emptySet();
     private final NetworkUpdater<MCPos> networkUpdater = new NetworkUpdater<>(new NetworkObjectProvider());
 
     private RailNetworkManager(){
@@ -105,11 +109,13 @@ public class RailNetworkManager{
         NetworkHandler.sendToAll(new PacketClearNetwork());
         NetworkHandler.sendToAll(new PacketUpdateNetwork(allNetworkObjects));
         network = new RailNetwork<MCPos>(allNetworkObjects);
+        initTrains();
     }
 
-    private void updateState(){
+    private void initTrains(){
         List<EntityMinecart> carts = new ArrayList<>();
 
+        //TODO manage own list
         for(World world : DimensionManager.getWorlds()) {
             for(Entity entity : world.loadedEntityList) {
                 if(entity instanceof EntityMinecart) {
@@ -118,8 +124,18 @@ public class RailNetworkManager{
             }
         }
 
-        state = new NetworkState<>(new NetworkObjectProvider().provideTrains(carts));
+        trains = new NetworkObjectProvider().provideTrains(carts);
+        state.setTrains(trains);
+    }
+
+    private void updateState(){
+        if(trains.isEmpty()) {
+            initTrains();
+        }
+
+        trains.forEach(t -> t.updatePositions());
         state.updateSignalStatusses(network);
+        state.pathfindTrains(network);
     }
 
     public RailNetwork<MCPos> getNetwork(){
@@ -128,6 +144,10 @@ public class RailNetworkManager{
 
     public EnumLampStatus getLampStatus(World world, BlockPos pos){
         return state.getLampStatus(new MCPos(world, pos));
+    }
+
+    public RailRoute<MCPos> pathfind(MCPos start, EntityMinecart cart, Pattern destinationRegex, EnumHeading direction){
+        return new MCRailPathfinder(network, state).pathfindToDestination(start, cart, destinationRegex, direction);
     }
 
     public void markDirty(MCPos pos){

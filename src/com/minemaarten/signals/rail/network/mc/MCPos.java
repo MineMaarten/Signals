@@ -52,6 +52,7 @@ public class MCPos implements IPosition<MCPos>{
         b.writeInt(pos.getZ());
     }
 
+    //FIXME null check for unloaded dims?
     public World getWorld(){
         return DimensionManager.getWorld(dimID);
     }

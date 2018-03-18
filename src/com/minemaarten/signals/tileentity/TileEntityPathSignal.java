@@ -1,16 +1,9 @@
 package com.minemaarten.signals.tileentity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
-
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.util.math.BlockPos;
 
 import org.apache.commons.lang3.NotImplementedException;
 
-import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
-import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 
 public class TileEntityPathSignal extends TileEntitySignalBase{
@@ -91,35 +84,6 @@ public class TileEntityPathSignal extends TileEntitySignalBase{
     @Override
     protected void onCartEnteringBlock(EntityMinecart cart){
         route();
-    }
-
-    private static AStarRailNode getStoredPath(EntityMinecart cart){
-        return cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getPath(cart.world);
-    }
-
-    private static List<BlockPos> getToBeTraversedCoordinates(EntityMinecart cart){
-        AStarRailNode path = getStoredPath(cart);
-        List<BlockPos> coords = new ArrayList<>();
-        BlockPos cartPos = cart.getPosition();
-        boolean returnOnNext = false;
-
-        if(path != null) path = path.getNextNode();
-
-        Stack<AStarRailNode> reversedRoute = new Stack<>();
-        for(; path != null; path = path.getNextNode()) {
-            if(path.getSignal(null) != null) break;
-            reversedRoute.push(path);
-        }
-
-        while(!reversedRoute.isEmpty()) {
-            AStarRailNode node = reversedRoute.pop();
-
-            coords.add(node.getRail());
-
-            if(returnOnNext) return coords;
-            if(node.getRail().equals(cartPos)) returnOnNext = true;
-        }
-        return coords;
     }
 
     @Override

@@ -1,7 +1,5 @@
 package com.minemaarten.signals.capabilities;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -11,7 +9,6 @@ import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.tileentity.TileEntityHopper;
@@ -20,7 +17,6 @@ import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
@@ -42,8 +38,6 @@ import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.network.PacketUpdateMinecartEngineState;
-import com.minemaarten.signals.network.PacketUpdateMinecartPath;
-import com.minemaarten.signals.rail.DestinationPathFinder.AStarRailNode;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.tileentity.IGUITextFieldSensitive;
@@ -60,9 +54,6 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
     private int curDestinationIndex;
     @GuiSynced
     private String invalidDestinations = ""; //Destinations become invalid when the regex is invalid.
-
-    private AStarRailNode curPath;
-    private List<BlockPos> nbtLoadedPath;
 
     private boolean motorized; //True when an engine upgrade has been applied.
     @GuiSynced
@@ -91,21 +82,6 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                 tag.setString("destinations", instance.destinationStations);
                 tag.setInteger("destIndex", instance.curDestinationIndex);
 
-                if(instance.curPath != null) {
-                    AStarRailNode curNode = instance.curPath;
-                    NBTTagList nodeList = new NBTTagList();
-                    while(curNode != null) {
-                        NBTTagCompound nodeTag = new NBTTagCompound();
-                        nodeTag.setInteger("x", curNode.getRail().getX());
-                        nodeTag.setInteger("y", curNode.getRail().getY());
-                        nodeTag.setInteger("z", curNode.getRail().getZ());
-                        nodeList.appendTag(nodeTag);
-
-                        curNode = curNode.getNextNode();
-                    }
-                    tag.setTag("path", nodeList);
-                }
-
                 tag.setBoolean("motorized", instance.motorized);
                 if(instance.motorized) {
                     tag.setInteger("fuelLeft", instance.fuelLeft);
@@ -123,17 +99,6 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                 instance.destinationStations = tag.getString("destinations");
                 instance.recompileRegexes();
                 instance.curDestinationIndex = tag.getInteger("destIndex");
-
-                if(tag.hasKey("path")) {
-                    instance.nbtLoadedPath = new ArrayList<>();
-                    NBTTagList nodeList = tag.getTagList("path", 10);
-                    for(int i = 0; i < nodeList.tagCount(); i++) {
-                        NBTTagCompound nodeTag = nodeList.getCompoundTagAt(i);
-                        instance.nbtLoadedPath.add(new BlockPos(nodeTag.getInteger("x"), nodeTag.getInteger("y"), nodeTag.getInteger("z")));
-                    }
-                } else {
-                    instance.curPath = null;
-                }
 
                 instance.motorized = tag.getBoolean("motorized");
                 if(instance.motorized) {
@@ -236,34 +201,6 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
     public Pattern getCurrentDestinationRegex(){
         getCurrentDestination();
         return curDestinationIndex >= 0 ? destinationRegexes[curDestinationIndex] : EMPTY_PATTERN;
-    }
-
-    public void setPath(EntityMinecart cart, AStarRailNode path){
-        curPath = path;
-        nbtLoadedPath = null;
-        sendUpdatePacket(cart);
-    }
-
-    private static void sendUpdatePacket(EntityMinecart cart){
-        NetworkHandler.sendToAll(new PacketUpdateMinecartPath(cart));
-    }
-
-    public AStarRailNode getPath(World world){
-        if(nbtLoadedPath != null) {
-            AStarRailNode prevNode = null;
-            for(int i = nbtLoadedPath.size() - 1; i >= 0; i--) {
-                AStarRailNode curNode = new AStarRailNode(RailCacheManager.getInstance(world).getRail(world, nbtLoadedPath.get(i)), null, null);
-                if(prevNode != null) curNode.checkImprovementAndUpdate(prevNode);
-                prevNode = curNode;
-            }
-            curPath = prevNode;
-            nbtLoadedPath = null;
-        }
-        return curPath;
-    }
-
-    public List<BlockPos> getNBTPath(){
-        return nbtLoadedPath;
     }
 
     public void setMotorized(){
