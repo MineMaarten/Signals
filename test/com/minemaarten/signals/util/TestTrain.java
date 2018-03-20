@@ -1,10 +1,10 @@
 package com.minemaarten.signals.util;
 
 import java.util.Collections;
-import java.util.Set;
 
 import org.apache.commons.lang3.NotImplementedException;
 
+import com.google.common.collect.ImmutableSet;
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
@@ -16,13 +16,13 @@ public class TestTrain extends Train<Pos2D>{
 
     private final char trainID;
 
-    public TestTrain(RailNetwork<Pos2D> network, Set<Pos2D> positions, char trainID){
+    public TestTrain(RailNetwork<Pos2D> network, ImmutableSet<Pos2D> positions, char trainID){
         setPositions(network, positions);
         this.trainID = trainID;
     }
 
     public void setPosition(RailNetwork<Pos2D> network, Pos2D pos){
-        setPositions(network, Collections.singleton(pos));
+        setPositions(network, ImmutableSet.of(pos));
     }
 
     public void setClaimingSection(RailSection<Pos2D> section){

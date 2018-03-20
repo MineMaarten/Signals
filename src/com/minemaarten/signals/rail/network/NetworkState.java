@@ -1,5 +1,9 @@
 package com.minemaarten.signals.rail.network;
 
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,15 +23,22 @@ import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
  *
  */
 public class NetworkState<TPos extends IPosition<TPos>> {
-    private Set<? extends Train<TPos>> trains = Collections.emptySet();
+    private TIntObjectMap<Train<TPos>> trains = new TIntObjectHashMap<>();
     private Map<TPos, EnumLampStatus> signalToLampStatusses = Collections.emptyMap();
 
-    public void setTrains(Set<? extends Train<TPos>> trains){
-        this.trains = trains;
+    public void setTrains(Collection<? extends Train<TPos>> trains){
+        this.trains = new TIntObjectHashMap<>(trains.size());
+        for(Train<TPos> t : trains) {
+            this.trains.put(t.id, t);
+        }
     }
 
-    public Set<? extends Train<TPos>> getTrains(){
+    public TIntObjectMap<Train<TPos>> getTrains(){
         return trains;
+    }
+
+    public Train<TPos> getTrain(int id){
+        return trains.get(id);
     }
 
     public void updateSignalStatusses(RailNetwork<TPos> network){
@@ -132,7 +143,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     private EnumLampStatus getBlockSignalStatus(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
         RailSection<TPos> nextSection = signal.getNextRailSection(network);
         if(nextSection != null) {
-            Train<TPos> trainOnSection = nextSection.getTrain(trains);
+            Train<TPos> trainOnSection = nextSection.getTrain(trains.valueCollection());
 
             //When there's a train on the next section, and it is not a train that's exiting this signal
             if(trainOnSection != null && !trainOnSection.getPositions().contains(signal.getRailPos())) {
@@ -151,7 +162,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     }
 
     public Train<TPos> getTrainAtPositions(Stream<TPos> positions){
-        return positions.flatMap(pos -> trains.stream().filter(t -> t.getPositions().contains(pos))).findFirst().orElse(null);
+        return positions.flatMap(pos -> trains.valueCollection().stream().filter(t -> t.getPositions().contains(pos))).findFirst().orElse(null);
     }
 
     public Train<TPos> getTrainAtSignal(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
@@ -163,7 +174,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     }
 
     public Train<TPos> getClaimingTrain(RailSection<TPos> section){
-        return trains.stream().filter(t -> t.getClaimedSections().contains(section)).findFirst().orElse(null);
+        return trains.valueCollection().stream().filter(t -> t.getClaimedSections().contains(section)).findFirst().orElse(null);
     }
 
     public void pathfindTrains(RailNetwork<TPos> network){
@@ -178,7 +189,13 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     private void pathfindTrains(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
         Train<TPos> trainAtSignal = getTrainAtSignal(network, signal);
         if(trainAtSignal != null) {
-            trainAtSignal.setPath(network, this, trainAtSignal.pathfind(signal.getRailPos(), signal.heading));
+            RailRoute<TPos> route = trainAtSignal.pathfind(signal.getRailPos(), signal.heading);
+            trainAtSignal.setPath(network, this, route);
+            onCartRouted(trainAtSignal, route);
         }
+    }
+
+    protected void onCartRouted(Train<TPos> train, RailRoute<TPos> route){
+
     }
 }

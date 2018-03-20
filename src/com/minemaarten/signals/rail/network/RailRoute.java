@@ -1,29 +1,28 @@
 package com.minemaarten.signals.rail.network;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.collect.ImmutableList;
 
 public class RailRoute<TPos extends IPosition<TPos>> {
 
     /**
      * All intersections part of this route
      */
-    public final List<RailRouteNode<TPos>> routeNodes;
+    public final ImmutableList<RailRouteNode<TPos>> routeNodes;
 
     /**
      * All (partial) edges part of this route.
      */
-    public final List<RailEdge<TPos>> routeEdges;
+    public final ImmutableList<RailEdge<TPos>> routeEdges;
 
     /**
-     * All individual rails part of this route, in order.
+     * All individual rails part of this route, in order. Used just to send to the client to visualize.
      */
-    private final LinkedHashSet<NetworkRail<TPos>> routeRails;
+    public final ImmutableList<TPos> routeRails;
 
-    public RailRoute(List<RailRouteNode<TPos>> routeNodes, LinkedHashSet<NetworkRail<TPos>> routeRails,
-            List<RailEdge<TPos>> routeEdges){
+    public RailRoute(ImmutableList<RailRouteNode<TPos>> routeNodes, ImmutableList<TPos> routeRails,
+            ImmutableList<RailEdge<TPos>> routeEdges){
         this.routeNodes = routeNodes;
         this.routeRails = routeRails;
         this.routeEdges = routeEdges;

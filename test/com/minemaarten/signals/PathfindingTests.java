@@ -28,6 +28,7 @@ public class PathfindingTests{
         RailRoute<Pos2D> route = network.pathfind();
         Assert.assertNotNull(route);
         Assert.assertEquals(0, route.routeNodes.size());
+        Assert.assertEquals(4, route.routeRails.size());
     }
     
     @Test
@@ -38,6 +39,18 @@ public class PathfindingTests{
         RailRoute<Pos2D> route = network.pathfind();
         Assert.assertNotNull(route);
         Assert.assertEquals(0, route.routeNodes.size());
+        Assert.assertEquals(4, route.routeRails.size());
+    }
+    
+    @Test
+    public void testBasicNonEndStartAndEndPath(){
+        List<String> map = new ArrayList<>();
+        map.add("+s++d+");
+        TestRailNetwork network = NetworkParser.createDefaultParser().parse(map);
+        RailRoute<Pos2D> route = network.pathfind();
+        Assert.assertNotNull(route);
+        Assert.assertEquals(0, route.routeNodes.size());
+        Assert.assertEquals(4, route.routeRails.size());
     }
 
     @Test
@@ -225,9 +238,9 @@ public class PathfindingTests{
         map.add(" +++++#    ");
         map.add(" d    ++++ ");
         map.add(" +  +    + ");
-        map.add(" +++0+++++ ");
+        map.add(" +++1+++++ ");
         NetworkParser.createDefaultParser()
-                     .addExpectedIntersection(0, EnumHeading.EAST, EnumHeading.WEST)
+                     .addExpectedIntersection(1, EnumHeading.EAST, EnumHeading.WEST)
                      .parse(map)
                      .validate();
     }
@@ -242,10 +255,10 @@ public class PathfindingTests{
         map.add("      +    ");
         map.add(" +++++#+++ ");
         map.add(" d    +  + ");
-        map.add(" +    +++0 ");
+        map.add(" +    +++1 ");
         map.add("         + ");
         NetworkParser.createDefaultParser()
-                     .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.NORTH)
+                     .addExpectedIntersection(1, EnumHeading.WEST, EnumHeading.NORTH)
                      .parse(map)
                      .validate();
     }

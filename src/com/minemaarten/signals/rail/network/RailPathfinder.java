@@ -13,6 +13,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 
@@ -116,6 +117,14 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             goalNode.distanceFromGoal = 0;
             queue.add(goalNode);
             nodeMap.put(goal, goalNode);
+
+            //Special case: start is on the same edge as one of the goals.
+            if(startPosEdge != null && startPosEdge.contains(goal)) {
+                int startIndex = startPosEdge.getIndex(start);
+                int endIndex = startPosEdge.getIndex(goal);
+                bestRoute = new AStarRailNode(goal, startPosEdge.subEdge(startIndex, endIndex), goal);
+                bestRoute.distanceFromGoal = endIndex - startIndex;
+            }
         }
 
         while(!queue.isEmpty()) {
@@ -172,26 +181,28 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
     private RailRoute<TPos> toRailRoute(AStarRailNode node){
         List<RailRouteNode<TPos>> routeNodes = new ArrayList<>();
         List<RailEdge<TPos>> routeEdges = new ArrayList<>();
-        LinkedHashSet<NetworkRail<TPos>> routeRails = new LinkedHashSet<>();
+        LinkedHashSet<TPos> routeRails = new LinkedHashSet<>();
 
-        routeRails.addAll(node.edge.traverseWithFirst(node.pos));
+        routeRails.addAll(node.edge.traverseWithFirst(node.pos).stream().map(r -> r.pos).collect(Collectors.toList()));
         routeEdges.add(node.edge);
+        routeNodes.addAll(node.edge.getIntersectionsWithFirst(node.pos));
+
         AStarRailNode prevNode = node;
         node = node.getNextNode();
 
         while(node != null && node.edge != null) {
-            routeRails.addAll(node.edge.traverseWithFirst(node.pos));
+            routeRails.addAll(node.edge.traverseWithFirst(node.pos).stream().map(r -> r.pos).collect(Collectors.toList()));
             routeEdges.add(node.edge);
 
             EnumHeading dirIn = EnumHeading.getOpposite(prevNode.edge.headingForEndpoint(node.pos));
             EnumHeading dirOut = EnumHeading.getOpposite(node.edge.headingForEndpoint(node.pos));
             routeNodes.add(new RailRouteNode<TPos>(node.pos, dirIn, dirOut));
-
             routeNodes.addAll(node.edge.getIntersectionsWithFirst(node.pos));
 
             prevNode = node;
             node = node.getNextNode();
         }
-        return new RailRoute<TPos>(routeNodes, routeRails, routeEdges);
+
+        return new RailRoute<TPos>(ImmutableList.copyOf(routeNodes), ImmutableList.copyOf(routeRails), ImmutableList.copyOf(routeEdges));
     }
 }

@@ -334,8 +334,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         throw new IllegalStateException("Pos " + firstPos + " not start/end of edge " + this);
     }
 
-    //FIXME transfer intersections?
-    private RailEdge<TPos> subEdge(int startIndex, int endIndex){
+    public RailEdge<TPos> subEdge(int startIndex, int endIndex){
         ImmutableList<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndex + 1);
         return new RailEdge<TPos>(railObjects, subEdge, intersections);
     }

@@ -23,6 +23,8 @@ public class NetworkHandler{
         INSTANCE.registerMessage(PacketUpdateMinecartEngineState.class, PacketUpdateMinecartEngineState.class, discriminant++, Side.CLIENT);
         INSTANCE.registerMessage(PacketUpdateNetwork.class, PacketUpdateNetwork.class, discriminant++, Side.CLIENT);
         INSTANCE.registerMessage(PacketClearNetwork.class, PacketClearNetwork.class, discriminant++, Side.CLIENT);
+        INSTANCE.registerMessage(PacketUpdateTrainPath.class, PacketUpdateTrainPath.class, discriminant++, Side.CLIENT);
+        INSTANCE.registerMessage(PacketAddTrain.class, PacketAddTrain.class, discriminant++, Side.CLIENT);
 
         INSTANCE.registerMessage(PacketGuiButton.class, PacketGuiButton.class, discriminant++, Side.SERVER);
         INSTANCE.registerMessage(PacketUpdateTextfield.class, PacketUpdateTextfield.class, discriminant++, Side.SERVER);

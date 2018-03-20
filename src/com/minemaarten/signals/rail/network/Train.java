@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableSet;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 
@@ -16,11 +17,22 @@ import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
  * @param <TPos>
  */
 public abstract class Train<TPos extends IPosition<TPos>> {
+    private static int curID = 0;
+
+    public final int id; //ID used for server -> client communication.
     private RailRoute<TPos> path;
     private int curIntersection;
 
-    private Set<TPos> positions = Collections.emptySet();
+    private ImmutableSet<TPos> positions = ImmutableSet.of();
     protected Set<RailSection<TPos>> claimedSections = Collections.emptySet();
+
+    public Train(){
+        this(curID++);
+    }
+
+    public Train(int id){
+        this.id = id;
+    }
 
     public abstract RailRoute<TPos> pathfind(TPos start, EnumHeading dir);
 
@@ -31,19 +43,19 @@ public abstract class Train<TPos extends IPosition<TPos>> {
      * This may be a single position for a cart, or multiple if actually a train.
      * @return
      */
-    public final Set<TPos> getPositions(){
+    public final ImmutableSet<TPos> getPositions(){
         return positions;
     }
 
-    public final void setPositions(RailNetwork<TPos> network, Set<TPos> positions){
+    public final void setPositions(RailNetwork<TPos> network, ImmutableSet<TPos> positions){
         if(!this.positions.equals(positions)) { //When the train has moved
-            this.positions = positions;
+            this.positions = positions; //TODO sync
             updateIntersections();
             updateClaimedSections(network);
         }
     }
 
-    private void updateIntersections(){
+    protected void updateIntersections(){
         if(path != null && curIntersection < path.routeNodes.size() && !positions.isEmpty()) {
             RailRouteNode<TPos> curNode = path.routeNodes.get(curIntersection);
             double minDistSq = positions.stream().mapToDouble(curNode.pos::distanceSq).min().getAsDouble();
@@ -54,7 +66,7 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         }
     }
 
-    private void updateClaimedSections(RailNetwork<TPos> network){
+    protected void updateClaimedSections(RailNetwork<TPos> network){
         if(!claimedSections.isEmpty()) {
             //Remove the sections the train is now on from the claim list.
             Set<RailSection<TPos>> curSections = positions.stream().map(network::findSection).collect(Collectors.toSet());
@@ -73,7 +85,7 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         curIntersection = 0;
     }
 
-    private boolean trySetClaims(RailNetwork<TPos> network, NetworkState<TPos> state, RailRoute<TPos> path){
+    protected boolean trySetClaims(RailNetwork<TPos> network, NetworkState<TPos> state, RailRoute<TPos> path){
         if(path != null) {
             claimedSections = new HashSet<>();
             for(RailEdge<TPos> edge : path.routeEdges) {

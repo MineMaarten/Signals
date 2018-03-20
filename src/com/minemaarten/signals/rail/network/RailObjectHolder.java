@@ -69,6 +69,10 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         }
     }
 
+    public RailObjectHolder<TPos> subSelection(List<TPos> rails){
+        return subSelection(getNeighborRails(rails).collect(Collectors.toList()));
+    }
+
     public RailObjectHolder<TPos> subSelection(Collection<NetworkRail<TPos>> rails){
         Set<NetworkObject<TPos>> selection = new HashSet<NetworkObject<TPos>>(rails);
         for(NetworkRail<TPos> rail : rails) {

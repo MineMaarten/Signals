@@ -6,7 +6,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -18,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 
+import com.google.common.collect.ImmutableSet;
 import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
@@ -42,10 +42,20 @@ public class MCTrain extends Train<MCPos>{
         DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumHeading.WEST, EnumHeading.NORTH), EnumRailDirection.NORTH_WEST);
     }
 
-    private final Set<UUID> cartIDs;
+    public final ImmutableSet<UUID> cartIDs;
+
+    protected MCTrain(int id, ImmutableSet<UUID> cartIDs){
+        super(id);
+        this.cartIDs = cartIDs;
+    }
+
+    public MCTrain(ImmutableSet<UUID> cartIDs){
+        super();
+        this.cartIDs = cartIDs;
+    }
 
     public MCTrain(List<EntityMinecart> carts){
-        cartIDs = carts.stream().map(c -> c.getUniqueID()).collect(Collectors.toSet());
+        this(carts.stream().map(c -> c.getUniqueID()).collect(ImmutableSet.toImmutableSet()));
     }
 
     private List<EntityMinecart> getCarts(){
@@ -54,7 +64,7 @@ public class MCTrain extends Train<MCPos>{
     }
 
     public void updatePositions(){
-        Set<MCPos> positions = getCarts().stream().map(c -> new MCPos(c.world, c.getPosition())).collect(Collectors.toSet());
+        ImmutableSet<MCPos> positions = ImmutableSet.copyOf(getCarts().stream().map(c -> new MCPos(c.world, c.getPosition())).collect(Collectors.toSet()));
         if(!positions.isEmpty()) { //Update if any cart is loaded, currently.
             setPositions(RailNetworkManager.getInstance().getNetwork(), positions);
         }
@@ -128,4 +138,43 @@ public class MCTrain extends Train<MCPos>{
     public int hashCode(){
         return cartIDs.hashCode();
     }
+
+    /* public void writeToBuf(ByteBuf b){
+         b.writeInt(cartIDs.size());
+         PacketBuffer pb = new PacketBuffer(b);
+         for(UUID cartID : cartIDs) {
+             pb.writeUniqueId(cartID);
+         }
+
+         b.writeInt(getPositions().size());
+         for(MCPos pos : getPositions()) {
+             pos.writeToBuf(b);
+         }
+
+         
+     }
+
+     public static MCTrain fromByteBuf(ByteBuf b){
+         int ids = b.readInt();
+         PacketBuffer pb = new PacketBuffer(b);
+         Set<UUID> cartIDs = new HashSet<>(ids);
+         for(int i = 0; i < ids; i++) {
+             cartIDs.add(pb.readUniqueId());
+         }
+
+         int posCount = b.readInt();
+         Set<MCPos> positions = new HashSet<>(posCount);
+         for(int i = 0; i < posCount; i++) {
+             positions.add(new MCPos(b));
+         }
+
+         
+
+         MCTrain train = new MCTrainClient(cartIDs);
+         train.setPositions(null, positions);
+         train.setPath(null, null, path);
+
+         return train;
+     }*/
+
 }

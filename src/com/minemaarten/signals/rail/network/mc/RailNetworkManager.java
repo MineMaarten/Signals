@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
@@ -24,16 +25,17 @@ import net.minecraftforge.fml.relauncher.Side;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.network.NetworkHandler;
+import com.minemaarten.signals.network.PacketAddTrain;
 import com.minemaarten.signals.network.PacketClearNetwork;
 import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.network.PacketUpdateNetwork;
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
-import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.NetworkUpdater;
 import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
+import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.tileentity.TileEntityBase;
 
 public class RailNetworkManager{
@@ -46,8 +48,7 @@ public class RailNetworkManager{
     }
 
     private RailNetwork<MCPos> network = new RailNetwork<MCPos>(Collections.emptyMap());
-    private final NetworkState<MCPos> state = new NetworkState<>();
-    private Set<MCTrain> trains = Collections.emptySet();
+    private final MCNetworkState state = new MCNetworkState();
     private final NetworkUpdater<MCPos> networkUpdater = new NetworkUpdater<>(new NetworkObjectProvider());
 
     private RailNetworkManager(){
@@ -124,22 +125,40 @@ public class RailNetworkManager{
             }
         }
 
-        trains = new NetworkObjectProvider().provideTrains(carts);
+        Set<MCTrain> trains = new NetworkObjectProvider().provideTrains(carts);
         state.setTrains(trains);
+        for(MCTrain train : trains) {
+            NetworkHandler.sendToAll(new PacketAddTrain(train));
+        }
     }
 
     private void updateState(){
-        if(trains.isEmpty()) {
+        if(state.getTrains().isEmpty()) {
             initTrains();
         }
 
-        trains.forEach(t -> t.updatePositions());
+        state.getTrains().valueCollection().forEach(t -> ((MCTrain)t).updatePositions());
         state.updateSignalStatusses(network);
         state.pathfindTrains(network);
     }
 
     public RailNetwork<MCPos> getNetwork(){
         return network;
+    }
+
+    public MCTrain getTrainByID(int id){
+        return (MCTrain)state.getTrain(id);
+    }
+
+    public Iterable<MCTrain> getAllTrains(){
+        return state.getTrains().valueCollection().stream().map(t -> (MCTrain)t).collect(Collectors.toList());
+    }
+
+    public void addTrain(MCTrain train){
+        if(this == SERVER_INSTANCE) {
+            NetworkHandler.sendToAll(new PacketAddTrain(train));
+        }
+        state.getTrains().put(train.id, train);
     }
 
     public EnumLampStatus getLampStatus(World world, BlockPos pos){
@@ -176,6 +195,7 @@ public class RailNetworkManager{
 
     public void clearNetwork(){
         network = new RailNetwork<>(Collections.emptyList());
+        state.setTrains(Collections.emptyList());
         Signals.proxy.onRailNetworkUpdated();
     }
 
@@ -187,5 +207,8 @@ public class RailNetworkManager{
     public void onPlayerJoin(EntityPlayerMP player){
         NetworkHandler.sendTo(new PacketClearNetwork(), player);
         NetworkHandler.sendTo(new PacketUpdateNetwork(network.railObjects.getAllNetworkObjects().values()), player);
+        for(Train<MCPos> train : state.getTrains().valueCollection()) {
+            NetworkHandler.sendTo(new PacketAddTrain((MCTrain)train), player);
+        }
     }
 }
