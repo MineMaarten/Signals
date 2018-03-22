@@ -45,13 +45,12 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class ClientProxy extends CommonProxy{
-    private final ClientEventHandler eventHandler = new ClientEventHandler();
+    private final ClientEventHandler eventHandler = ClientEventHandler.INSTANCE;
 
     @Override
     public void preInit(){
         MinecraftForge.EVENT_BUS.register(eventHandler);
         MinecraftForge.EVENT_BUS.register(GlassesHUD.getInstance());
-        MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySignalBase.class, new SignalStatusRenderer());
     }
 

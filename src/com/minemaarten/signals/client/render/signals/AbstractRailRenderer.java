@@ -31,13 +31,13 @@ public abstract class AbstractRailRenderer<TSection> {
 
     private Map<TSection, SectionRenderer> sectionsToRenderer = new HashMap<>();
 
-    private void addSectionRenderer(TSection edge){
-        SectionRenderer renderer = new SectionRenderer(edge);
+    private void addSectionRenderer(TSection section){
+        SectionRenderer renderer = new SectionRenderer(section);
 
-        Set<Integer> invalidColors = getAdjacentSections(edge).map(x -> x.colorIndex).collect(Collectors.toSet());
+        Set<Integer> invalidColors = getAdjacentSections(section).map(x -> x.colorIndex).collect(Collectors.toSet());
         int availableColors = 16 - invalidColors.size();
         if(availableColors > 0) { //If there are colors left (it would be very exceptional if there weren't.
-            int usedIndex = Math.abs(edge.hashCode()) % availableColors; //Use a deterministic way to generate a color index.
+            int usedIndex = Math.abs(section.hashCode()) % availableColors; //Use a deterministic way to generate a color index.
             for(int i = 0; i < 16; i++) {
                 if(!invalidColors.contains(i)) {
                     if(usedIndex-- <= 0) {
@@ -50,7 +50,7 @@ public abstract class AbstractRailRenderer<TSection> {
 
         renderer.compileRender();
 
-        sectionsToRenderer.put(edge, renderer);
+        sectionsToRenderer.put(section, renderer);
     }
 
     private Stream<SectionRenderer> getAdjacentSections(TSection edge){
@@ -63,6 +63,11 @@ public abstract class AbstractRailRenderer<TSection> {
         for(TSection edge : getRenderableSections()) {
             addSectionRenderer(edge);
         }
+    }
+
+    public void updateSpecificSection(TSection section){
+        sectionsToRenderer.remove(section);
+        addSectionRenderer(section);
     }
 
     protected abstract boolean isAdjacent(TSection s1, TSection s2);

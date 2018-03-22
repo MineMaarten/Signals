@@ -30,9 +30,14 @@ import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class ClientEventHandler{
 
+    public static final ClientEventHandler INSTANCE = new ClientEventHandler();
     public final BlockSectionRenderer blockSectionRenderer = new BlockSectionRenderer();
     public final RailEdgeRenderer edgeRenderer = new RailEdgeRenderer();
     public final PathRenderer pathRenderer = new PathRenderer();
+
+    private ClientEventHandler(){
+
+    }
 
     @SubscribeEvent
     public void onWorldRender(RenderWorldLastEvent event){
@@ -57,10 +62,11 @@ public class ClientEventHandler{
         List<TileEntity> tes = player.world.loadedTileEntityList;
         if(player.isSneaking()) {
             //blockSectionRenderer.render(b);
-            pathRenderer.render(b);
+            // pathRenderer.render(b);
         } else {
-            edgeRenderer.render(b);
+            //  edgeRenderer.render(b);
         }
+        pathRenderer.render(b);
 
         b.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
