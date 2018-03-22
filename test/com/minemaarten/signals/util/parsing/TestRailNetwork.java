@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.junit.Assert;
 
 import com.minemaarten.signals.lib.StreamUtils;
+import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.NetworkUpdater;
@@ -24,12 +25,13 @@ import com.minemaarten.signals.util.railnode.RailNodeTrainProvider;
 public class TestRailNetwork extends RailNetwork<Pos2D>{
 
     public final Pos2D start;
+    public final EnumHeading pathfindDir;
     public final Set<Pos2D> destinations;
     private final NetworkState<Pos2D> state;
     private final NetworkUpdater<Pos2D> networkUpdater;
     private final NetworkParser parser;
 
-    public TestRailNetwork(NetworkParser parser, List<NetworkObject<Pos2D>> allNetworkObjects){
+    public TestRailNetwork(NetworkParser parser, List<NetworkObject<Pos2D>> allNetworkObjects, EnumHeading pathfindDir){
         super(allNetworkObjects);
 
         this.parser = parser;
@@ -37,6 +39,7 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
         List<DefaultRailNode> startNodes = railObjects.networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isStart).collect(Collectors.toList());
         if(startNodes.size() > 1) throw new IllegalStateException("Multiple start nodes defined: " + startNodes.size());
         start = startNodes.isEmpty() ? null : startNodes.get(0).pos;
+        this.pathfindDir = pathfindDir;
 
         destinations = railObjects.networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isDestination).map(r -> r.pos).collect(Collectors.toSet());
 
@@ -46,7 +49,7 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
     }
 
     public RailRoute<Pos2D> pathfind(){
-        return pathfind(state, start, null, destinations);
+        return pathfind(state, start, pathfindDir, destinations);
     }
 
     /**
@@ -98,7 +101,7 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
         if(start != null) {
             state.updateSignalStatusses(this);
             TestTrain train = (TestTrain)state.getTrainAtPositions(Stream.of(start));
-            if(train != null) train.setPath(this, state, pathfind());
+            if(train != null) train.setPath(pathfind());
         }
         state.updateSignalStatusses(this);
         StreamUtils.ofInterface(IValidatingNode.class, railObjects).forEach(r -> r.validate(this, state));

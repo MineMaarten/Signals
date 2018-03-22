@@ -32,6 +32,22 @@ public class PathfindingTests{
     }
     
     @Test
+    public void testBasicNoPath(){
+        List<String> map = new ArrayList<>();
+        map.add("s+ +d");
+        TestRailNetwork network = NetworkParser.createDefaultParser().parse(map);
+        Assert.assertNull(network.pathfind());
+    }
+    
+    @Test
+    public void testDirectionalNoPath(){
+        List<String> map = new ArrayList<>();
+        map.add("+s+++d");
+        TestRailNetwork network = NetworkParser.createDefaultParser().setPathfindDir(EnumHeading.WEST).parse(map);
+        Assert.assertNull(network.pathfind());
+    }
+    
+    @Test
     public void testBasicNonEndStartPath(){
         List<String> map = new ArrayList<>();
         map.add("+s++d");
@@ -54,14 +70,6 @@ public class PathfindingTests{
     }
 
     @Test
-    public void testBasicNoPath(){
-        List<String> map = new ArrayList<>();
-        map.add("s+ +d");
-        TestRailNetwork network = NetworkParser.createDefaultParser().parse(map);
-        Assert.assertNull(network.pathfind());
-    }
-
-    @Test
     public void testBasicIntersectionPath(){
         List<String> map = new ArrayList<>();
         map.add("s+0+d");
@@ -71,6 +79,20 @@ public class PathfindingTests{
                      .addExpectedIntersection(0, EnumHeading.WEST, EnumHeading.EAST)
                      .parse(map)
                      .validate();
+    }
+    
+    @Test
+    public void testBasicIntersectionNonEndStartPath(){
+        List<String> map = new ArrayList<>();
+        map.add("+s+++d+");
+        map.add("   +   ");
+        map.add("   +   ");
+       
+        TestRailNetwork network =  NetworkParser.createDefaultParser().parse(map);
+        RailRoute<Pos2D> route = network.pathfind();
+        Assert.assertNotNull(route);
+        Assert.assertEquals(1, route.routeNodes.size());
+        Assert.assertEquals(5, route.routeRails.size());
     }
     
     @Test

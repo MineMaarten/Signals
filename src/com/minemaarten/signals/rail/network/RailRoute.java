@@ -21,11 +21,17 @@ public class RailRoute<TPos extends IPosition<TPos>> {
      */
     public final ImmutableList<TPos> routeRails;
 
+    /**
+     * All signals part of this route, ordered by encountering.
+     */
+    public final ImmutableList<NetworkSignal<TPos>> routeSignals;
+
     public RailRoute(ImmutableList<RailRouteNode<TPos>> routeNodes, ImmutableList<TPos> routeRails,
-            ImmutableList<RailEdge<TPos>> routeEdges){
+            ImmutableList<RailEdge<TPos>> routeEdges, ImmutableList<NetworkSignal<TPos>> routeSignals){
         this.routeNodes = routeNodes;
         this.routeRails = routeRails;
         this.routeEdges = routeEdges;
+        this.routeSignals = routeSignals;
     }
 
     @Override

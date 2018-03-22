@@ -41,7 +41,7 @@ public class PacketUpdateTrainPath extends AbstractPacket<PacketUpdateTrainPath>
             for(int i = 0; i < count; i++) {
                 routeRails.add(new MCPos(b));
             }
-            path = new RailRoute<>(ImmutableList.of(), routeRails.build(), ImmutableList.of());
+            path = new RailRoute<>(ImmutableList.of(), routeRails.build(), ImmutableList.of(), ImmutableList.of());
         }
     }
 
@@ -49,7 +49,7 @@ public class PacketUpdateTrainPath extends AbstractPacket<PacketUpdateTrainPath>
     public void handleClientSide(EntityPlayer player){
         MCTrain train = RailNetworkManager.getInstance().getTrainByID(trainID);
         if(train != null) {
-            train.setPath(null, null, path);
+            train.setPath(path);
         }
     }
 

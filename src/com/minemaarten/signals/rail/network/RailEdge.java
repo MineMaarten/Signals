@@ -9,7 +9,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.Validate;
 
+import com.google.common.base.Functions;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 
@@ -26,6 +30,11 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
     public final RailObjectHolder<TPos> railObjects;
     public final ImmutableList<NetworkRail<TPos>> edge;
+
+    /**
+     * All signals part of this edge, in order of the edge.
+     */
+    private final ImmutableList<NetworkSignal<TPos>> signals;
 
     /**
      * Intersection on this edge. This can happen for rail crossings, where for pathfinding the intersection is considered a straight line,
@@ -136,6 +145,25 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
         this.intersections = intersections == null ? computeIntersections(allRailObjects) : intersections;
         intersectionsReversed = reverseIntersections(this.intersections);
+
+        signals = computeSignals();
+    }
+
+    private ImmutableList<NetworkSignal<TPos>> computeSignals(){
+        Multimap<TPos, NetworkSignal<TPos>> posToSignals = railObjects.getSignals().collect(Multimaps.toMultimap(NetworkSignal::getRailPos, Functions.identity(), ArrayListMultimap::create));
+
+        ImmutableList.Builder<NetworkSignal<TPos>> builder = ImmutableList.builder();
+        for(NetworkRail<TPos> rail : edge) {
+            builder.addAll(posToSignals.get(rail.pos));
+        }
+
+        return builder.build();
+    }
+
+    public ImmutableList<NetworkSignal<TPos>> traverseSignalsWithFirst(TPos pos){
+        if(pos.equals(startPos)) return signals;
+        if(pos.equals(endPos)) return signals.reverse();
+        throw new IllegalArgumentException("Pos " + pos + "not a start or end pos of edge " + this);
     }
 
     private List<RailRouteNode<TPos>> reverseIntersections(List<RailRouteNode<TPos>> intersections){
@@ -305,7 +333,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
     public int getPathLength(NetworkState<TPos> state){
         //Penalize red signals on the way
-        int pathPenalty = (int)(railObjects.getSignals().filter(s -> state.getLampStatus(s.pos) == EnumLampStatus.RED).count() * RED_SIGNAL_PENALTY);
+        int pathPenalty = (int)(signals.stream().filter(s -> state.getLampStatus(s.pos) == EnumLampStatus.RED).count() * RED_SIGNAL_PENALTY);
         return length + pathPenalty;
     }
 
@@ -337,6 +365,10 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     public RailEdge<TPos> subEdge(int startIndex, int endIndex){
         ImmutableList<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndex + 1);
         return new RailEdge<TPos>(railObjects, subEdge, intersections);
+    }
+
+    public boolean canTravelFrom(TPos pos){
+        return !unidirectional || pos.equals(startPos);
     }
 
     @Override

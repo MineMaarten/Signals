@@ -2,13 +2,17 @@ package com.minemaarten.signals.rail.network;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import net.minecraft.util.EnumParticleTypes;
+
 import com.google.common.collect.ImmutableSet;
+import com.minemaarten.signals.network.NetworkHandler;
+import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
+import com.minemaarten.signals.rail.network.mc.MCPos;
 
 /**
  * A train is a collection of one or more carts that behave like one. Notably they share a route, and multiple carts part of the same train are allowed on a rail section.
@@ -71,6 +75,14 @@ public abstract class Train<TPos extends IPosition<TPos>> {
             //Remove the sections the train is now on from the claim list.
             Set<RailSection<TPos>> curSections = positions.stream().map(network::findSection).collect(Collectors.toSet());
             claimedSections.removeAll(curSections);
+
+            //TODO remove
+            for(RailSection<TPos> section : claimedSections) {
+                RailSection<MCPos> mcSection = (RailSection<MCPos>)section;
+                mcSection.getRailPositions().forEach(pos -> {
+                    NetworkHandler.sendToAll(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0, 0, 0));
+                });
+            }
         }
     }
 
@@ -78,37 +90,37 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         return path;
     }
 
-    public void setPath(RailNetwork<TPos> network, NetworkState<TPos> state, RailRoute<TPos> path){
+    public boolean tryUpdatePath(RailNetwork<TPos> network, NetworkState<TPos> state, RailRoute<TPos> path){
         if(trySetClaims(network, state, path)) {
-            this.path = path;
+            setPath(path);
+            return true;
+        } else {
+            return false;
         }
+    }
+
+    public void setPath(RailRoute<TPos> path){
+        this.path = path;
         curIntersection = 0;
+        if(path == null) claimedSections = Collections.emptySet();
     }
 
     protected boolean trySetClaims(RailNetwork<TPos> network, NetworkState<TPos> state, RailRoute<TPos> path){
         if(path != null) {
             claimedSections = new HashSet<>();
-            for(RailEdge<TPos> edge : path.routeEdges) {
-                List<NetworkSignal<TPos>> signals = edge.railObjects.getSignals().collect(Collectors.toList());
-                boolean containsBlockSignal = signals.stream().anyMatch(s -> s.type == EnumSignalType.BLOCK);
-                boolean containsChainSignal = signals.stream().anyMatch(s -> s.type == EnumSignalType.CHAIN);
 
-                if(containsChainSignal) {
-                    for(NetworkSignal<TPos> signal : signals) {
-                        RailSection<TPos> section = signal.getNextRailSection(network);
-                        if(section != null) {
-                            Train<TPos> claimingTrain = state.getClaimingTrain(section);
-                            if(claimingTrain == null || claimingTrain.equals(this)) {
-                                claimedSections.add(section);
-                            } else {
-                                claimedSections = Collections.emptySet();
-                                return false;
-                            }
-                        }
+            for(NetworkSignal<TPos> signal : path.routeSignals) {
+                if(signal.type == EnumSignalType.BLOCK) break;
+                RailSection<TPos> section = signal.getNextRailSection(network);
+                if(section != null) {
+                    Train<TPos> claimingTrain = state.getClaimingTrain(section);
+                    if(claimingTrain == null || claimingTrain.equals(this)) {
+                        claimedSections.add(section);
+                    } else {
+                        claimedSections = Collections.emptySet();
+                        return false;
                     }
                 }
-
-                if(containsBlockSignal) break;
             }
         } else {
             claimedSections = Collections.emptySet();

@@ -122,8 +122,17 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             if(startPosEdge != null && startPosEdge.contains(goal)) {
                 int startIndex = startPosEdge.getIndex(start);
                 int endIndex = startPosEdge.getIndex(goal);
-                bestRoute = new AStarRailNode(goal, startPosEdge.subEdge(startIndex, endIndex), goal);
-                bestRoute.distanceFromGoal = endIndex - startIndex;
+                if(startIndex > endIndex) {
+                    int temp = startIndex;
+                    startIndex = endIndex;
+                    endIndex = temp;
+                }
+
+                RailEdge<TPos> singleEdge = startPosEdge.subEdge(startIndex, endIndex);
+                if(singleEdge.canTravelFrom(start) && (direction == null || direction == singleEdge.headingForEndpoint(start).getOpposite())) {
+                    bestRoute = new AStarRailNode(goal, singleEdge, goal);
+                    bestRoute.distanceFromGoal = endIndex - startIndex;
+                }
             }
         }
 
@@ -155,6 +164,10 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             }
 
             for(RailEdge<TPos> nextEdge : entryEdges) {
+                if(node.edge != null && node.edge.headingForEndpoint(node.pos) == nextEdge.headingForEndpoint(node.pos)) {
+                    continue; //We can't go back on the same edge
+                }
+
                 TPos nextPos = nextEdge.other(node.pos);
                 AStarRailNode neighborNode = nodeMap.get(nextPos);
                 if(neighborNode == null) {
@@ -182,10 +195,12 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
         List<RailRouteNode<TPos>> routeNodes = new ArrayList<>();
         List<RailEdge<TPos>> routeEdges = new ArrayList<>();
         LinkedHashSet<TPos> routeRails = new LinkedHashSet<>();
+        List<NetworkSignal<TPos>> routeSignals = new ArrayList<>();
 
         routeRails.addAll(node.edge.traverseWithFirst(node.pos).stream().map(r -> r.pos).collect(Collectors.toList()));
         routeEdges.add(node.edge);
         routeNodes.addAll(node.edge.getIntersectionsWithFirst(node.pos));
+        routeSignals.addAll(node.edge.traverseSignalsWithFirst(node.pos));
 
         AStarRailNode prevNode = node;
         node = node.getNextNode();
@@ -198,11 +213,12 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             EnumHeading dirOut = EnumHeading.getOpposite(node.edge.headingForEndpoint(node.pos));
             routeNodes.add(new RailRouteNode<TPos>(node.pos, dirIn, dirOut));
             routeNodes.addAll(node.edge.getIntersectionsWithFirst(node.pos));
+            routeSignals.addAll(node.edge.traverseSignalsWithFirst(node.pos));
 
             prevNode = node;
             node = node.getNextNode();
         }
 
-        return new RailRoute<TPos>(ImmutableList.copyOf(routeNodes), ImmutableList.copyOf(routeRails), ImmutableList.copyOf(routeEdges));
+        return new RailRoute<TPos>(ImmutableList.copyOf(routeNodes), ImmutableList.copyOf(routeRails), ImmutableList.copyOf(routeEdges), ImmutableList.copyOf(routeSignals));
     }
 }

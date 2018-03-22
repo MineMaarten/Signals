@@ -92,15 +92,15 @@ public class NetworkState<TPos extends IPosition<TPos>> {
 
             //When we can evaluate this chain signal
             if(!nextSignalStatusses.contains(EnumLampStatus.YELLOW_BLINKING)) {
-                if(nextSignalStatusses.size() > 1) {//Multiple different statusses -> dependent on the routing
+                if(nextSignalStatusses.isEmpty()) {
+                    return EnumLampStatus.GREEN; //No signals, is OK
+                } else if(nextSignalStatusses.size() > 1 || nextSignalStatusses.iterator().next() == EnumLampStatus.YELLOW) {//Multiple different statusses -> dependent on the routing
                     Train<TPos> routedTrain = getTrainAtSignal(network, chainSignal);
                     if(routedTrain != null && routedTrain.getCurRoute() != null) {
                         return evaluateCurRoutedTrain(network, routedTrain, chainSignal, new HashSet<>());
                     } else {
                         return EnumLampStatus.YELLOW; //If we are not routing a train, the status of this signal is not certain
                     }
-                } else if(nextSignalStatusses.isEmpty()) {
-                    return EnumLampStatus.GREEN; //No signals, is OK
                 } else {
                     return nextSignalStatusses.iterator().next(); //Copy the status of the only other status.
                 }
@@ -190,8 +190,13 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         Train<TPos> trainAtSignal = getTrainAtSignal(network, signal);
         if(trainAtSignal != null) {
             RailRoute<TPos> route = trainAtSignal.pathfind(signal.getRailPos(), signal.heading);
-            trainAtSignal.setPath(network, this, route);
-            onCartRouted(trainAtSignal, route);
+            if(trainAtSignal.tryUpdatePath(network, this, route) && signal.type == EnumSignalType.CHAIN) {
+                EnumLampStatus status = getChainSignalStatus(network, new HashSet<>(), signal);
+                if(status != EnumLampStatus.GREEN) {
+                    trainAtSignal.setPath(null); //Only claim sections when the train can actually travel to the other side of the intersection.
+                }
+            }
+            onCartRouted(trainAtSignal, trainAtSignal.getCurRoute());
         }
     }
 

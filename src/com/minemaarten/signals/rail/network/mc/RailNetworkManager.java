@@ -15,7 +15,6 @@ import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
@@ -27,7 +26,6 @@ import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketAddTrain;
 import com.minemaarten.signals.network.PacketClearNetwork;
-import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.network.PacketUpdateNetwork;
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkObject;
@@ -179,7 +177,7 @@ public class RailNetworkManager{
         if(!updates.isEmpty()) {
             for(NetworkObject<MCPos> obj : updates) {
                 //TODO remove
-                NetworkHandler.sendToAll(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, obj.pos.getX() + 0.5, obj.pos.getY() + 0.5, obj.pos.getZ() + 0.5, 0, 0, 0));
+                // NetworkHandler.sendToAll(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, obj.pos.getX() + 0.5, obj.pos.getY() + 0.5, obj.pos.getZ() + 0.5, 0, 0, 0));
             }
 
             NetworkHandler.sendToAll(new PacketUpdateNetwork(updates)); //TODO check if stuff actually changed

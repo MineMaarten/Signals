@@ -35,6 +35,7 @@ import com.minemaarten.signals.util.railnode.ValidatingSignal;
 public class NetworkParser implements INetworkObjectProvider<Pos2D>{
 
     private List<String> map;
+    private EnumHeading pathfindDir;
 
     public static NetworkParser createDefaultParser(){
         NetworkParser parser = new NetworkParser();
@@ -108,6 +109,11 @@ public class NetworkParser implements INetworkObjectProvider<Pos2D>{
         });
     }
 
+    public NetworkParser setPathfindDir(EnumHeading pathfindDir){
+        this.pathfindDir = pathfindDir;
+        return this;
+    }
+
     public TestRailNetwork parse(List<String> map){
         setMap(map);
         int xSize = map.get(0).length();
@@ -126,7 +132,7 @@ public class NetworkParser implements INetworkObjectProvider<Pos2D>{
 
         networkObjects.stream().filter(o -> o instanceof IPreNetworkParseListener).forEach(o -> ((IPreNetworkParseListener)o).onPreNetworkParsing(networkObjects));
 
-        return new TestRailNetwork(this, networkObjects);
+        return new TestRailNetwork(this, networkObjects, pathfindDir);
     }
 
     private void setMap(List<String> map){
