@@ -49,7 +49,13 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
                 NetworkObject<TPos> networkObject = objectProvider.provide(curPos);
                 if(networkObject != null) {
                     allObjects.put(curPos, networkObject);
-                    changedObjects.put(curPos, networkObject);
+
+                    NetworkObject<TPos> prevObj = network.railObjects.get(curPos);
+                    if(!networkObject.equals(prevObj)) { //Only mark stuff changed that actually changed
+                        changedObjects.put(curPos, networkObject);
+                    } else {
+                        changedObjects.remove(curPos); //Remove any possible removal markers that were inserted.
+                    }
 
                     if(networkObject instanceof NetworkRail) {
                         for(TPos neighborPos : ((NetworkRail<TPos>)networkObject).getPotentialNeighborRailLocations()) {
@@ -61,6 +67,7 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
         }
 
         dirtyPositions.clear();
+
         return changedObjects.values();
     }
 

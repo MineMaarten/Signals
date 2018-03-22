@@ -5,6 +5,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.collect.Streams;
 
 public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkObject<TPos>{
@@ -17,7 +19,7 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
      * Arbitrary object to determine if rail types are equal or different. Used to take the rails in front of signals.
      * @return
      */
-    public abstract Object getRailType();
+    public abstract @Nonnull Object getRailType();
 
     /**
      * All potential positions a neighboring rail could be. This does not take entry directions into account.
@@ -57,5 +59,16 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
         if(entryDir == null) return getSectionNeighborRails(railObjects); //When stuff with Rail Link, we can't properly use pathfind directions
         Stream<NetworkRail<TPos>> normalNeighbors = railObjects.getNeighborRails(getPotentialPathfindNeighbors(entryDir));
         return Streams.concat(normalNeighbors, getRailLinkConnectedRails(railObjects));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(Object obj){
+        return super.equals(obj) && obj instanceof NetworkRail && ((NetworkRail<TPos>)obj).getRailType().equals(getRailType());
+    }
+
+    @Override
+    public int hashCode(){
+        return super.hashCode() * 31 + getRailType().hashCode();
     }
 }

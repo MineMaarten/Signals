@@ -37,4 +37,20 @@ public class NetworkSignal<TPos extends IPosition<TPos>> extends NetworkObject<T
         return nextSectionRail != null ? network.findSection(nextSectionRail.pos) : null;
     }
     //@formatter:on
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(Object obj){
+        if(obj instanceof NetworkSignal) {
+            NetworkSignal<TPos> other = (NetworkSignal<TPos>)obj;
+            return super.equals(obj) && heading == other.heading && type == other.type;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode(){
+        return (super.hashCode() * 31 + heading.hashCode()) * 31 + type.hashCode();
+    }
 }

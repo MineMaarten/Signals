@@ -19,6 +19,9 @@ public abstract class NetworkObject<TPos> {
         return pos.toString();
     }
 
+    /**
+     * Should be overriden, to equal only when for the rail network, there's no noticeable difference. This is used to determine if a block update should cause the network to update.
+     */
     @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object obj){

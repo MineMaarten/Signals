@@ -41,4 +41,13 @@ public class NetworkRemovalMarker extends NetworkObject<MCPos> implements ISeria
         return EnumNetworkObject.REMOVAL_MARKER;
     }
 
+    @Override
+    public boolean equals(Object obj){
+        return super.equals(obj) && obj instanceof NetworkRemovalMarker;
+    }
+
+    @Override
+    public int hashCode(){
+        return super.hashCode();
+    }
 }

@@ -194,4 +194,19 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
     public EnumNetworkObject getType(){
         return EnumNetworkObject.RAIL;
     }
+
+    @Override
+    public boolean equals(Object obj){
+        if(obj instanceof MCNetworkRail) {
+            MCNetworkRail other = (MCNetworkRail)obj;
+            return super.equals(obj) && validRailDirs.equals(other.validRailDirs);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode(){
+        return super.hashCode() * 31 + validRailDirs.hashCode();
+    }
 }
