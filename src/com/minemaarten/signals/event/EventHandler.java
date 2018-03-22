@@ -28,6 +28,7 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
 
@@ -157,6 +158,13 @@ public class EventHandler implements IWorldEventListener{
     public void onPostServerTick(ServerTickEvent event){
         if(event.phase == Phase.END) {
             RailNetworkManager.getInstance().onPostServerTick();
+        }
+    }
+
+    @SubscribeEvent
+    public void onPreClientTick(ClientTickEvent event){
+        if(event.phase == Phase.START) {
+            RailNetworkManager.getInstance().onPreClientTick();
         }
     }
 

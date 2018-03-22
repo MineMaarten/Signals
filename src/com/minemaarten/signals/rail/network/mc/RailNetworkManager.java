@@ -7,6 +7,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -23,6 +27,7 @@ import net.minecraftforge.fml.relauncher.Side;
 
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
+import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketAddTrain;
 import com.minemaarten.signals.network.PacketClearNetwork;
@@ -38,13 +43,29 @@ import com.minemaarten.signals.tileentity.TileEntityBase;
 
 public class RailNetworkManager{
 
-    private static final RailNetworkManager CLIENT_INSTANCE = new RailNetworkManager();
-    private static final RailNetworkManager SERVER_INSTANCE = new RailNetworkManager();
+    private static RailNetworkManager CLIENT_INSTANCE;
+    private static RailNetworkManager SERVER_INSTANCE;
 
     public static RailNetworkManager getInstance(){
-        return FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT ? CLIENT_INSTANCE : SERVER_INSTANCE;
+        return FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT ? getClientInstance() : getServerInstance();
     }
 
+    private static RailNetworkManager getClientInstance(){
+        if(CLIENT_INSTANCE == null) {
+            CLIENT_INSTANCE = new RailNetworkManager();
+        }
+        return CLIENT_INSTANCE;
+    }
+
+    private static RailNetworkManager getServerInstance(){
+        if(SERVER_INSTANCE == null) {
+            SERVER_INSTANCE = new RailNetworkManager();
+        }
+        return SERVER_INSTANCE;
+    }
+
+    private final ExecutorService railNetworkExecutor = Executors.newSingleThreadExecutor();
+    private Future<RailNetwork<MCPos>> networkUpdateTask;
     private RailNetwork<MCPos> network = new RailNetwork<MCPos>(Collections.emptyMap());
     private final MCNetworkState state = new MCNetworkState();
     private final NetworkUpdater<MCPos> networkUpdater = new NetworkUpdater<>(new NetworkObjectProvider());
@@ -55,6 +76,10 @@ public class RailNetworkManager{
 
     private void validateOnServer(){
         if(this == CLIENT_INSTANCE) throw new IllegalStateException();
+    }
+
+    private void validateOnClient(){
+        if(this == SERVER_INSTANCE) throw new IllegalStateException();
     }
 
     /**
@@ -92,6 +117,7 @@ public class RailNetworkManager{
         NetworkObjectProvider objProvider = new NetworkObjectProvider();
         Set<NetworkRail<MCPos>> railsToTraverse = getStartNodes();
         Set<NetworkObject<MCPos>> allNetworkObjects = new HashSet<>(railsToTraverse);
+        long milli = System.currentTimeMillis();
         while(!railsToTraverse.isEmpty()) {
             Iterator<NetworkRail<MCPos>> iterator = railsToTraverse.iterator();
             NetworkRail<MCPos> curRail = iterator.next();
@@ -104,10 +130,12 @@ public class RailNetworkManager{
                 }
             }
         }
-
+        Log.info("Retrieving mc objects:" + (System.currentTimeMillis() - milli) + "ms");
         NetworkHandler.sendToAll(new PacketClearNetwork());
         NetworkHandler.sendToAll(new PacketUpdateNetwork(allNetworkObjects));
+        milli = System.currentTimeMillis();
         network = new RailNetwork<MCPos>(allNetworkObjects);
+        Log.info("Building network:" + (System.currentTimeMillis() - milli) + "ms");
         initTrains();
     }
 
@@ -180,15 +208,31 @@ public class RailNetworkManager{
                 // NetworkHandler.sendToAll(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, obj.pos.getX() + 0.5, obj.pos.getY() + 0.5, obj.pos.getZ() + 0.5, 0, 0, 0));
             }
 
-            NetworkHandler.sendToAll(new PacketUpdateNetwork(updates)); //TODO check if stuff actually changed
+            NetworkHandler.sendToAll(new PacketUpdateNetwork(updates));
             applyUpdates(updates);
         }
     }
 
-    //TODO threading?
+    public void checkForNewNetwork(boolean forceWait){
+        if(networkUpdateTask != null && (forceWait || networkUpdateTask.isDone())) {
+            try {
+                network = networkUpdateTask.get();
+                networkUpdateTask = null;
+
+                Signals.proxy.onRailNetworkUpdated();
+            } catch(InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Asynchronously calculates the new rail network.
+     * This is possible because no MC interaction, and immutable objects.
+     * @param changedObjects
+     */
     public void applyUpdates(Collection<NetworkObject<MCPos>> changedObjects){
-        network = networkUpdater.applyUpdates(network, changedObjects);
-        Signals.proxy.onRailNetworkUpdated();
+        networkUpdateTask = railNetworkExecutor.submit(() -> networkUpdater.applyUpdates(network, changedObjects));
     }
 
     public void clearNetwork(){
@@ -199,7 +243,13 @@ public class RailNetworkManager{
 
     public void onPostServerTick(){
         validateOnServer();
+        checkForNewNetwork(true);
         updateState();
+    }
+
+    public void onPreClientTick(){
+        validateOnClient();
+        checkForNewNetwork(false);
     }
 
     public void onPlayerJoin(EntityPlayerMP player){

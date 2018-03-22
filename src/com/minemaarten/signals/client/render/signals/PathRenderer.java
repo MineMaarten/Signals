@@ -11,7 +11,8 @@ import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class PathRenderer extends AbstractRailRenderer<MCTrain>{
 
-    private boolean canRender(MCTrain section){
+    @Override
+    protected boolean canRender(MCTrain section){
         return section.getCurRoute() != null && !section.getCurRoute().routeRails.isEmpty();
     }
 

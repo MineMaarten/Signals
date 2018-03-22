@@ -1,4 +1,4 @@
-package com.minemaarten.signals;
+package com.minemaarten.signals.tests;
 
 import java.util.ArrayList;
 import java.util.List;

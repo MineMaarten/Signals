@@ -55,6 +55,7 @@ dependencies {
     println("  Adding dependencies!")
     //compile "codechicken:CodeChickenCore:1.8-1.0.5.34:dev"
 	//compile "codechicken:NotEnoughItems:1.8-1.0.5.82:dev"
+	testCompile "junit:junit:4.12"
     println("  Finished adding dependencies!")
 }
 

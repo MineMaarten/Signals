@@ -67,12 +67,16 @@ public abstract class AbstractRailRenderer<TSection> {
 
     public void updateSpecificSection(TSection section){
         sectionsToRenderer.remove(section);
-        addSectionRenderer(section);
+        if(canRender(section)) addSectionRenderer(section);
     }
 
     protected abstract boolean isAdjacent(TSection s1, TSection s2);
 
     protected abstract Iterable<TSection> getRenderableSections();
+
+    protected boolean canRender(TSection section){
+        return true;
+    }
 
     protected abstract NetworkRail<MCPos> getRootNode(TSection section);
 
