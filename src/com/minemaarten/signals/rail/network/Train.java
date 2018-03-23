@@ -95,6 +95,7 @@ public abstract class Train<TPos extends IPosition<TPos>> {
             setPath(path);
             return true;
         } else {
+            setPath(null);
             return false;
         }
     }
@@ -110,7 +111,6 @@ public abstract class Train<TPos extends IPosition<TPos>> {
             claimedSections = new HashSet<>();
 
             for(NetworkSignal<TPos> signal : path.routeSignals) {
-                if(signal.type == EnumSignalType.BLOCK) break;
                 RailSection<TPos> section = signal.getNextRailSection(network);
                 if(section != null) {
                     Train<TPos> claimingTrain = state.getClaimingTrain(section);
@@ -121,6 +121,7 @@ public abstract class Train<TPos extends IPosition<TPos>> {
                         return false;
                     }
                 }
+                if(signal.type == EnumSignalType.BLOCK) break;
             }
         } else {
             claimedSections = Collections.emptySet();
