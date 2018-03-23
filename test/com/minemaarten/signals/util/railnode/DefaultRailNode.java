@@ -1,6 +1,8 @@
 package com.minemaarten.signals.util.railnode;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,8 +57,18 @@ public class DefaultRailNode extends NetworkRail<Pos2D>{
     }
 
     @Override
+    public Collection<Pos2D> getPotentialNeighborRailLocations(EnumHeading side){
+        return Collections.singleton(pos.offset(side));
+    }
+
+    @Override
     public Object getRailType(){
         return railType;
+    }
+
+    @Override
+    public EnumSet<EnumHeading> getPathfindHeading(EnumHeading entryDir){
+        return EnumSet.allOf(EnumHeading.class);
     }
 
 }

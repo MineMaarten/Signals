@@ -50,7 +50,11 @@ public class RailRoute<TPos extends IPosition<TPos>> {
         }
 
         public RailRouteNode<TPos> reverse(){
-            return new RailRouteNode<TPos>(pos, dirOut.getOpposite(), dirIn.getOpposite());
+            return new RailRouteNode<TPos>(pos, EnumHeading.getOpposite(dirOut), EnumHeading.getOpposite(dirIn));
+        }
+
+        public boolean isValid(){
+            return dirIn != null && dirOut != null;
         }
 
         @Override

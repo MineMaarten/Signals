@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import com.google.common.collect.ImmutableMap;
+
 public class NetworkUpdater<TPos extends IPosition<TPos>> {
     private final INetworkObjectProvider<TPos> objectProvider;
     private final Set<TPos> dirtyPositions = new HashSet<>(); //Positions that have possibly changed
@@ -84,6 +86,6 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
             }
         }
 
-        return new RailNetwork<TPos>(allObjects);
+        return new RailNetwork<TPos>(ImmutableMap.copyOf(allObjects));
     }
 }

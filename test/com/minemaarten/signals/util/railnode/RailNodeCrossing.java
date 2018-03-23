@@ -1,5 +1,6 @@
 package com.minemaarten.signals.util.railnode;
 
+import java.util.EnumSet;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
@@ -15,6 +16,11 @@ public class RailNodeCrossing extends DefaultRailNode{
     @Override
     public List<Pos2D> getPotentialPathfindNeighbors(EnumHeading entryDir){
         return ImmutableList.of(pos.offset(entryDir), pos.offset(entryDir.getOpposite()));
+    }
+
+    @Override
+    public EnumSet<EnumHeading> getPathfindHeading(EnumHeading entryDir){
+        return EnumSet.of(entryDir, entryDir.getOpposite());
     }
 
 }

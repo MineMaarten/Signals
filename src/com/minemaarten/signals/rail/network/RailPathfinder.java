@@ -129,7 +129,7 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
                 }
 
                 RailEdge<TPos> singleEdge = startPosEdge.subEdge(startIndex, endIndex);
-                if(singleEdge.canTravelFrom(start) && (direction == null || direction == singleEdge.headingForEndpoint(start).getOpposite())) {
+                if(singleEdge.canTravelFrom(start) && (direction == null || direction == EnumHeading.getOpposite(singleEdge.headingForEndpoint(start)))) {
                     bestRoute = new AStarRailNode(goal, singleEdge, goal);
                     bestRoute.distanceFromGoal = endIndex - startIndex;
                 }

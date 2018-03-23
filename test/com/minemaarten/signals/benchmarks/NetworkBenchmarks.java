@@ -34,26 +34,25 @@ public class NetworkBenchmarks{
         largeNetwork = new ArrayList<>();
         for(int x = 0; x < LARGE_NETWORK_SIZE; x++) {
             for(int y = 0; y < LARGE_NETWORK_SIZE; y++) {
-                if(x % LARGE_NETWORK_SPACING == 0 && y % LARGE_NETWORK_SPACING == 0) {
+                if(x % LARGE_NETWORK_SPACING == 0 || y % LARGE_NETWORK_SPACING == 0) {
                     largeNetwork.add(new DefaultRailNode(new Pos2D(x, y)));
                 }
+                /*if((x - 1) % LARGE_NETWORK_SPACING == 0 && (y - 1) % LARGE_NETWORK_SPACING == 0) {
+                    largeNetwork.add(new NetworkSignal<>(new Pos2D(x, y), EnumHeading.NORTH, EnumSignalType.BLOCK));
+                }*/
             }
         }
     }
 
-    /**
-     * Test full grid network building
-     */
     @Test
     public void benchmarkFullGrid(){
-        new RailNetwork<>(fullGrid);
+        for(int i = 0; i < 1; i++)
+            new RailNetwork<>(fullGrid);
     }
 
-    /**
-     * Test large spaced out network building
-     */
     @Test
     public void benchmarkLargeNetwork(){
-        new RailNetwork<>(largeNetwork);
+        for(int i = 0; i < 1; i++)
+            new RailNetwork<>(largeNetwork);
     }
 }

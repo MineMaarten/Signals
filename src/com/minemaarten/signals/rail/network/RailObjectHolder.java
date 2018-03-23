@@ -3,6 +3,7 @@ package com.minemaarten.signals.rail.network;
 import static com.minemaarten.signals.lib.StreamUtils.ofType;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimaps;
@@ -30,10 +32,10 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
     }
 
     public RailObjectHolder(Stream<NetworkObject<TPos>> allNetworkObjects){
-        this.allNetworkObjects = ImmutableMap.copyOf(allNetworkObjects.collect(Collectors.toMap((NetworkObject<TPos> n) -> n.pos, n -> n)));
+        this(allNetworkObjects.collect(ImmutableMap.toImmutableMap((NetworkObject<TPos> n) -> n.pos, Functions.identity())));
     }
 
-    public RailObjectHolder(Map<TPos, NetworkObject<TPos>> allNetworkObjects){
+    public RailObjectHolder(ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects){
         this.allNetworkObjects = ImmutableMap.copyOf(allNetworkObjects);
     }
 
@@ -87,6 +89,13 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         return new RailObjectHolder<>(selection);
     }
 
+    public RailObjectHolder<TPos> combine(RailObjectHolder<TPos> other){
+        Map<TPos, NetworkObject<TPos>> map = new HashMap<>(allNetworkObjects.size() + other.allNetworkObjects.size());
+        map.putAll(allNetworkObjects);
+        map.putAll(other.allNetworkObjects);
+        return new RailObjectHolder<>(ImmutableMap.copyOf(map));
+    }
+
     public NetworkObject<TPos> get(TPos pos){
         return allNetworkObjects.get(pos);
     }
@@ -112,6 +121,16 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
 
     public Stream<NetworkRail<TPos>> getNeighborRails(Collection<TPos> potentialNeighbors){
         return ofType(NetworkRail.class, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
+    }
+
+    public int getNeighborRailCount(Collection<TPos> potentialNeighbors){
+        int count = 0;
+        for(TPos neighbor : potentialNeighbors) {
+            if(allNetworkObjects.get(neighbor) instanceof NetworkRail) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public Stream<NetworkSignal<TPos>> getSignals(){

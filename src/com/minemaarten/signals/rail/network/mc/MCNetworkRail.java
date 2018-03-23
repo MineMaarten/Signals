@@ -5,7 +5,6 @@ import io.netty.buffer.ByteBuf;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,7 +36,9 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
     private final ImmutableList<MCPos> potentialRailNeighbors, potentialObjectNeighbors;
     private final EnumSet<EnumRailDirection> validRailDirs;
     private final EnumSet<EnumHeading> validNeighborHeadings;
-    private final EnumMap<EnumHeading, Set<MCPos>> entryDirToPotentialRailNeighbors;
+    private final EnumMap<EnumHeading, Set<MCPos>> entryDirToPotentialRailNeighbors = null; //TODO remove
+    private final EnumMap<EnumHeading, EnumSet<EnumHeading>> entryDirToNeighborHeadings;
+    private final EnumMap<EnumHeading, Set<MCPos>> headingToNeighbors;
 
     public MCNetworkRail(MCPos pos, Block railBlock, EnumRailDirection curDir, EnumSet<EnumRailDirection> validRailDirs){
         this(pos, railBlock == Blocks.RAIL ? null : railBlock.getRegistryName().toString(), curDir, validRailDirs);
@@ -60,7 +61,12 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
         }
         potentialObjectNeighbors = computePotentialObjectNeighbors();
         potentialRailNeighbors = ImmutableList.copyOf(potentialObjectNeighbors.stream().flatMap(this::plusOneMinusOneHeight).collect(Collectors.toList()));
-        entryDirToPotentialRailNeighbors = computeExitsForEntries(validRailDirs);
+        entryDirToNeighborHeadings = computeExitsForEntries(validRailDirs);
+
+        headingToNeighbors = new EnumMap<>(EnumHeading.class);
+        for(EnumHeading heading : validNeighborHeadings) {
+            headingToNeighbors.put(heading, plusOneMinusOneHeight(pos.offset(heading)).collect(Collectors.toSet()));
+        }
     }
 
     public static MCNetworkRail fromTag(NBTTagCompound tag){
@@ -128,6 +134,11 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
     }
 
     @Override
+    public Collection<MCPos> getPotentialNeighborRailLocations(EnumHeading side){
+        return headingToNeighbors.get(side);
+    }
+
+    @Override
     public EnumSet<EnumHeading> getPotentialNeighborRailHeadings(){
         return validNeighborHeadings;
     }
@@ -142,17 +153,16 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
         return entryDirToPotentialRailNeighbors.get(entryDir);
     }
 
-    private EnumMap<EnumHeading, Set<MCPos>> computeExitsForEntries(EnumSet<EnumRailDirection> validRailDirs){
-        EnumMap<EnumHeading, Set<MCPos>> exitsForEntries = new EnumMap<>(EnumHeading.class);
+    private EnumMap<EnumHeading, EnumSet<EnumHeading>> computeExitsForEntries(EnumSet<EnumRailDirection> validRailDirs){
+        EnumMap<EnumHeading, EnumSet<EnumHeading>> exitsForEntries = new EnumMap<>(EnumHeading.class);
         for(EnumHeading heading : EnumHeading.VALUES) {
-            exitsForEntries.put(heading, new HashSet<>(12));
+            exitsForEntries.put(heading, EnumSet.noneOf(EnumHeading.class));
         }
 
         for(EnumRailDirection railDir : validRailDirs) {
             EnumSet<EnumHeading> railDirDirs = getDirections(railDir);
-            Set<MCPos> dirPositions = railDirDirs.stream().map(pos::offset).flatMap(this::plusOneMinusOneHeight).collect(Collectors.toSet());
             for(EnumHeading heading : railDirDirs) {
-                exitsForEntries.get(heading.getOpposite()).addAll(dirPositions);
+                exitsForEntries.get(heading.getOpposite()).addAll(railDirDirs);
             }
         }
 
@@ -208,5 +218,11 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
     @Override
     public int hashCode(){
         return super.hashCode() * 31 + validRailDirs.hashCode();
+    }
+
+    @Override
+    public EnumSet<EnumHeading> getPathfindHeading(EnumHeading entryDir){
+        if(entryDir == null) return EnumSet.noneOf(EnumHeading.class);
+        return entryDirToNeighborHeadings.get(entryDir);
     }
 }

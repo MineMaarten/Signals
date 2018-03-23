@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.collect.Streams;
 
@@ -37,6 +38,10 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
 
     public abstract Collection<TPos> getPotentialPathfindNeighbors(EnumHeading entryDir);
 
+    public abstract EnumSet<EnumHeading> getPathfindHeading(@Nullable EnumHeading entryDir);
+
+    public abstract Collection<TPos> getPotentialNeighborRailLocations(EnumHeading side);
+
     //@formatter:off
     public Stream<NetworkRail<TPos>> getRailLinkConnectedRails(RailObjectHolder<TPos> railObjects){
         Stream<NetworkRail<TPos>> linkedToNeighbors = railObjects.getNeighborRailLinks(getPotentialNeighborObjectLocations())
@@ -59,6 +64,19 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
         if(entryDir == null) return getSectionNeighborRails(railObjects); //When stuff with Rail Link, we can't properly use pathfind directions
         Stream<NetworkRail<TPos>> normalNeighbors = railObjects.getNeighborRails(getPotentialPathfindNeighbors(entryDir));
         return Streams.concat(normalNeighbors, getRailLinkConnectedRails(railObjects));
+    }
+
+    public EnumSet<EnumHeading> getActualNeighborRailHeadings(RailObjectHolder<TPos> railObjects){
+        EnumSet<EnumHeading> headings = EnumSet.noneOf(EnumHeading.class);
+        for(EnumHeading heading : getPotentialNeighborRailHeadings()) {
+            for(TPos neighborPos : getPotentialNeighborRailLocations(heading)) {
+                if(railObjects.get(neighborPos) instanceof NetworkRail) {
+                    headings.add(heading);
+                    break;
+                }
+            }
+        }
+        return headings;
     }
 
     @SuppressWarnings("unchecked")

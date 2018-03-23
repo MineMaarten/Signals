@@ -178,7 +178,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         List<RailRouteNode<TPos>> inter = new ArrayList<>();
         for(int i = 1; i < edge.size() - 1; i++) {
             NetworkRail<TPos> rail = edge.get(i);
-            if(allRailObjects.getNeighborRails(rail.getPotentialNeighborRailLocations()).count() > 2) {
+            if(allRailObjects.getNeighborRailCount(rail.getPotentialNeighborRailLocations()) > 2) {
                 NetworkRail<TPos> prev = edge.get(i - 1);
                 NetworkRail<TPos> next = edge.get(i + 1);
                 EnumHeading dirIn = rail.pos.getRelativeHeading(prev.pos);
@@ -365,6 +365,24 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     public RailEdge<TPos> subEdge(int startIndex, int endIndex){
         ImmutableList<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndex + 1);
         return new RailEdge<TPos>(railObjects, subEdge, intersections);
+    }
+
+    public RailEdge<TPos> combine(RailEdge<TPos> other, TPos commonPos){
+        ImmutableList.Builder<NetworkRail<TPos>> rails = new ImmutableList.Builder<>();
+        ImmutableList.Builder<RailRouteNode<TPos>> intersections = new ImmutableList.Builder<>();
+
+        TPos startPos = other(commonPos);
+        ImmutableList<NetworkRail<TPos>> firstList = traverseWithFirst(startPos);
+        for(int i = 0; i < firstList.size() - 1; i++) {
+            rails.add(firstList.get(i));
+        }
+        rails.addAll(other.traverseWithFirst(commonPos));
+
+        intersections.addAll(getIntersectionsWithFirst(startPos));
+        intersections.add(new RailRouteNode<>(commonPos, EnumHeading.getOpposite(headingForEndpoint(commonPos)), EnumHeading.getOpposite(other.headingForEndpoint(commonPos))));
+        intersections.addAll(other.getIntersectionsWithFirst(commonPos));
+
+        return new RailEdge<>(railObjects.combine(other.railObjects), rails.build(), intersections.build());
     }
 
     public boolean canTravelFrom(TPos pos){

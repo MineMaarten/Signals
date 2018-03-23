@@ -25,6 +25,7 @@ import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 
+import com.google.common.collect.ImmutableMap;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.lib.Log;
@@ -66,7 +67,7 @@ public class RailNetworkManager{
 
     private final ExecutorService railNetworkExecutor = Executors.newSingleThreadExecutor();
     private Future<RailNetwork<MCPos>> networkUpdateTask;
-    private RailNetwork<MCPos> network = new RailNetwork<MCPos>(Collections.emptyMap());
+    private RailNetwork<MCPos> network = new RailNetwork<MCPos>(ImmutableMap.of());
     private final MCNetworkState state = new MCNetworkState();
     private final NetworkUpdater<MCPos> networkUpdater = new NetworkUpdater<>(new NetworkObjectProvider());
 
@@ -220,8 +221,10 @@ public class RailNetworkManager{
                 networkUpdateTask = null;
 
                 Signals.proxy.onRailNetworkUpdated();
-            } catch(InterruptedException | ExecutionException e) {
+            } catch(InterruptedException e) {
                 e.printStackTrace();
+            } catch(ExecutionException e) {
+                throw new RuntimeException(e);
             }
         }
     }

@@ -105,27 +105,29 @@ public class MCTrain extends Train<MCPos>{
 
     @Override
     protected void updateIntersection(RailRouteNode<MCPos> routeNode){
-        World world = routeNode.pos.getWorld();
-        BlockPos pos = routeNode.pos.getPos();
-        IBlockState state = world.getBlockState(pos);
-        IRail rail = RailManager.getInstance().getRail(world, pos, state);
+        if(routeNode.isValid()) {
+            World world = routeNode.pos.getWorld();
+            BlockPos pos = routeNode.pos.getPos();
+            IBlockState state = world.getBlockState(pos);
+            IRail rail = RailManager.getInstance().getRail(world, pos, state);
 
-        List<PacketUpdateMessage> messages = new ArrayList<>();
-        EnumRailDirection requiredDir = DIRS_TO_RAIL_DIR.get(EnumSet.of(routeNode.dirIn, routeNode.dirOut));
-        if(requiredDir != null) {
-            if(rail.getValidDirections(world, pos, state).contains(requiredDir)) {
-                rail.setDirection(world, pos, state, requiredDir);
-                String[] args = {Integer.toString(pos.getX()), Integer.toString(pos.getY()), Integer.toString(pos.getZ()), "signals.dir." + routeNode.dirIn.toString().toLowerCase(), "signals.dir." + routeNode.dirOut.toString().toLowerCase()};
-                //TODO  messages.add(new PacketUpdateMessage(this, cart, "signals.message.changing_junction", args));
+            List<PacketUpdateMessage> messages = new ArrayList<>();
+            EnumRailDirection requiredDir = DIRS_TO_RAIL_DIR.get(EnumSet.of(routeNode.dirIn, routeNode.dirOut));
+            if(requiredDir != null) {
+                if(rail.getValidDirections(world, pos, state).contains(requiredDir)) {
+                    rail.setDirection(world, pos, state, requiredDir);
+                    String[] args = {Integer.toString(pos.getX()), Integer.toString(pos.getY()), Integer.toString(pos.getZ()), "signals.dir." + routeNode.dirIn.toString().toLowerCase(), "signals.dir." + routeNode.dirOut.toString().toLowerCase()};
+                    //TODO  messages.add(new PacketUpdateMessage(this, cart, "signals.message.changing_junction", args));
+                } else {
+                    Log.warning("Rail with state " + state + " does not allow setting dir " + requiredDir);
+                }
             } else {
-                Log.warning("Rail with state " + state + " does not allow setting dir " + requiredDir);
+                Log.warning("Invalid routing node: " + routeNode); //TODO rail links?
             }
-        } else {
-            Log.warning("Invalid routing node: " + routeNode); //TODO rail links?
-        }
 
-        for(PacketUpdateMessage message : messages) {
-            NetworkHandler.sendToAllAround(message, world);
+            for(PacketUpdateMessage message : messages) {
+                NetworkHandler.sendToAllAround(message, world);
+            }
         }
     }
 

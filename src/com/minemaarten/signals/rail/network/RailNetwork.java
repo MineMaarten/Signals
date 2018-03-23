@@ -2,6 +2,7 @@ package com.minemaarten.signals.rail.network;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -12,12 +13,11 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 
 /**
  * Entry point for dealing with rail networks. Designed to be immutable.
@@ -45,16 +45,18 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
     public RailNetwork(Collection<NetworkObject<TPos>> allNetworkObjects){
         this.railObjects = new RailObjectHolder<>(allNetworkObjects).filterInvalidSignals();
-
-        buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
-        buildRailEdges();
+        build();
     }
 
-    public RailNetwork(Map<TPos, NetworkObject<TPos>> allNetworkObjects){
+    public RailNetwork(ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects){
         this.railObjects = new RailObjectHolder<>(allNetworkObjects).filterInvalidSignals();
+        build();
+    }
 
+    private void build(){
         buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
-        buildRailEdges();
+        Set<RailEdge<TPos>> allEdges = buildRoughRailEdges();
+        mergeCrossingEdges(allEdges).forEach(edge -> addEdge(edge));
     }
 
     private void buildRailSections(){
@@ -117,47 +119,48 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         return railPosToRailSections.get(pos);
     }
 
-    private void buildRailEdges(){
+    /**
+     * Build edges naively, by assuming that any possible pathfind neighbor of a given rail can map to any other neighbor of this rail.
+     * This isn't always the case, for example with rail crossings, where only N<-->S and W<-->E are mapped. These are filtered out
+     * in {@link RailNetwork#mergeCrossingEdges(Set)}. It turned out to be computationally easier to not having to deal with sides in this method.
+     * @return
+     */
+    private Set<RailEdge<TPos>> buildRoughRailEdges(){
         //All rails need to be traversed, in every direction, because a rail may be a junction, in which case a single block is part of multiple edges.
-        Set<Pair<NetworkRail<TPos>, EnumHeading>> toTraverse = new HashSet<>();
-        railObjects.getRails().forEach(rail -> {
-            for(EnumHeading heading : rail.getPotentialNeighborRailHeadings()) {
-                toTraverse.add(new ImmutablePair<NetworkRail<TPos>, EnumHeading>(rail, heading));
-            }
-        });
+        Set<NetworkRail<TPos>> toTraverse = new HashSet<>(railObjects.getRails().collect(Collectors.toSet()));
+
+        Set<NetworkRail<TPos>> edgeSet = new HashSet<>();
+        List<NetworkRail<TPos>> edge = new ArrayList<>();
+        Set<RailEdge<TPos>> allEdges = new HashSet<>();
 
         while(!toTraverse.isEmpty()) {
-            Pair<NetworkRail<TPos>, EnumHeading> first = toTraverse.iterator().next();
+            NetworkRail<TPos> first = toTraverse.iterator().next();
 
-            List<NetworkRail<TPos>> edge = new ArrayList<>();
-            Set<Pair<NetworkRail<TPos>, EnumHeading>> edgeSet = new HashSet<>();
-            edge.add(first.getLeft());
+            edge.clear();
+            edge.add(first);
+            edgeSet.clear();
             edgeSet.add(first);
 
-            Stack<Pair<NetworkRail<TPos>, EnumHeading>> edgeToTraverse = new Stack<>();
+            Stack<NetworkRail<TPos>> edgeToTraverse = new Stack<>();
             edgeToTraverse.push(first);
 
             boolean startHitIntersection = false;//Used to keep track if the edge stopped because of a dead end or intersection.
             boolean endHitIntersection = false;
 
             while(!edgeToTraverse.isEmpty()) {
-                Pair<NetworkRail<TPos>, EnumHeading> curEntry = edgeToTraverse.pop();
-                NetworkRail<TPos> curRail = curEntry.getLeft();
-                List<NetworkRail<TPos>> neighbors = curRail.getPathfindingNeighborRails(railObjects, curEntry.getRight()).collect(Collectors.toList());
+                NetworkRail<TPos> curEntry = edgeToTraverse.pop();
+                List<NetworkRail<TPos>> neighbors = curEntry.getSectionNeighborRails(railObjects).collect(Collectors.toList());
                 if(neighbors.size() < 3) { //If not on an intersection, expand further
                     toTraverse.remove(curEntry);
                     for(NetworkRail<TPos> neighbor : neighbors) {
-
-                        Pair<NetworkRail<TPos>, EnumHeading> neighborPair = new ImmutablePair<>(neighbor, neighbor.pos.getRelativeHeading(curRail.pos));
-                        if(edgeSet.add(neighborPair)) {
-                            edgeSet.add(new ImmutablePair<>(curRail, EnumHeading.getOpposite(neighborPair.getRight())));
-                            edgeToTraverse.push(neighborPair);
+                        if(edgeSet.add(neighbor)) {
+                            edgeToTraverse.push(neighbor);
 
                             //Add to the current edge, make sure the list is in sequence, so that index 0 is a neighbor of index 1, which is
                             //a neighbor of index 2, etc.
-                            if(edge.get(edge.size() - 1).pos.equals(curRail.pos)) {
+                            if(edge.get(edge.size() - 1).pos.equals(curEntry.pos)) {
                                 edge.add(neighbor);
-                            } else if(edge.get(0).pos.equals(curRail.pos)) {
+                            } else if(edge.get(0).pos.equals(curEntry.pos)) {
                                 edge.add(0, neighbor);
                             } else {
                                 throw new IllegalStateException("Currently evaluated pos is not at the start or end of an edge!");
@@ -168,38 +171,132 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                     toTraverse.remove(curEntry);
                     //When evaluating from an intersection, only look at directly neighboring intersections.
                     for(NetworkRail<TPos> neighbor : neighbors) {
-                        EnumHeading heading = neighbor.pos.getRelativeHeading(curRail.pos);
-                        List<NetworkRail<TPos>> neighborNeighbors = neighbor.getPathfindingNeighborRails(railObjects, heading).collect(Collectors.toList());
+                        EnumHeading heading = neighbor.pos.getRelativeHeading(curEntry.pos);
+                        List<NetworkRail<TPos>> neighborNeighbors = neighbor.getSectionNeighborRails(railObjects).collect(Collectors.toList());
                         if(neighborNeighbors.size() > 2) { //When the neighbor also is on an intersection, we have an edge
-                            ImmutableList<NetworkRail<TPos>> e = ImmutableList.of(curRail, neighbor);
+                            ImmutableList<NetworkRail<TPos>> e = ImmutableList.of(curEntry, neighbor);
                             RailEdge<TPos> railEdge = new RailEdge<>(railObjects, e);
-                            addEdge(railEdge, e, true, true);
+                            allEdges.add(railEdge);
                         }
                     }
                 } else {
-                    if(edge.get(edge.size() - 1).pos.equals(curRail.pos)) endHitIntersection = true;
-                    if(edge.get(0).pos.equals(curRail.pos)) startHitIntersection = true;
+                    if(edge.get(edge.size() - 1).pos.equals(curEntry.pos)) endHitIntersection = true;
+                    if(edge.get(0).pos.equals(curEntry.pos)) startHitIntersection = true;
                 }
             }
 
             //Only create edges of 2 or higher, as we are not interested in just intersections
             if(edge.size() > 1) {
                 RailEdge<TPos> railEdge = new RailEdge<>(railObjects, ImmutableList.copyOf(edge));
-                addEdge(railEdge, edge, startHitIntersection, endHitIntersection);
+                allEdges.add(railEdge);
+            }
+            // System.out.println(edgeSet.size());
+        }
+        return allEdges;
+    }
+
+    /**
+     * Merge edges that aren't actually on intersections, when encountering rail junctions.
+     * @param allEdges
+     * @return
+     */
+    private Set<RailEdge<TPos>> mergeCrossingEdges(Set<RailEdge<TPos>> allEdges){
+        Multimap<TPos, RailEdge<TPos>> connectedEdges = Multimaps.newSetMultimap(new HashMap<>(), HashSet::new);
+        for(RailEdge<TPos> edge : allEdges) {
+            connectedEdges.put(edge.startPos, edge);
+            connectedEdges.put(edge.endPos, edge);
+        }
+
+        Set<RailEdge<TPos>> newEdges = new HashSet<>();
+        Set<RailEdge<TPos>> curMergedEdges = new HashSet<>();
+        while(!allEdges.isEmpty()) {
+            RailEdge<TPos> first = allEdges.iterator().next();
+
+            curMergedEdges.clear();
+            curMergedEdges.add(first);
+
+            RailEdge<TPos> combinedEdge = mergeEdgeFrom(connectedEdges, curMergedEdges, first, first, first.get(0));
+            if(!first.startPos.equals(first.endPos)) {
+                combinedEdge = mergeEdgeFrom(connectedEdges, curMergedEdges, combinedEdge, first, first.get(first.length - 1));
+            }
+
+            allEdges.removeAll(curMergedEdges);
+            newEdges.add(combinedEdge);
+        }
+
+        return newEdges;
+    }
+
+    private RailEdge<TPos> mergeEdgeFrom(Multimap<TPos, RailEdge<TPos>> connectedEdges, Set<RailEdge<TPos>> curMergedEdges, RailEdge<TPos> combinedEdge, RailEdge<TPos> startEdge, NetworkRail<TPos> startPos){
+        NetworkRail<TPos> curRail = startPos;
+        RailEdge<TPos> prevEdge = startEdge;
+        boolean hasCombined;
+        do {
+            hasCombined = false;
+            //@formatter:off
+            EnumSet<EnumHeading> validHeadings = curRail.getPathfindHeading(prevEdge.headingForEndpoint(curRail.pos));
+            final RailEdge<TPos> fPrevEdge = prevEdge;
+            final NetworkRail<TPos> fCurRail = curRail;
+            List<RailEdge<TPos>> actualConnected = connectedEdges.get(curRail.pos)
+                                                                 .stream()
+                                                                 .filter(e -> e != fPrevEdge && 
+                                                                         (validHeadings.contains(e.headingForEndpoint(fCurRail.pos)) ||
+                                                                          e.headingForEndpoint(fCurRail.pos) == null))
+                                                                 .collect(Collectors.toList());
+            //@formatter:on
+            if(actualConnected.size() == 1) { //When not actually on an intersection, in terms of pathfinding
+                RailEdge<TPos> nextEdge = actualConnected.get(0);
+                if(curMergedEdges.add(nextEdge)) {
+                    combinedEdge = combinedEdge.combine(nextEdge, curRail.pos);
+                    curRail = nextEdge.get(nextEdge.getIndex(nextEdge.other(curRail.pos)));
+                    prevEdge = nextEdge;
+                    hasCombined = true;
+                }
+            }
+
+        } while(hasCombined);
+
+        return combinedEdge;
+    }
+
+    /**
+     * Helper class that equals on rail.pos and heading, as the NetworkRail's hashcode is too slow and doesn't add anything.
+     * @author Maarten
+     *
+     * @param <TPos>
+     */
+    private static class PosHeadingRailPair<TPos extends IPosition<TPos>> {
+        public final NetworkRail<TPos> rail;
+        public final EnumHeading heading;
+        private final int hashcode;
+
+        public PosHeadingRailPair(NetworkRail<TPos> rail, EnumHeading heading){
+            this.rail = rail;
+            this.heading = heading;
+            this.hashcode = rail.pos.hashCode() << 2 + (heading == null ? 0 : heading.ordinal());
+        }
+
+        @Override
+        public int hashCode(){
+            return hashcode;
+        }
+
+        @Override
+        public boolean equals(Object obj){
+            if(obj instanceof PosHeadingRailPair) {
+                PosHeadingRailPair<TPos> other = (PosHeadingRailPair<TPos>)obj;
+                return rail.pos.equals(other.rail.pos) && heading == other.heading;
+            } else {
+                return false;
             }
         }
     }
 
-    private void addEdge(RailEdge<TPos> railEdge, List<NetworkRail<TPos>> originalEdge, boolean startHitIntersection, boolean endHitIntersection){
+    private void addEdge(RailEdge<TPos> railEdge){
         if(allEdges.add(railEdge)) {
-            if(!originalEdge.equals(railEdge.edge)) { //If the order got reversed, switch the hit flags
-                boolean swap = startHitIntersection;
-                startHitIntersection = endHitIntersection;
-                endHitIntersection = swap;
-            }
             if(!railEdge.unidirectional) positionsToEdgesBackward.put(railEdge.startPos, railEdge);
             positionsToEdgesBackward.put(railEdge.endPos, railEdge);
-            for(int i = startHitIntersection ? 1 : 0; i < railEdge.length - (endHitIntersection ? 1 : 0); i++) {
+            for(int i = 0; i < railEdge.length; i++) {
                 railPosToRailEdges.put(railEdge.get(i).pos, railEdge);
             }
         }
