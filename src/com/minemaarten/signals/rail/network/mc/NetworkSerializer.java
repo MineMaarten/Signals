@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.Constants;
 
+import com.google.common.collect.ImmutableMap;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.RailNetwork;
 
@@ -40,12 +41,16 @@ public class NetworkSerializer{
     }
 
     public RailNetwork<MCPos> loadNetworkFromTag(NBTTagCompound tag){
-        List<NetworkObject<MCPos>> objects = new ArrayList<>();
-        NBTTagList list = tag.getTagList("objects", Constants.NBT.TAG_COMPOUND);
-        for(int i = 0; i < list.tagCount(); i++) {
-            objects.add(loadFromTag(list.getCompoundTagAt(i)));
+        if(tag.hasKey("objects")) {
+            List<NetworkObject<MCPos>> objects = new ArrayList<>();
+            NBTTagList list = tag.getTagList("objects", Constants.NBT.TAG_COMPOUND);
+            for(int i = 0; i < list.tagCount(); i++) {
+                objects.add(loadFromTag(list.getCompoundTagAt(i)));
+            }
+            return new RailNetwork<>(objects);
+        } else {
+            return new RailNetwork<>(ImmutableMap.of());
         }
-        return new RailNetwork<>(objects);
     }
 
     private void writeToTag(NetworkObject<MCPos> obj, NBTTagCompound tag){

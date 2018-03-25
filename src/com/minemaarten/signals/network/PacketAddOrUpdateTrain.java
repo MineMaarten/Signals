@@ -14,14 +14,14 @@ import com.minemaarten.signals.rail.network.mc.MCTrain;
 import com.minemaarten.signals.rail.network.mc.MCTrainClient;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
-public class PacketAddTrain extends AbstractPacket<PacketAddTrain>{
+public class PacketAddOrUpdateTrain extends AbstractPacket<PacketAddOrUpdateTrain>{
     private int trainID;
     private ImmutableSet<UUID> cartIDs;
     private ImmutableSet<MCPos> positions;
 
-    public PacketAddTrain(){}
+    public PacketAddOrUpdateTrain(){}
 
-    public PacketAddTrain(MCTrain train){
+    public PacketAddOrUpdateTrain(MCTrain train){
         this.trainID = train.id;
         this.cartIDs = train.cartIDs;
         this.positions = train.getPositions();

@@ -2,10 +2,12 @@ package com.minemaarten.signals.tileentity;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import com.minemaarten.signals.rail.network.mc.MCPos;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class TileEntityBase extends TileEntity{
     @Override
@@ -23,5 +25,15 @@ public class TileEntityBase extends TileEntity{
 
     protected MCPos getMCPos(){
         return new MCPos(world, pos);
+    }
+
+    @Override
+    public void onLoad(){
+        super.onLoad();
+        if(!world.isRemote) {
+            for(EnumFacing f : EnumFacing.VALUES) {
+                RailNetworkManager.getInstance().markDirty(new MCPos(world, pos).offset(f));
+            }
+        }
     }
 }

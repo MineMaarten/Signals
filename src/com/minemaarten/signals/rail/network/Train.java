@@ -27,7 +27,7 @@ public abstract class Train<TPos extends IPosition<TPos>> {
     private RailRoute<TPos> path;
     private int curIntersection;
 
-    private ImmutableSet<TPos> positions = ImmutableSet.of();
+    protected ImmutableSet<TPos> positions = ImmutableSet.of();
     protected Set<RailSection<TPos>> claimedSections = Collections.emptySet();
 
     public Train(){
@@ -56,7 +56,12 @@ public abstract class Train<TPos extends IPosition<TPos>> {
             this.positions = positions; //TODO sync
             updateIntersections();
             updateClaimedSections(network);
+            onPositionChanged();
         }
+    }
+
+    protected void onPositionChanged(){
+
     }
 
     protected void updateIntersections(){

@@ -41,6 +41,10 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         return trains.get(id);
     }
 
+    public void removeTrain(Train<TPos> train){
+        trains.remove(train.id);
+    }
+
     public void updateSignalStatusses(RailNetwork<TPos> network){
         List<NetworkSignal<TPos>> allSignals = network.railObjects.getSignals().collect(Collectors.toList());
         signalToLampStatusses = new HashMap<>();

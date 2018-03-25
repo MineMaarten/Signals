@@ -122,11 +122,17 @@ public class EventHandler implements IWorldEventListener{
         if(!event.getWorld().isRemote && event.getEntity() instanceof EntityPlayer) {
             RailNetworkManager.getInstance().onPlayerJoin((EntityPlayerMP)event.getEntity());
         }
+        if(!event.getWorld().isRemote && event.getEntity() instanceof EntityMinecart) {
+            RailNetworkManager.getInstance().onMinecartJoinedWorld((EntityMinecart)event.getEntity());
+        }
     }
 
     @SubscribeEvent
     public void onChunkUnload(ChunkEvent.Unload event){
-        if(!event.getWorld().isRemote) RailCacheManager.getInstance(event.getWorld()).onChunkUnload(event.getChunk());
+        if(!event.getWorld().isRemote) {
+            RailCacheManager.getInstance(event.getWorld()).onChunkUnload(event.getChunk());
+            RailNetworkManager.getInstance().onChunkUnload(event.getChunk());
+        }
     }
 
     @SubscribeEvent

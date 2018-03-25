@@ -15,6 +15,11 @@ public class MCTrainClient extends MCTrain{
     }
 
     @Override
+    protected void onPositionChanged(){
+        //NOP
+    }
+
+    @Override
     protected void updateIntersections(){
         //NOP
     }

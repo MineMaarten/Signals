@@ -2,6 +2,7 @@ package com.minemaarten.signals.rail.network.mc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -13,11 +14,16 @@ import java.util.stream.Collectors;
 import net.minecraft.block.BlockRailBase.EnumRailDirection;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.common.util.Constants;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
@@ -42,7 +48,7 @@ public class MCTrain extends Train<MCPos>{
         DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumHeading.WEST, EnumHeading.NORTH), EnumRailDirection.NORTH_WEST);
     }
 
-    public final ImmutableSet<UUID> cartIDs;
+    public ImmutableSet<UUID> cartIDs;
 
     protected MCTrain(int id, ImmutableSet<UUID> cartIDs){
         super(id);
@@ -63,11 +69,20 @@ public class MCTrain extends Train<MCPos>{
         return Arrays.stream(DimensionManager.getWorlds()).flatMap(w -> w.loadedEntityList.stream().filter(e -> e instanceof EntityMinecart && cartIDs.contains(e.getUniqueID()))).map(e -> (EntityMinecart)e).collect(Collectors.toList());
     }
 
+    public void addCartIDs(Collection<UUID> ids){
+        cartIDs = Streams.concat(cartIDs.stream(), ids.stream()).collect(ImmutableSet.toImmutableSet());
+    }
+
     public void updatePositions(){
         ImmutableSet<MCPos> positions = ImmutableSet.copyOf(getCarts().stream().map(c -> new MCPos(c.world, c.getPosition())).collect(Collectors.toSet()));
         if(!positions.isEmpty()) { //Update if any cart is loaded, currently.
             setPositions(RailNetworkManager.getInstance().getNetwork(), positions);
         }
+    }
+
+    @Override
+    protected void onPositionChanged(){
+        NetworkStorage.getInstance().markDirty();
     }
 
     @Override
@@ -139,6 +154,43 @@ public class MCTrain extends Train<MCPos>{
     @Override
     public int hashCode(){
         return cartIDs.hashCode();
+    }
+
+    public void writeToNBT(NBTTagCompound tag){
+        NBTTagList idList = new NBTTagList();
+        for(UUID uuid : cartIDs) {
+            idList.appendTag(new NBTTagLong(uuid.getMostSignificantBits()));
+            idList.appendTag(new NBTTagLong(uuid.getLeastSignificantBits()));
+        }
+        tag.setTag("cartIDs", idList);
+
+        NBTTagList posList = new NBTTagList();
+        for(MCPos pos : positions) {
+            NBTTagCompound t = new NBTTagCompound();
+            pos.writeToNBT(t);
+            posList.appendTag(t);
+        }
+        tag.setTag("positions", posList);
+    }
+
+    public static MCTrain fromNBT(NBTTagCompound tag){
+        ImmutableSet.Builder<UUID> idBuilder = ImmutableSet.builder();
+        NBTTagList idList = tag.getTagList("cartIDs", Constants.NBT.TAG_LONG);
+        for(int i = 0; i < idList.tagCount(); i += 2) {
+            long most = ((NBTTagLong)idList.get(i)).getLong();
+            long least = ((NBTTagLong)idList.get(i + 1)).getLong();
+            idBuilder.add(new UUID(most, least));
+        }
+
+        ImmutableSet.Builder<MCPos> posBuilder = ImmutableSet.builder();
+        NBTTagList posList = tag.getTagList("positions", Constants.NBT.TAG_COMPOUND);
+        for(int i = 0; i < posList.tagCount(); i++) {
+            posBuilder.add(new MCPos(posList.getCompoundTagAt(i)));
+        }
+
+        MCTrain train = new MCTrain(idBuilder.build());
+        train.positions = posBuilder.build();
+        return train;
     }
 
     /* public void writeToBuf(ByteBuf b){

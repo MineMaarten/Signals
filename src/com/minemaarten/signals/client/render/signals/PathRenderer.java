@@ -13,7 +13,7 @@ public class PathRenderer extends AbstractRailRenderer<MCTrain>{
 
     @Override
     protected boolean canRender(MCTrain section){
-        return section.getCurRoute() != null && !section.getCurRoute().routeRails.isEmpty();
+        return section.getCurRoute() != null && !section.getCurRoute().routeRails.isEmpty() && getRootNode(section) != null;
     }
 
     @Override

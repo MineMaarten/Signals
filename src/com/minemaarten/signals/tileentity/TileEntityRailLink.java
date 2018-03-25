@@ -10,6 +10,7 @@ import com.minemaarten.signals.block.BlockRailLink;
 import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailWrapper;
 import com.minemaarten.signals.rail.network.mc.MCPos;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class TileEntityRailLink extends TileEntityBase implements ITickable{
     private BlockPos linkedPos;
@@ -43,6 +44,7 @@ public class TileEntityRailLink extends TileEntityBase implements ITickable{
 
     public void setLinkedRail(RailWrapper rail){
         if(rail != linkedRail) {
+            RailNetworkManager.getInstance().markDirty(new MCPos(world, pos));
             if(linkedRail != null) {
                 linkedRail.unlink(this);
             }

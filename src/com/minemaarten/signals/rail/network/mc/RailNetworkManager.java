@@ -21,6 +21,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
@@ -30,7 +31,7 @@ import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.network.NetworkHandler;
-import com.minemaarten.signals.network.PacketAddTrain;
+import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketClearNetwork;
 import com.minemaarten.signals.network.PacketUpdateNetwork;
 import com.minemaarten.signals.rail.network.EnumHeading;
@@ -68,7 +69,7 @@ public class RailNetworkManager{
     private final ExecutorService railNetworkExecutor = Executors.newSingleThreadExecutor();
     private Future<RailNetwork<MCPos>> networkUpdateTask;
     private RailNetwork<MCPos> network = new RailNetwork<MCPos>(ImmutableMap.of());
-    private final MCNetworkState state = new MCNetworkState();
+    private MCNetworkState state = new MCNetworkState();
     private final NetworkUpdater<MCPos> networkUpdater = new NetworkUpdater<>(new NetworkObjectProvider());
 
     private RailNetworkManager(){
@@ -133,7 +134,9 @@ public class RailNetworkManager{
         }
         Log.info("Retrieving mc objects:" + (System.currentTimeMillis() - milli) + "ms");
         NetworkHandler.sendToAll(new PacketClearNetwork());
-        NetworkHandler.sendToAll(new PacketUpdateNetwork(allNetworkObjects));
+        for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
+            NetworkHandler.sendToAll(packet);
+        }
         milli = System.currentTimeMillis();
         network = new RailNetwork<MCPos>(allNetworkObjects);
         Log.info("Building network:" + (System.currentTimeMillis() - milli) + "ms");
@@ -155,15 +158,16 @@ public class RailNetworkManager{
         Set<MCTrain> trains = new NetworkObjectProvider().provideTrains(carts);
         state.setTrains(trains);
         for(MCTrain train : trains) {
-            NetworkHandler.sendToAll(new PacketAddTrain(train));
+            NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
         }
     }
 
     private void updateState(){
-        if(state.getTrains().isEmpty()) {
+        /*if(state.getTrains().isEmpty()) {
             initTrains();
-        }
+        }*/
 
+        state.update();
         state.getTrains().valueCollection().forEach(t -> ((MCTrain)t).updatePositions());
         state.updateSignalStatusses(network);
         state.pathfindTrains(network);
@@ -171,6 +175,25 @@ public class RailNetworkManager{
 
     public RailNetwork<MCPos> getNetwork(){
         return network;
+    }
+
+    public MCNetworkState getState(){
+        return state;
+    }
+
+    public void loadNetwork(RailNetwork<MCPos> network, MCNetworkState state){
+        networkUpdateTask = null;
+        this.network = network;
+        this.state = state;
+
+        NetworkHandler.sendToAll(new PacketClearNetwork());
+        for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
+            NetworkHandler.sendToAll(packet);
+        }
+
+        for(Train<MCPos> train : state.getTrains().valueCollection()) {
+            NetworkHandler.sendToAll(new PacketAddOrUpdateTrain((MCTrain)train));
+        }
     }
 
     public MCTrain getTrainByID(int id){
@@ -183,9 +206,13 @@ public class RailNetworkManager{
 
     public void addTrain(MCTrain train){
         if(this == SERVER_INSTANCE) {
-            NetworkHandler.sendToAll(new PacketAddTrain(train));
+            NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
         }
         state.getTrains().put(train.id, train);
+    }
+
+    public void removeTrain(int trainID){
+        state.getTrains().remove(trainID);
     }
 
     public EnumLampStatus getLampStatus(World world, BlockPos pos){
@@ -204,13 +231,15 @@ public class RailNetworkManager{
     public void onPreServerTick(){
         Collection<NetworkObject<MCPos>> updates = networkUpdater.getNetworkUpdates(network);
         if(!updates.isEmpty()) {
+            applyUpdates(updates);
             for(NetworkObject<MCPos> obj : updates) {
                 //TODO remove
                 // NetworkHandler.sendToAll(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, obj.pos.getX() + 0.5, obj.pos.getY() + 0.5, obj.pos.getZ() + 0.5, 0, 0, 0));
             }
 
-            NetworkHandler.sendToAll(new PacketUpdateNetwork(updates));
-            applyUpdates(updates);
+            for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(updates)) {
+                NetworkHandler.sendToAll(packet);
+            }
         }
     }
 
@@ -219,6 +248,7 @@ public class RailNetworkManager{
             try {
                 network = networkUpdateTask.get();
                 networkUpdateTask = null;
+                NetworkStorage.getInstance().setNetwork(network);
 
                 Signals.proxy.onRailNetworkUpdated();
             } catch(InterruptedException e) {
@@ -235,6 +265,7 @@ public class RailNetworkManager{
      * @param changedObjects
      */
     public void applyUpdates(Collection<NetworkObject<MCPos>> changedObjects){
+        checkForNewNetwork(true);
         networkUpdateTask = railNetworkExecutor.submit(() -> networkUpdater.applyUpdates(network, changedObjects));
     }
 
@@ -257,9 +288,40 @@ public class RailNetworkManager{
 
     public void onPlayerJoin(EntityPlayerMP player){
         NetworkHandler.sendTo(new PacketClearNetwork(), player);
-        NetworkHandler.sendTo(new PacketUpdateNetwork(network.railObjects.getAllNetworkObjects().values()), player);
-        for(Train<MCPos> train : state.getTrains().valueCollection()) {
-            NetworkHandler.sendTo(new PacketAddTrain((MCTrain)train), player);
+        for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
+            NetworkHandler.sendTo(packet, player);
         }
+        for(Train<MCPos> train : state.getTrains().valueCollection()) {
+            NetworkHandler.sendTo(new PacketAddOrUpdateTrain((MCTrain)train), player);
+        }
+    }
+
+    public void onChunkUnload(Chunk chunk){
+        state.onChunkUnload(chunk);
+    }
+
+    public void onMinecartJoinedWorld(EntityMinecart cart){
+        state.onMinecartJoinedWorld(cart);
+    }
+
+    private static final int MAX_CHANGES_PER_PACKET = 1000;
+
+    private List<PacketUpdateNetwork> getSplitNetworkUpdatePackets(Collection<NetworkObject<MCPos>> allChangedObjects){
+        if(allChangedObjects.size() <= MAX_CHANGES_PER_PACKET) return Collections.singletonList(new PacketUpdateNetwork(allChangedObjects));
+
+        List<PacketUpdateNetwork> packets = new ArrayList<>();
+        Iterator<NetworkObject<MCPos>> iterator = allChangedObjects.iterator();
+        List<NetworkObject<MCPos>> changedObjects = new ArrayList<>(MAX_CHANGES_PER_PACKET);
+
+        while(iterator.hasNext()) {
+            changedObjects.add(iterator.next());
+            if(changedObjects.size() >= MAX_CHANGES_PER_PACKET) {
+                packets.add(new PacketUpdateNetwork(changedObjects));
+                changedObjects = new ArrayList<>(MAX_CHANGES_PER_PACKET);
+            }
+        }
+
+        if(!changedObjects.isEmpty()) packets.add(new PacketUpdateNetwork(changedObjects));
+        return packets;
     }
 }

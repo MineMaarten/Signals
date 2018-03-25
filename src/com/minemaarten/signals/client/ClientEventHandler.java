@@ -62,11 +62,12 @@ public class ClientEventHandler{
         List<TileEntity> tes = player.world.loadedTileEntityList;
         if(player.isSneaking()) {
             //blockSectionRenderer.render(b);
-            // pathRenderer.render(b);
+            pathRenderer.render(b);
         } else {
-            //  edgeRenderer.render(b);
+            blockSectionRenderer.render(b);
+            //edgeRenderer.render(b);
         }
-        pathRenderer.render(b);
+        // pathRenderer.render(b);
 
         b.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
