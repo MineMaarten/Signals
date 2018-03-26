@@ -1,5 +1,7 @@
 package com.minemaarten.signals.rail.network;
 
+import com.minemaarten.signals.rail.NetworkController;
+
 /**
  * Any object that participates in a rail network, currently: rails, signals and station markers.
  * Immutable, and should expect to be reused in transitions from old to new networks to prevent allocations.
@@ -12,6 +14,10 @@ public abstract class NetworkObject<TPos> {
 
     public NetworkObject(TPos pos){
         this.pos = pos;
+    }
+
+    public int getColor(){
+        return NetworkController.NOTHING_COLOR;
     }
 
     @Override

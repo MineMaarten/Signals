@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.Streams;
+import com.minemaarten.signals.rail.NetworkController;
 
 public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkObject<TPos>{
 
@@ -77,6 +78,11 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
             }
         }
         return headings;
+    }
+
+    @Override
+    public int getColor(){
+        return NetworkController.RAIL_COLOR;
     }
 
     @SuppressWarnings("unchecked")

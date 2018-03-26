@@ -19,8 +19,6 @@ import org.apache.commons.lang3.NotImplementedException;
 
 import com.minemaarten.signals.api.access.ISignal;
 import com.minemaarten.signals.block.BlockSignalBase;
-import com.minemaarten.signals.lib.Log;
-import com.minemaarten.signals.rail.NetworkController;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkSignal;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
@@ -56,7 +54,6 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         IBlockState state = getBlockState();
         if(state.getPropertyKeys().contains(BlockSignalBase.LAMP_STATUS) && state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
             getWorld().setBlockState(getPos(), state.withProperty(BlockSignalBase.LAMP_STATUS, lampStatus));
-            NetworkController.getInstance(getWorld()).updateColor(this, getPos());
             if(lampStatus == EnumLampStatus.GREEN) {
                 //Push carts when they're standing still.
                 List<EntityMinecart> neighborMinecarts = getNeighborMinecarts();
@@ -64,11 +61,6 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
                     if(new Vec3d(cart.motionX, cart.motionY, cart.motionZ).lengthVector() < 0.01 || EnumFacing.getFacingFromVector((float)cart.motionX, 0, (float)cart.motionZ) == getFacing()) {
                         cart.motionX += getFacing().getFrontOffsetX() * 0.1;
                         cart.motionZ += getFacing().getFrontOffsetZ() * 0.1;
-                        long start = System.nanoTime();
-
-                        //TODO path
-                        //TODO if(path != null) updateSwitches(path, cart, true);
-                        Log.debug((System.nanoTime() - start) / 1000 + "ns");
                     }
                 }
             }
@@ -110,20 +102,8 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     @Override
-    public void invalidate(){
-        super.invalidate();
-        if(!world.isRemote) {
-            NetworkController.getInstance(getWorld()).updateColor((TileEntitySignalBase)null, getPos());
-        }
-    }
-
-    @Override
     public void update(){
         if(!world.isRemote) {
-            if(firstTick) {
-                firstTick = false;
-                NetworkController.getInstance(getWorld()).updateColor(this, getPos());
-            }
             List<EntityMinecart> carts = getNeighborMinecarts();
             for(EntityMinecart cart : carts) {
                 if(!cartsOnBlock.contains(cart)) {

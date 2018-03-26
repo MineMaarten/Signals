@@ -53,6 +53,10 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         build();
     }
 
+    public static <TPos extends IPosition<TPos>> RailNetwork<TPos> empty(){
+        return new RailNetwork<>(ImmutableMap.of());
+    }
+
     private void build(){
         buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
         Set<RailEdge<TPos>> allEdges = buildRoughRailEdges();

@@ -72,7 +72,6 @@ public class RailCacheManager{
                 for(RailWrapper neighbor : rail.getNeighbors().keySet()) {
                     neighbor.updateNeighborCache();
                 }
-                NetworkController.getInstance(world).updateColor(rail, pos);
                 return rail;
             }
         }
@@ -149,12 +148,10 @@ public class RailCacheManager{
 
     public void addStationMarker(TileEntityStationMarker marker){
         stations.add(marker);
-        NetworkController.getInstance(marker.getWorld()).updateColor(marker, marker.getPos());
     }
 
     public void removeStationMarker(TileEntityStationMarker marker){
         stations.remove(marker);
-        NetworkController.getInstance(marker.getWorld()).updateColor((TileEntityStationMarker)null, marker.getPos());
     }
 
     public Set<MCPos> getStationRails(EntityMinecart cart, Pattern destinationRegex){

@@ -1,10 +1,11 @@
 package com.minemaarten.signals.rail;
 
 import java.util.Arrays;
-import java.util.ConcurrentModificationException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -14,47 +15,49 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import org.lwjgl.opengl.GL11;
 
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
-import com.minemaarten.signals.inventory.ContainerNetworkController;
-import com.minemaarten.signals.network.NetworkHandler;
-import com.minemaarten.signals.network.PacketUpdateNetworkController;
+import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.RailNetwork;
+import com.minemaarten.signals.rail.network.mc.MCPos;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class NetworkController{
-    private static final Map<Integer, NetworkController> SERVER_INSTANCES = new HashMap<>();
-    private static final Map<Integer, NetworkController> CLIENT_INSTANCES = new HashMap<>();
-    private static final int RAIL_COLOR = 0xFF666666;
-    private static final int PATH_COLOR = 0xFFAAAAAA;
-    private static final int TEXT_COLOR = 0xFFFFFF; //No alpha
-    private static final int STATION_COLOR = 0xFFDDDD00;
-    private static final int NOTHING_COLOR = 0xFF222222;
+    public static final int RAIL_COLOR = 0xFF666666;
+    public static final int PATH_COLOR = 0xFFAAAAAA;
+    public static final int TEXT_COLOR = 0xFFFFFF; //No alpha
+    public static final int STATION_COLOR = 0xFFDDDD00;
+    public static final int NOTHING_COLOR = 0xFF222222;
+    private static Map<Integer, NetworkController> cache = new HashMap<>();
+    private static RailNetwork<MCPos> network = RailNetwork.empty();
 
     public static NetworkController getInstance(World world){
-        return getInstance(world.provider.getDimension(), world.isRemote);
+        if(!world.isRemote) throw new IllegalStateException("Can only be called client side!");
+        return getInstance(world.provider.getDimension());
     }
 
-    public static NetworkController getInstance(int dimension, boolean client){
-        Map<Integer, NetworkController> cache = client ? CLIENT_INSTANCES : SERVER_INSTANCES;
+    public static NetworkController getInstance(int dimension){
+        if(network != RailNetworkManager.getInstance().getNetwork()) {
+            network = RailNetworkManager.getInstance().getNetwork();
+            cache = rebuildAll();
+        }
+
         NetworkController controller = cache.get(dimension);
         if(controller == null) {
             controller = new NetworkController(dimension);
-            if(client) controller.setColors(new int[]{0}, 1, 1, 0, 0);
+            controller.setColors(new int[]{0}, 1, 1, 0, 0);
             cache.put(dimension, controller);
-            if(!client) controller.rebuildAll();
         }
         return controller;
     }
@@ -170,22 +173,8 @@ public class NetworkController{
             rebuildAll();
         } else if(colors[index] != color) {
             colors[index] = color;
-            if(sendPacket) sendUpdatePacket();
+            //if(sendPacket) sendUpdatePacket();
         }
-    }
-
-    private void sendUpdatePacket(){
-        PacketUpdateNetworkController packet = new PacketUpdateNetworkController(dimensionId, colors, width, height, startX, startZ);
-        for(EntityPlayer player : DimensionManager.getWorld(dimensionId).playerEntities) {
-            if(shouldPlayerGetUpdates(player)) {
-                NetworkHandler.sendTo(packet, (EntityPlayerMP)player);
-            }
-        }
-
-    }
-
-    private static boolean shouldPlayerGetUpdates(EntityPlayer player){
-        return player.openContainer instanceof ContainerNetworkController;
     }
 
     public void updateColor(RailWrapper rail, BlockPos pos){
@@ -218,51 +207,43 @@ public class NetworkController{
         if(rebuildAll) rebuildAll();
     }
 
-    public void rebuildAll(){
-        Iterable<RailWrapper> allRails = RailCacheManager.getInstance(dimensionId).getAllRails();
-        Map<BlockPos, Integer> posToColor = new HashMap<>();
-        for(RailWrapper wrapper : allRails) {
-            posToColor.put(wrapper, RAIL_COLOR);
-        }
-        try {
-            for(TileEntity te : DimensionManager.getWorld(dimensionId).tickableTileEntities) {
-                if(te instanceof TileEntitySignalBase) {
-                    posToColor.put(te.getPos(), ((TileEntitySignalBase)te).getLampStatus().color);
-                } else if(te instanceof TileEntityStationMarker) {
-                    posToColor.put(te.getPos(), STATION_COLOR);
-                }
-            }
-        } catch(ConcurrentModificationException e) {
+    public static Map<Integer, NetworkController> rebuildAll(){
+        Map<Integer, NetworkController> cache = new HashMap<>();
 
+        Collection<NetworkObject<MCPos>> allObjects = RailNetworkManager.getInstance().getNetwork().railObjects.getAllNetworkObjects().values();
+        Map<Integer, List<NetworkObject<MCPos>>> objsByDim = allObjects.stream().collect(Collectors.groupingBy(o -> o.pos.getDimID()));
+
+        for(Map.Entry<Integer, List<NetworkObject<MCPos>>> entry : objsByDim.entrySet()) {
+            NetworkController controller = new NetworkController(entry.getKey());
+            controller.rebuild(entry.getValue());
+            controller.setColors(controller.colors, controller.width, controller.height, controller.startX, controller.startZ);
+
+            cache.put(entry.getKey(), controller);
         }
 
-        //allRails = Lists.newArrayList(allRails);
+        return cache;
+    }
+
+    private void rebuild(Collection<NetworkObject<MCPos>> objects){
         startX = Integer.MAX_VALUE;
         startZ = Integer.MAX_VALUE;
         int endX = Integer.MIN_VALUE;
         int endZ = Integer.MIN_VALUE;
-        for(BlockPos pos : posToColor.keySet()) {
+        for(NetworkObject<MCPos> obj : objects) {
+            MCPos pos = obj.pos;
             startX = Math.min(startX, pos.getX());
             startZ = Math.min(startZ, pos.getZ());
             endX = Math.max(endX, pos.getX());
             endZ = Math.max(endZ, pos.getZ());
         }
 
-        if(posToColor.isEmpty()) {
-            width = 1;
-            height = 1;
-            colors = new int[1];
-            Arrays.fill(colors, NOTHING_COLOR);
-        } else {
-            width = endX - startX + 1;
-            height = endZ - startZ + 1;
-            colors = new int[width * height];
-            Arrays.fill(colors, NOTHING_COLOR);
-            for(Map.Entry<BlockPos, Integer> entry : posToColor.entrySet()) {
-                setColor(entry.getKey().getX(), entry.getKey().getZ(), entry.getValue(), false);
-            }
-        }
+        width = endX - startX + 1;
+        height = endZ - startZ + 1;
+        colors = new int[width * height];
+        Arrays.fill(colors, NOTHING_COLOR);
 
-        sendUpdatePacket();
+        for(NetworkObject<MCPos> obj : objects) {
+            setColor(obj.pos.getX(), obj.pos.getZ(), obj.getColor(), false);
+        }
     }
 }

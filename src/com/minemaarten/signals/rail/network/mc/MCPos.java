@@ -73,6 +73,10 @@ public class MCPos implements IPosition<MCPos>{
         return pos.getZ();
     }
 
+    public int getDimID(){
+        return dimID;
+    }
+
     @Override
     public int compareTo(MCPos o){
         int xComp = Integer.compare(pos.getX(), o.pos.getX());
