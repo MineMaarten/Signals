@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -27,6 +26,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.NetworkStation;
 import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
@@ -148,18 +148,18 @@ public class NetworkController{
                 GlStateManager.popMatrix();
             }
         }
-        for(TileEntity te : world.loadedTileEntityList) {
-            if(te instanceof TileEntityStationMarker) {
-                double x = te.getPos().getX() - startX - 0.5;
-                double y = te.getPos().getZ() - startZ - 0.5;
 
-                GlStateManager.pushMatrix();
-                double scale = 1 / 4D;
-                GlStateManager.translate(x + 2, y, 0);
-                GlStateManager.scale(scale, scale, scale);
-                mc.fontRenderer.drawString(((TileEntityStationMarker)te).getStationName(), 0, 0, 0xFFFFFF00);
-                GlStateManager.popMatrix();
-            }
+        RailNetwork<MCPos> network = RailNetworkManager.getInstance().getNetwork();
+        for(NetworkStation<MCPos> station : network.railObjects.getStations().collect(Collectors.toList())) {
+            double x = station.pos.getX() - startX - 0.5;
+            double y = station.pos.getZ() - startZ - 0.5;
+
+            GlStateManager.pushMatrix();
+            double scale = 1 / 4D;
+            GlStateManager.translate(x + 2, y, 0);
+            GlStateManager.scale(scale, scale, scale);
+            mc.fontRenderer.drawString(station.stationName, 0, 0, 0xFFFFFF00);
+            GlStateManager.popMatrix();
         }
     }
 
@@ -175,10 +175,6 @@ public class NetworkController{
             colors[index] = color;
             //if(sendPacket) sendUpdatePacket();
         }
-    }
-
-    public void updateColor(RailWrapper rail, BlockPos pos){
-        updateColor(rail != null ? RAIL_COLOR : NOTHING_COLOR, pos);
     }
 
     public void updateColor(TileEntitySignalBase signal, BlockPos pos){

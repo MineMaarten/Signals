@@ -1,69 +1,33 @@
 package com.minemaarten.signals.tileentity;
 
+import java.util.Objects;
+
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
 
 import com.minemaarten.signals.block.BlockRailLink;
-import com.minemaarten.signals.rail.RailCacheManager;
-import com.minemaarten.signals.rail.RailWrapper;
+import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
-public class TileEntityRailLink extends TileEntityBase implements ITickable{
-    private BlockPos linkedPos;
-    private int linkedDimension;
-    private RailWrapper linkedRail;
-
-    public RailWrapper getLinkedRail(){
-        if(linkedRail == null && linkedPos != null) {
-            World linkedWorld = DimensionManager.getWorld(linkedDimension);
-            if(linkedWorld != null) {
-                if(linkedWorld.isBlockLoaded(linkedPos, false)) {
-                    RailWrapper rail = RailCacheManager.getInstance(linkedDimension).getRail(linkedWorld, linkedPos);
-                    if(rail != null) {
-                        setLinkedRail(rail);
-                    }
-                    return rail;
-                }
-            }
-        }
-        return linkedRail;
-    }
+public class TileEntityRailLink extends TileEntityBase{
+    private MCPos linkedPos;
 
     public MCPos getLinkedPosition(){
-        return linkedPos != null ? new MCPos(linkedDimension, linkedPos) : null;
+        return linkedPos;
     }
 
-    public void onLinkedRailInvalidated(){
-        linkedRail = null;
-        updateLinkState();
-    }
-
-    public void setLinkedRail(RailWrapper rail){
-        if(rail != linkedRail) {
-            RailNetworkManager.getInstance().markDirty(new MCPos(world, pos));
-            if(linkedRail != null) {
-                linkedRail.unlink(this);
-            }
-            if(rail != null) {
-                rail.link(this);
-                linkedRail = rail;
-                linkedPos = rail;
-                linkedDimension = rail.world.provider.getDimension();
-            } else {
-                linkedPos = null;
-                linkedDimension = 0;
-            }
+    public void setLinkedPos(MCPos railPos){
+        if(!Objects.equals(railPos, linkedPos)) {
+            linkedPos = railPos;
+            RailNetworkManager.getInstance().markDirty(getMCPos());
             updateLinkState();
         }
     }
 
     private void updateLinkState(){
+        NetworkRail<MCPos> linkedRail = linkedPos == null ? null : RailNetworkManager.getInstance().getRail(linkedPos);
         world.setBlockState(getPos(), world.getBlockState(getPos()).withProperty(BlockRailLink.CONNECTED, linkedRail != null), 2);
-        world.notifyNeighborsOfStateChange(getPos(), getBlockType(), true); //Guarantee a block update
     }
 
     @Override
@@ -72,8 +36,8 @@ public class TileEntityRailLink extends TileEntityBase implements ITickable{
             tag.setInteger("linkedX", linkedPos.getX());
             tag.setInteger("linkedY", linkedPos.getY());
             tag.setInteger("linkedZ", linkedPos.getZ());
+            tag.setInteger("linkedDim", linkedPos.getDimID());
         }
-        tag.setInteger("linkedDim", linkedDimension);
 
         return super.writeToNBT(tag);
     }
@@ -81,17 +45,12 @@ public class TileEntityRailLink extends TileEntityBase implements ITickable{
     @Override
     public void readFromNBT(NBTTagCompound tag){
         if(tag.hasKey("linkedX")) {
-            linkedPos = new BlockPos(tag.getInteger("linkedX"), tag.getInteger("linkedY"), tag.getInteger("linkedZ"));
+            BlockPos p = new BlockPos(tag.getInteger("linkedX"), tag.getInteger("linkedY"), tag.getInteger("linkedZ"));
+            linkedPos = new MCPos(tag.getInteger("linkedDim"), p);
         } else {
             linkedPos = null;
         }
-        linkedDimension = tag.getInteger("linkedDim");
 
         super.readFromNBT(tag);
-    }
-
-    @Override
-    public void update(){
-        if(!world.isRemote && world.getTotalWorldTime() % 100 == 0) getLinkedRail();
     }
 }

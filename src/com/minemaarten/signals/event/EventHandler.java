@@ -38,7 +38,6 @@ import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.item.ItemTicket;
 import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.proxy.CommonProxy;
-import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
@@ -79,7 +78,6 @@ public class EventHandler implements IWorldEventListener{
                         event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
                         event.setCanceled(true);
                     } else if(heldItem.getItem() == ModItems.RAIL_CONFIGURATOR) {
-                        RailCacheManager.syncStationNames((EntityPlayerMP)event.getPlayer());
                         event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), ((EntityPlayerMP)event.getPlayer()).world, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
                         event.setCanceled(true);
                     } else if(heldItem.getItem() == ModItems.TICKET) {
@@ -130,25 +128,13 @@ public class EventHandler implements IWorldEventListener{
     @SubscribeEvent
     public void onChunkUnload(ChunkEvent.Unload event){
         if(!event.getWorld().isRemote) {
-            RailCacheManager.getInstance(event.getWorld()).onChunkUnload(event.getChunk());
             RailNetworkManager.getInstance().onChunkUnload(event.getChunk());
         }
     }
 
     @SubscribeEvent
-    public void onChunkLoad(ChunkEvent.Load event){
-        if(!event.getWorld().isRemote) RailCacheManager.getInstance(event.getWorld()).onChunkLoad(event.getChunk());
-    }
-
-    @SubscribeEvent
-    public void onWorldUnload(WorldEvent.Unload event){
-        if(!event.getWorld().isRemote) RailCacheManager.getInstance(event.getWorld()).onWorldUnload(event.getWorld());
-    }
-
-    @SubscribeEvent
     public void onNeighborChange(NeighborNotifyEvent event){
         if(!event.getWorld().isRemote) {
-            RailCacheManager.getInstance(event.getWorld()).onNeighborChanged(event);
             RailNetworkManager.getInstance().markDirty(new MCPos(event.getWorld(), event.getPos()));
         }
     }

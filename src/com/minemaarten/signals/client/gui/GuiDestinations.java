@@ -11,7 +11,7 @@ import net.minecraft.tileentity.TileEntity;
 import com.minemaarten.signals.api.access.IDestinationAccessor;
 import com.minemaarten.signals.client.gui.widget.IGuiWidget;
 import com.minemaarten.signals.client.gui.widget.WidgetComboBox;
-import com.minemaarten.signals.rail.RailCacheManager;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public abstract class GuiDestinations<DestinationAccessor extends IDestinationAccessor> extends
         GuiContainerBase<TileEntity>{
@@ -33,7 +33,7 @@ public abstract class GuiDestinations<DestinationAccessor extends IDestinationAc
         stationNameFields = new WidgetComboBox[destinationAccessor.getTotalDestinations() + 1];
         for(int i = 0; i < stationNameFields.length; i++) {
             stationNameFields[i] = new WidgetComboBox(fontRenderer, guiLeft + 10, height / 2 - 5 - stationNameFields.length * 7 + i * 14, 100, fontRenderer.FONT_HEIGHT);
-            stationNameFields[i].setElements(RailCacheManager.getAllStationNames());
+            stationNameFields[i].setElements(RailNetworkManager.getInstance().getNetwork().stationNames);
             addWidget(stationNameFields[i]);
         }
         if(oldFields != null) {

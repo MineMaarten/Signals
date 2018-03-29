@@ -17,7 +17,7 @@ import com.minemaarten.signals.rail.network.RailNetwork;
 public class NetworkSerializer{
 
     public static enum EnumNetworkObject{
-        RAIL, SIGNAL, REMOVAL_MARKER, RAIL_LINK;
+        RAIL, SIGNAL, REMOVAL_MARKER, RAIL_LINK, STATION;
 
         public static final EnumNetworkObject[] VALUES = values();
     }
@@ -73,6 +73,8 @@ public class NetworkSerializer{
                 return NetworkRemovalMarker.fromTag(tag);
             case RAIL_LINK:
                 return MCNetworkRailLink.fromTag(tag);
+            case STATION:
+                return MCNetworkStation.fromTag(tag);
             default:
                 throw new IllegalStateException("Unsupported type: " + type);
         }
@@ -114,6 +116,8 @@ public class NetworkSerializer{
                 return NetworkRemovalMarker.fromByteBuf(b);
             case RAIL_LINK:
                 return MCNetworkRailLink.fromByteBuf(b);
+            case STATION:
+                return MCNetworkStation.fromByteBuf(b);
             default:
                 throw new IllegalStateException("Unsupported type: " + type);
         }

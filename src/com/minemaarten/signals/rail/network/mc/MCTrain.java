@@ -64,7 +64,7 @@ public class MCTrain extends Train<MCPos>{
         this(carts.stream().map(c -> c.getUniqueID()).collect(ImmutableSet.toImmutableSet()));
     }
 
-    private List<EntityMinecart> getCarts(){
+    public List<EntityMinecart> getCarts(){
         //TODO cache
         return Arrays.stream(DimensionManager.getWorlds()).flatMap(w -> w.loadedEntityList.stream().filter(e -> e instanceof EntityMinecart && cartIDs.contains(e.getUniqueID()))).map(e -> (EntityMinecart)e).collect(Collectors.toList());
     }
@@ -96,7 +96,7 @@ public class MCTrain extends Train<MCPos>{
             if(!destination.isEmpty()) {
                 //TODO messages.add(new PacketUpdateMessage(this, cart, "signals.message.routing_cart", destination));
 
-                path = RailNetworkManager.getInstance().pathfind(start, cart, destinationRegex, dir);
+                path = RailNetworkManager.getInstance().pathfind(start, this, destinationRegex, dir);
                 if(path == null) { //If there's no path
                     //        messages.add(new PacketUpdateMessage(this, cart, "signals.message.no_path_found"));
                 } else {

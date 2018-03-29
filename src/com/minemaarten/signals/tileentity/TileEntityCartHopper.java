@@ -29,8 +29,8 @@ import com.minemaarten.signals.api.access.ICartHopper;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.init.ModBlocks;
 import com.minemaarten.signals.network.GuiSynced;
-import com.minemaarten.signals.rail.RailCacheManager;
 import com.minemaarten.signals.rail.RailManager;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 import com.minemaarten.signals.tileentity.carthopperbehaviour.CartHopperBehaviourItems;
 
 public class TileEntityCartHopper extends TileEntityBase implements ITickable, IGUIButtonSensitive, ICartHopper{
@@ -72,7 +72,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
                 managingCartId = null;
             }
 
-            boolean extract = RailCacheManager.getInstance(getWorld()).getRail(getWorld(), getPos().up()) != null;
+            boolean extract = RailNetworkManager.getInstance().getRail(getWorld(), getPos().up()) != null;
             updateManagingCart(new AxisAlignedBB(extract ? getPos().up() : getPos().down()));
 
             boolean shouldPush;

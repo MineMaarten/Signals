@@ -15,7 +15,6 @@ public class NetworkHandler{
     public static void init(){
 
         INSTANCE.registerMessage(PacketUpdateGui.class, PacketUpdateGui.class, discriminant++, Side.CLIENT);
-        INSTANCE.registerMessage(PacketSyncStationNames.class, PacketSyncStationNames.class, discriminant++, Side.CLIENT);
         INSTANCE.registerMessage(PacketUpdateMessage.class, PacketUpdateMessage.class, discriminant++, Side.CLIENT);
         INSTANCE.registerMessage(PacketUpdateMinecartPath.class, PacketUpdateMinecartPath.class, discriminant++, Side.CLIENT);
         INSTANCE.registerMessage(PacketSpawnParticle.class, PacketSpawnParticle.class, discriminant++, Side.CLIENT);

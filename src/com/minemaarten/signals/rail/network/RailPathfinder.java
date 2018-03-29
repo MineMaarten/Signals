@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
@@ -82,6 +83,15 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
         private double getDistance(TPos rail){
             return Math.sqrt(this.pos.distanceSq(rail));
         }
+    }
+
+    /**
+     * @param start
+     * @param destination
+     * @return Returns the first node starting with a signal (or destination), up to the 'start'.
+     */
+    public RailRoute<TPos> pathfindToDestination(TPos start, Train<TPos> train, Pattern destinationRegex, EnumHeading direction){
+        return pathfindToDestination(start, direction, network.getStationRails(train, destinationRegex));
     }
 
     /**

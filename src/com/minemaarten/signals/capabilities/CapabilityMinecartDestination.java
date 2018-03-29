@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import com.minemaarten.signals.api.access.IDestinationAccessor;
+import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.inventory.EngineItemHandler;
 import com.minemaarten.signals.lib.SignalsUtils;
@@ -38,8 +39,12 @@ import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.network.PacketUpdateMinecartEngineState;
-import com.minemaarten.signals.rail.RailCacheManager;
-import com.minemaarten.signals.rail.RailWrapper;
+import com.minemaarten.signals.rail.network.NetworkRail;
+import com.minemaarten.signals.rail.network.NetworkSignal;
+import com.minemaarten.signals.rail.network.NetworkState;
+import com.minemaarten.signals.rail.network.RailNetwork;
+import com.minemaarten.signals.rail.network.mc.MCPos;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 import com.minemaarten.signals.tileentity.IGUITextFieldSensitive;
 
 public class CapabilityMinecartDestination implements IGUITextFieldSensitive, IDestinationAccessor{
@@ -290,17 +295,20 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                     }
                 } else {
                     hopperTimer = 0;
-                    RailWrapper rail = RailCacheManager.getInstance(cart.world).getRail(cart.world, event.getPos());
 
+                    NetworkRail<MCPos> rail = RailNetworkManager.getInstance().getRail(cart.world, event.getPos());
                     if(rail == null) {
                         shouldRun = false;
                     } else {
-                        /* TODO    TileEntitySignalBase signal = TileEntitySignalBase.getNeighborSignal(rail, cartDir.getOpposite());
-                             shouldRun = signal == null || signal.getLampStatus() != EnumLampStatus.RED;
-                             if(!shouldRun) {
-                                 cart.motionX = 0;
-                                 cart.motionZ = 0;
-                             }*/
+                        RailNetwork<MCPos> network = RailNetworkManager.getInstance().getNetwork();
+                        NetworkSignal<MCPos> signal = network.railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.getRailPos().equals(rail.pos)).findFirst().orElse(null);
+
+                        NetworkState<MCPos> state = RailNetworkManager.getInstance().getState();
+                        shouldRun = signal == null || state.getLampStatus(signal.pos) == EnumLampStatus.GREEN;
+                        if(!shouldRun) {
+                            cart.motionX = 0;
+                            cart.motionZ = 0;
+                        }
                     }
                 }
 

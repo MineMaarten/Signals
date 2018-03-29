@@ -18,6 +18,7 @@ import com.minemaarten.signals.rail.network.INetworkObjectProvider;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.tileentity.TileEntityRailLink;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
+import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
 
@@ -44,6 +45,11 @@ public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
         if(te instanceof TileEntitySignalBase) {
             TileEntitySignalBase signal = (TileEntitySignalBase)te;
             return new MCNetworkSignal(mcPos, HeadingUtils.fromFacing(signal.getFacing()), signal.getSignalType());
+        }
+
+        if(te instanceof TileEntityStationMarker) {
+            TileEntityStationMarker stationMarker = (TileEntityStationMarker)te;
+            return new MCNetworkStation(mcPos, stationMarker.getStationName());
         }
 
         return null;

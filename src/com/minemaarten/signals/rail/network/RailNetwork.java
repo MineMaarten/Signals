@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import com.google.common.collect.Streams;
 
 /**
  * Entry point for dealing with rail networks. Designed to be immutable.
@@ -31,6 +33,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     private Map<TPos, RailSection<TPos>> railPosToRailSections = new HashMap<>();
     private Set<RailEdge<TPos>> allEdges = new HashSet<>();
     private Set<RailSection<TPos>> allSections = new HashSet<>();
+    public String[] stationNames;
 
     /**
      * Given a position of a path node, which edges can end up in this node?
@@ -61,6 +64,13 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
         Set<RailEdge<TPos>> allEdges = buildRoughRailEdges();
         mergeCrossingEdges(allEdges).forEach(edge -> addEdge(edge));
+        buildStationNames();
+    }
+
+    private void buildStationNames(){
+        Stream<String> stationNameStream = railObjects.getStations().map(s -> s.stationName).filter(s -> !"".equals(s));
+        stationNameStream = Streams.concat(stationNameStream, Stream.of("ITEM")).distinct().sorted();
+        stationNames = stationNameStream.toArray(String[]::new);
     }
 
     private void buildRailSections(){
@@ -366,5 +376,25 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
             }
         }
         return positions.stream();
+    }
+
+    public Set<TPos> getStationRails(Train<TPos> train, Pattern destinationRegex){
+        Set<TPos> rails = new HashSet<>();
+        Set<String> validNames = new HashSet<>();
+        List<NetworkStation<TPos>> stations = railObjects.getStations().collect(Collectors.toList());
+        for(NetworkStation<TPos> station : stations) {
+            if(station.isTrainApplicable(train, destinationRegex)) {
+                rails.addAll(station.getConnectedRailPositions(this));
+                validNames.add(station.stationName);
+            }
+        }
+
+        //Make sure to include stations that don't match themselves, but other stations with the same name do.
+        for(NetworkStation<TPos> station : stations) {
+            if(validNames.contains(station.stationName)) {
+                rails.addAll(station.getConnectedRailPositions(this));
+            }
+        }
+        return rails;
     }
 }

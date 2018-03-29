@@ -40,6 +40,7 @@ import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.NetworkUpdater;
 import com.minemaarten.signals.rail.network.RailNetwork;
+import com.minemaarten.signals.rail.network.RailPathfinder;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.tileentity.TileEntityBase;
@@ -171,6 +172,14 @@ public class RailNetworkManager{
         return state;
     }
 
+    public NetworkRail<MCPos> getRail(World world, BlockPos pos){
+        return getRail(new MCPos(world, pos));
+    }
+
+    public NetworkRail<MCPos> getRail(MCPos pos){
+        return network.railObjects.getRail(pos);
+    }
+
     public void loadNetwork(RailNetwork<MCPos> network, MCNetworkState state){
         networkUpdateTask = null;
         this.network = network;
@@ -209,8 +218,8 @@ public class RailNetworkManager{
         return state.getLampStatus(new MCPos(world, pos));
     }
 
-    public RailRoute<MCPos> pathfind(MCPos start, EntityMinecart cart, Pattern destinationRegex, EnumHeading direction){
-        return new MCRailPathfinder(network, state).pathfindToDestination(start, cart, destinationRegex, direction);
+    public RailRoute<MCPos> pathfind(MCPos start, Train<MCPos> train, Pattern destinationRegex, EnumHeading direction){
+        return new RailPathfinder<MCPos>(network, state).pathfindToDestination(start, train, destinationRegex, direction);
     }
 
     public void markDirty(MCPos pos){

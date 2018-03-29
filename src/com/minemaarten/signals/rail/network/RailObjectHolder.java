@@ -123,6 +123,11 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         return ofType(NetworkRail.class, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
     }
 
+    public NetworkRail<TPos> getRail(TPos pos){
+        NetworkObject<TPos> obj = get(pos);
+        return obj instanceof NetworkRail ? (NetworkRail<TPos>)obj : null;
+    }
+
     public int getNeighborRailCount(Collection<TPos> potentialNeighbors){
         int count = 0;
         for(TPos neighbor : potentialNeighbors) {
@@ -147,6 +152,10 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
 
     public Stream<NetworkRailLink<TPos>> getNeighborRailLinks(Collection<TPos> potentialNeighbors){
         return ofType(NetworkRailLink.class, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
+    }
+
+    public Stream<NetworkStation<TPos>> getStations(){
+        return ofType(NetworkStation.class, allNetworkObjects.values().stream());
     }
 
     @Override

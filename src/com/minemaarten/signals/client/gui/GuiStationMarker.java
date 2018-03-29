@@ -7,7 +7,7 @@ import com.minemaarten.signals.client.gui.widget.WidgetComboBox;
 import com.minemaarten.signals.inventory.ContainerBase;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketUpdateTextfield;
-import com.minemaarten.signals.rail.RailCacheManager;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class GuiStationMarker extends GuiContainerBase<TileEntityStationMarker>{
@@ -22,7 +22,7 @@ public class GuiStationMarker extends GuiContainerBase<TileEntityStationMarker>{
     public void initGui(){
         super.initGui();
         stationNameField = new WidgetComboBox(fontRenderer, width / 2 - 50, height / 2 - 5, 100, fontRenderer.FONT_HEIGHT);
-        stationNameField.setElements(RailCacheManager.getAllStationNames());
+        stationNameField.setElements(RailNetworkManager.getInstance().getNetwork().stationNames);
         addWidget(stationNameField);
     }
 
