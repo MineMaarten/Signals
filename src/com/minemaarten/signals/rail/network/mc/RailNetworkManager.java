@@ -27,6 +27,7 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.lib.Log;
@@ -66,7 +67,7 @@ public class RailNetworkManager{
         return SERVER_INSTANCE;
     }
 
-    private final ExecutorService railNetworkExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService railNetworkExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("signals-network-thread-%d").build());
     private Future<RailNetwork<MCPos>> networkUpdateTask;
     private RailNetwork<MCPos> network = new RailNetwork<MCPos>(ImmutableMap.of());
     private MCNetworkState state = new MCNetworkState();
@@ -111,7 +112,7 @@ public class RailNetworkManager{
     public void initialize(){
         validateOnServer();
         initializeNetwork();
-        updateState();
+        state.update(network);
     }
 
     private void initializeNetwork(){
@@ -160,17 +161,6 @@ public class RailNetworkManager{
         for(MCTrain train : trains) {
             NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
         }
-    }
-
-    private void updateState(){
-        /*if(state.getTrains().isEmpty()) {
-            initTrains();
-        }*/
-
-        state.update();
-        state.getTrains().valueCollection().forEach(t -> ((MCTrain)t).updatePositions());
-        state.updateSignalStatusses(network);
-        state.pathfindTrains(network);
     }
 
     public RailNetwork<MCPos> getNetwork(){
@@ -278,7 +268,7 @@ public class RailNetworkManager{
     public void onPostServerTick(){
         validateOnServer();
         checkForNewNetwork(true);
-        updateState();
+        state.update(network);
     }
 
     public void onPreClientTick(){

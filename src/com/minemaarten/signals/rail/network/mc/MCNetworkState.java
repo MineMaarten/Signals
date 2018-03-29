@@ -14,20 +14,29 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ClassInheritanceMultiMap;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.Constants;
 
 import com.google.common.collect.ImmutableSet;
+import com.minemaarten.signals.api.access.ISignal.EnumForceMode;
+import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.lib.StreamUtils;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketRemoveTrain;
+import com.minemaarten.signals.network.PacketUpdateSignals;
 import com.minemaarten.signals.network.PacketUpdateTrainPath;
+import com.minemaarten.signals.rail.NetworkController;
 import com.minemaarten.signals.rail.RailManager;
+import com.minemaarten.signals.rail.network.NetworkSignal;
 import com.minemaarten.signals.rail.network.NetworkState;
+import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.Train;
+import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
 public class MCNetworkState extends NetworkState<MCPos>{
     private Map<UUID, EntityMinecart> trackingMinecarts = new HashMap<>();
@@ -36,6 +45,57 @@ public class MCNetworkState extends NetworkState<MCPos>{
     protected void onCartRouted(Train<MCPos> train, RailRoute<MCPos> route){
         super.onCartRouted(train, route);
         NetworkHandler.sendToAll(new PacketUpdateTrainPath((MCTrain)train));
+    }
+
+    @Override
+    protected void onSignalsChanged(Map<MCPos, EnumLampStatus> changedSignals){
+        super.onSignalsChanged(changedSignals);
+        NetworkHandler.sendToAll(new PacketUpdateSignals(changedSignals));
+
+        //Update the signals in the world.
+        for(Map.Entry<MCPos, EnumLampStatus> entry : changedSignals.entrySet()) {
+            MCPos mcPos = entry.getKey();
+            World world = mcPos.getWorld();
+            if(world != null && world.isBlockLoaded(mcPos.getPos())) {
+                TileEntity te = world.getTileEntity(mcPos.getPos());
+                if(te instanceof TileEntitySignalBase) {
+                    ((TileEntitySignalBase)te).setLampStatus(entry.getValue());
+                } else { //If there's no signal block, something's wrong
+                    RailNetworkManager.getInstance().markDirty(mcPos);
+                }
+            }
+        }
+    }
+
+    public void setSignalStatusses(Map<MCPos, EnumLampStatus> statusses){
+        for(Map.Entry<MCPos, EnumLampStatus> entry : statusses.entrySet()) {
+            setLampStatus(entry.getKey(), entry.getValue());
+        }
+    }
+
+    @Override
+    protected void setLampStatus(MCPos signalPos, EnumLampStatus status){
+        super.setLampStatus(signalPos, status);
+        NetworkController.getInstance(signalPos.getDimID()).updateColor(status.color, signalPos.getPos());
+    }
+
+    @Override
+    protected void onForceModeChanged(MCPos signalPos, EnumForceMode forceStatus){
+        super.onForceModeChanged(signalPos, forceStatus);
+        TileEntity te = signalPos.getLoadedTileEntity();
+        if(te instanceof TileEntitySignalBase) {
+            ((TileEntitySignalBase)te).setForceMode(forceStatus);
+        }
+    }
+
+    public boolean setForceMode(RailNetwork<MCPos> network, int dimID, int x, int z, EnumForceMode forceMode){
+        NetworkSignal<MCPos> signal = network.railObjects.getSignals().filter(s -> s.pos.getDimID() == dimID && s.pos.getX() == x && s.pos.getZ() == z).findFirst().orElse(null);
+        if(signal != null) {
+            setForceMode(network, signal.pos, forceMode);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void onMinecartJoinedWorld(EntityMinecart cart){
@@ -184,6 +244,15 @@ public class MCNetworkState extends NetworkState<MCPos>{
             trainList.appendTag(t);
         }
         tag.setTag("trains", trainList);
+
+        NBTTagList forcedSignals = new NBTTagList();
+        for(Map.Entry<MCPos, EnumForceMode> entry : signalForces.entrySet()) {
+            NBTTagCompound t = new NBTTagCompound();
+            entry.getKey().writeToNBT(t);
+            t.setByte("f", (byte)entry.getValue().ordinal());
+            forcedSignals.appendTag(t);
+        }
+        tag.setTag("forcedSignals", forcedSignals);
     }
 
     public static MCNetworkState fromNBT(NBTTagCompound tag){
@@ -194,7 +263,15 @@ public class MCNetworkState extends NetworkState<MCPos>{
             trains.add(MCTrain.fromNBT(trainList.getCompoundTagAt(i)));
         }
 
+        Map<MCPos, EnumForceMode> forcedSignalMap = new HashMap<>();
+        NBTTagList forcedSignals = tag.getTagList("forcedSignals", Constants.NBT.TAG_COMPOUND);
+        for(int i = 0; i < forcedSignals.tagCount(); i++) {
+            NBTTagCompound t = forcedSignals.getCompoundTagAt(i);
+            forcedSignalMap.put(new MCPos(t), EnumForceMode.values()[t.getByte("f")]);
+        }
+
         MCNetworkState state = new MCNetworkState();
+        state.signalForces = forcedSignalMap;
         state.setTrains(trains);
         return state;
     }

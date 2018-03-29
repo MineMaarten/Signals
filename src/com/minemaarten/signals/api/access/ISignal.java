@@ -33,6 +33,8 @@ public interface ISignal{
 
         public int color;
 
+        public static final EnumLampStatus[] VALUES = values();
+
         private EnumLampStatus(int color){
             this.color = color;
         }

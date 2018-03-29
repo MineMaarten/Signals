@@ -53,7 +53,7 @@ public abstract class Train<TPos extends IPosition<TPos>> {
 
     public final void setPositions(RailNetwork<TPos> network, ImmutableSet<TPos> positions){
         if(!this.positions.equals(positions)) { //When the train has moved
-            this.positions = positions; //TODO sync
+            this.positions = positions;
             updateIntersections();
             updateClaimedSections(network);
             onPositionChanged();

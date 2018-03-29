@@ -202,7 +202,10 @@ public class NetworkController{
                     rebuildAll = true; //When the rail is outside the current map scope we need to increase the map size.
                 }
             }
-            if(!rebuildAll) setColor(pos.getX(), pos.getZ(), color);
+            if(!rebuildAll) {
+                setColor(pos.getX(), pos.getZ(), color);
+                setColors(colors, width, height, startX, startZ);
+            }
         }
         if(rebuildAll) rebuildAll();
     }

@@ -5,6 +5,7 @@ import io.netty.buffer.ByteBuf;
 import java.util.stream.Stream;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -75,6 +76,11 @@ public class MCPos implements IPosition<MCPos>{
 
     public int getDimID(){
         return dimID;
+    }
+
+    public TileEntity getLoadedTileEntity(){
+        World world = getWorld();
+        return world != null && world.isBlockLoaded(getPos()) ? world.getTileEntity(getPos()) : null;
     }
 
     @Override

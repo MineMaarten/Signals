@@ -4,7 +4,6 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,8 +13,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.minemaarten.signals.api.access.ISignal.EnumForceMode;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
+import com.minemaarten.signals.rail.network.mc.MCTrain;
 
 /**
  * Contains the mutable state of a rail network, like the trains (positions and routes), the signal statusses
@@ -24,7 +25,9 @@ import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
  */
 public class NetworkState<TPos extends IPosition<TPos>> {
     private TIntObjectMap<Train<TPos>> trains = new TIntObjectHashMap<>();
-    private Map<TPos, EnumLampStatus> signalToLampStatusses = Collections.emptyMap();
+    private Map<TPos, EnumLampStatus> signalToLampStatusses = new HashMap<>();
+    protected Map<TPos, EnumForceMode> signalForces = new HashMap<>(); //TODO cleanup forces of signals that have been removed.
+    private Map<NetworkSignal<TPos>, Train<TPos>> trainsAtSignals = new HashMap<>();
 
     public void setTrains(Collection<? extends Train<TPos>> trains){
         this.trains = new TIntObjectHashMap<>(trains.size());
@@ -45,14 +48,37 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         trains.remove(train.id);
     }
 
+    public void update(RailNetwork<TPos> network){
+        updateTrainsAtSignals(network);
+        getTrains().valueCollection().forEach(t -> ((MCTrain)t).updatePositions());
+        updateSignalStatusses(network);
+        pathfindTrains(network);
+    }
+
+    private void updateTrainsAtSignals(RailNetwork<TPos> network){
+        Map<NetworkSignal<TPos>, Train<TPos>> newTrainsAtSignals = new HashMap<>(); //Can't use Collectors.toMap because of null values https://stackoverflow.com/questions/24630963/java-8-nullpointerexception-in-collectors-tomap
+        network.railObjects.getSignals().forEach(s -> newTrainsAtSignals.put(s, getTrainAtSignal(network, s)));
+
+        for(Map.Entry<NetworkSignal<TPos>, Train<TPos>> entry : newTrainsAtSignals.entrySet()) {
+            Train<TPos> curTrain = entry.getValue();
+            Train<TPos> prevTrain = trainsAtSignals.get(entry.getKey());
+            if(prevTrain != null && curTrain != prevTrain) { //When the prev train left this signal
+                setForceMode(network, entry.getKey().pos, EnumForceMode.NONE);
+            }
+        }
+        trainsAtSignals = newTrainsAtSignals;
+    }
+
     public void updateSignalStatusses(RailNetwork<TPos> network){
         List<NetworkSignal<TPos>> allSignals = network.railObjects.getSignals().collect(Collectors.toList());
+        Map<TPos, EnumLampStatus> prevLampStatusses = signalToLampStatusses;
         signalToLampStatusses = new HashMap<>();
 
         //First evaluate the block signal statusses
         for(NetworkSignal<TPos> signal : allSignals) {
             if(signal.type == EnumSignalType.BLOCK) {
-                EnumLampStatus signalStatus = getBlockSignalStatus(network, signal);
+                EnumLampStatus signalStatus = getForcedStatus(signal.pos);
+                if(signalStatus == null) signalStatus = getBlockSignalStatus(network, signal);
                 signalToLampStatusses.put(signal.pos, signalStatus);
             }
         }
@@ -65,7 +91,8 @@ public class NetworkState<TPos extends IPosition<TPos>> {
             Iterator<NetworkSignal<TPos>> iterator = toEvaluate.iterator();
             while(iterator.hasNext()){
                 NetworkSignal<TPos> chainSignal = iterator.next();
-                EnumLampStatus signalStatus = getChainSignalStatus(network, toEvaluate, chainSignal);
+                EnumLampStatus signalStatus = getForcedStatus(chainSignal.pos);
+                if(signalStatus == null) signalStatus = getChainSignalStatus(network, toEvaluate, chainSignal);
                 if(signalStatus != EnumLampStatus.YELLOW_BLINKING){ //If the signal status could be evaluated
                     signalToLampStatusses.put(chainSignal.pos, signalStatus);
                     iterator.remove();
@@ -83,6 +110,26 @@ public class NetworkState<TPos extends IPosition<TPos>> {
             }
         }
         //@formatter:on
+
+        Map<TPos, EnumLampStatus> changedSignals = getChangedSignals(prevLampStatusses, signalToLampStatusses);
+        if(!changedSignals.isEmpty()) {
+            onSignalsChanged(changedSignals);
+        }
+    }
+
+    protected void onSignalsChanged(Map<TPos, EnumLampStatus> changedSignals){
+
+    }
+
+    private Map<TPos, EnumLampStatus> getChangedSignals(Map<TPos, EnumLampStatus> prevStatusses, Map<TPos, EnumLampStatus> newStatusses){
+        Map<TPos, EnumLampStatus> changedSignals = new HashMap<>();
+        for(Map.Entry<TPos, EnumLampStatus> status : newStatusses.entrySet()) {
+            EnumLampStatus prevStatus = prevStatusses.get(status.getKey());
+            if(status.getValue() != prevStatus) {
+                changedSignals.put(status.getKey(), status.getValue());
+            }
+        }
+        return changedSignals;
     }
 
     private EnumLampStatus getChainSignalStatus(RailNetwork<TPos> network, Set<NetworkSignal<TPos>> toEvaluate, NetworkSignal<TPos> chainSignal){
@@ -99,7 +146,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
                 if(nextSignalStatusses.isEmpty()) {
                     return EnumLampStatus.GREEN; //No signals, is OK
                 } else if(nextSignalStatusses.size() > 1 || nextSignalStatusses.iterator().next() == EnumLampStatus.YELLOW) {//Multiple different statusses -> dependent on the routing
-                    Train<TPos> routedTrain = getTrainAtSignal(network, chainSignal);
+                    Train<TPos> routedTrain = trainsAtSignals.get(chainSignal);
                     if(routedTrain != null && routedTrain.getCurRoute() != null) {
                         return evaluateCurRoutedTrain(network, routedTrain, chainSignal, new HashSet<>());
                     } else {
@@ -154,7 +201,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
                 return EnumLampStatus.RED;
             } else {
                 Train<TPos> trainClaimingSection = getClaimingTrain(nextSection);
-                if(trainClaimingSection != null && !trainClaimingSection.equals(getTrainAtSignal(network, signal))) {
+                if(trainClaimingSection != null && !trainClaimingSection.equals(trainsAtSignals.get(signal))) {
                     return EnumLampStatus.YELLOW; //Claimed by another train.
                 } else {
                     return EnumLampStatus.GREEN;
@@ -165,12 +212,43 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         }
     }
 
+    public EnumForceMode getForceMode(TPos signalPos){
+        EnumForceMode forceMode = signalForces.get(signalPos);
+        return forceMode != null ? forceMode : EnumForceMode.NONE;
+    }
+
+    private EnumLampStatus getForcedStatus(TPos signalPos){
+        EnumForceMode forceMode = getForceMode(signalPos);
+        if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) return EnumLampStatus.GREEN;
+        if(forceMode == EnumForceMode.FORCED_RED) return EnumLampStatus.RED;
+        return null;
+    }
+
+    public void setForceMode(RailNetwork<TPos> network, TPos signalPos, EnumForceMode forceMode){
+        if(network.railObjects.get(signalPos) instanceof NetworkSignal) {
+            if(forceMode != EnumForceMode.NONE) {
+                signalForces.put(signalPos, forceMode);
+            } else {
+                signalForces.remove(signalPos);
+            }
+            onForceModeChanged(signalPos, forceMode);
+        }
+    }
+
+    protected void onForceModeChanged(TPos signalPos, EnumForceMode forceMode){
+
+    }
+
     public Train<TPos> getTrainAtPositions(Stream<TPos> positions){
         return positions.flatMap(pos -> trains.valueCollection().stream().filter(t -> t.getPositions().contains(pos))).findFirst().orElse(null);
     }
 
-    public Train<TPos> getTrainAtSignal(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
+    private Train<TPos> getTrainAtSignal(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
         return getTrainAtPositions(network.getPositionsInFront(signal));
+    }
+
+    protected void setLampStatus(TPos signalPos, EnumLampStatus status){
+        signalToLampStatusses.put(signalPos, status);
     }
 
     public EnumLampStatus getLampStatus(TPos signalPos){
@@ -191,7 +269,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     }
 
     private void pathfindTrains(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
-        Train<TPos> trainAtSignal = getTrainAtSignal(network, signal);
+        Train<TPos> trainAtSignal = trainsAtSignals.get(signal);
         if(trainAtSignal != null) {
             RailRoute<TPos> route = trainAtSignal.pathfind(signal.getRailPos(), signal.heading);
             if(trainAtSignal.tryUpdatePath(network, this, route) && signal.type == EnumSignalType.CHAIN) {

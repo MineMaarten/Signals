@@ -1,6 +1,5 @@
 package com.minemaarten.signals.tileentity;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,13 +8,10 @@ import java.util.stream.Stream;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.item.EntityMinecart;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
-
-import org.apache.commons.lang3.NotImplementedException;
 
 import com.minemaarten.signals.api.access.ISignal;
 import com.minemaarten.signals.block.BlockSignalBase;
@@ -28,10 +24,9 @@ import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 public abstract class TileEntitySignalBase extends TileEntityBase implements ITickable, ISignal{
 
     private boolean firstTick = true;
-    private List<EntityMinecart> cartsOnBlock = new ArrayList<>();
+    private EnumForceMode forceMode = EnumForceMode.NONE;
     private String text = "";
     private String arguments = "";
-    private EnumForceMode forceMode = EnumForceMode.NONE; //TODO
 
     private IBlockState getBlockState(){
         return getWorld() != null ? getWorld().getBlockState(getPos()) : null;
@@ -44,13 +39,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
 
     public abstract EnumSignalType getSignalType();
 
-    protected void setLampStatus(EnumLampStatus lampStatus){
-        if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
-            lampStatus = EnumLampStatus.GREEN;
-        } else if(forceMode == EnumForceMode.FORCED_RED) {
-            lampStatus = EnumLampStatus.RED;
-        }
-
+    public void setLampStatus(EnumLampStatus lampStatus){
         IBlockState state = getBlockState();
         if(state.getPropertyKeys().contains(BlockSignalBase.LAMP_STATUS) && state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
             getWorld().setBlockState(getPos(), state.withProperty(BlockSignalBase.LAMP_STATUS, lampStatus));
@@ -97,37 +86,22 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         return pos.getWorld().getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(pos.getPos())).stream();
     }
 
-    private MCPos getConnectedRail(){
-        throw new NotImplementedException("");
-    }
-
     @Override
     public void update(){
         if(!world.isRemote) {
-            List<EntityMinecart> carts = getNeighborMinecarts();
-            for(EntityMinecart cart : carts) {
-                if(!cartsOnBlock.contains(cart)) {
-                    cart.timeUntilPortal = 0;
-                    onCartEnteringBlock(cart);
-                }
-            }
-            for(EntityMinecart cart : cartsOnBlock) {
-                if(!carts.contains(cart)) onCartLeavingBlock(cart);
-            }
-            cartsOnBlock = carts;
+            if(firstTick) {
+                firstTick = false;
 
-            //TODO on event 
-            EnumLampStatus lampStatus = RailNetworkManager.getInstance().getLampStatus(world, pos);
-            setLampStatus(lampStatus);
+                setLampStatus(RailNetworkManager.getInstance().getLampStatus(world, pos));
+                setForceMode(RailNetworkManager.getInstance().getState().getForceMode(getMCPos()));
+            }
         }
     }
 
-    protected void onCartEnteringBlock(EntityMinecart cart){}
+    @Override
+    public void onLoad(){
+        super.onLoad();
 
-    protected void onCartLeavingBlock(EntityMinecart cart){
-        if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
-            setForceMode(EnumForceMode.NONE);
-        }
     }
 
     protected void setMessage(String message, Object... arguments){
@@ -153,10 +127,8 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         this.forceMode = forceMode;
         markDirty();
         if(forceMode == EnumForceMode.FORCED_GREEN_ONCE) {
-            setLampStatus(EnumLampStatus.GREEN);
             setMessage("signals.signal_message.forced_green");
         } else if(forceMode == EnumForceMode.FORCED_RED) {
-            setLampStatus(EnumLampStatus.RED);
             setMessage("signals.signal_message.forced_red");
         } else {
             setMessage("");
@@ -167,18 +139,4 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     public EnumForceMode getForceMode(){
         return forceMode;
     }
-
-    @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound tag){
-        super.writeToNBT(tag);
-        tag.setByte("forceMode", (byte)forceMode.ordinal());
-        return tag;
-    }
-
-    @Override
-    public void readFromNBT(NBTTagCompound tag){
-        super.readFromNBT(tag);
-        forceMode = EnumForceMode.values()[tag.getByte("forceMode")];
-    }
-
 }
