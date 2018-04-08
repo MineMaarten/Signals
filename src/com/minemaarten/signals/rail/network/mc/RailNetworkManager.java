@@ -118,32 +118,9 @@ public class RailNetworkManager{
     private void initializeNetwork(){
 
         NetworkObjectProvider objProvider = new NetworkObjectProvider();
-        Set<NetworkRail<MCPos>> railsToTraverse = getStartNodes();
-        /*  Set<NetworkObject<MCPos>> allNetworkObjects = new HashSet<>(railsToTraverse);
-          long milli = System.currentTimeMillis();
-          while(!railsToTraverse.isEmpty()) {
-              Iterator<NetworkRail<MCPos>> iterator = railsToTraverse.iterator();
-              NetworkRail<MCPos> curRail = iterator.next();
-              iterator.remove();
-
-              for(MCPos neighborPos : curRail.getPotentialNeighborRailLocations()) {
-                  NetworkObject<MCPos> neighbor = objProvider.provide(neighborPos);
-                  if(neighbor != null && allNetworkObjects.add(neighbor) && neighbor instanceof NetworkRail) {
-                      railsToTraverse.add((NetworkRail<MCPos>)neighbor);
-                  }
-              }
-          }
-          Log.info("Retrieving mc objects:" + (System.currentTimeMillis() - milli) + "ms");
-          NetworkHandler.sendToAll(new PacketClearNetwork());
-          for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
-              NetworkHandler.sendToAll(packet);
-          }
-          milli = System.currentTimeMillis();
-          network = new RailNetwork<MCPos>(allNetworkObjects);
-          Log.info("Building network:" + (System.currentTimeMillis() - milli) + "ms");*/
         NetworkHandler.sendToAll(new PacketClearNetwork());
         network = RailNetwork.empty();
-        railsToTraverse.forEach(r -> networkUpdater.markDirty(r.pos));
+        getStartNodes().forEach(r -> networkUpdater.markDirty(r.pos));
         initTrains();
     }
 
@@ -233,10 +210,6 @@ public class RailNetworkManager{
         Collection<NetworkObject<MCPos>> updates = networkUpdater.getNetworkUpdates(network);
         if(!updates.isEmpty()) {
             applyUpdates(updates);
-            for(NetworkObject<MCPos> obj : updates) {
-                //TODO remove
-                // NetworkHandler.sendToAll(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, obj.pos.getX() + 0.5, obj.pos.getY() + 0.5, obj.pos.getZ() + 0.5, 0, 0, 0));
-            }
 
             for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(updates)) {
                 NetworkHandler.sendToAll(packet);
