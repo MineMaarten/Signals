@@ -12,6 +12,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
 import com.minemaarten.signals.api.access.ISignal;
 import com.minemaarten.signals.block.BlockSignalBase;
@@ -83,7 +84,8 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     private static Stream<EntityMinecart> getCartsAt(MCPos pos){
-        return pos.getWorld().getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(pos.getPos())).stream();
+        World world = pos.getWorld();
+        return world == null ? Stream.empty() : world.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(pos.getPos())).stream();
     }
 
     @Override

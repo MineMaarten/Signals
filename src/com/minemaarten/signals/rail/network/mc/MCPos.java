@@ -4,6 +4,8 @@ import io.netty.buffer.ByteBuf;
 
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -53,7 +55,7 @@ public class MCPos implements IPosition<MCPos>{
         b.writeInt(pos.getZ());
     }
 
-    //FIXME null check for unloaded dims?
+    @Nullable
     public World getWorld(){
         return DimensionManager.getWorld(dimID);
     }

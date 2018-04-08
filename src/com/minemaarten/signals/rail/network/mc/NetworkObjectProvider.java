@@ -24,7 +24,8 @@ public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
 
     @Override
     public NetworkObject<MCPos> provide(MCPos pos){
-        return provide(pos.getWorld(), pos.getPos());
+        World world = pos.getWorld();
+        return world == null ? null : provide(world, pos.getPos());
     }
 
     public NetworkObject<MCPos> provide(World world, BlockPos pos){
