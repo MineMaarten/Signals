@@ -106,7 +106,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
                 edge = edge.reverse();
                 break;
             case ZERODIRECTIONAL:
-                unidirectional = false;//TODO
+                unidirectional = false;//TODO zerodirectional
                 break;
             default:
                 throw new IllegalStateException();

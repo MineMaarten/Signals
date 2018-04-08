@@ -22,7 +22,7 @@ import com.minemaarten.signals.tileentity.TileEntityPathSignal;
 @EventBusSubscriber(modid = Constants.MOD_ID)
 public class ModBlocks{
     public static Block BLOCK_SIGNAL;
-    public static Block PATH_SIGNAL;
+    public static Block PATH_SIGNAL; //TODO Remove in 1.13
     public static Block CHAIN_SIGNAL;
     public static Block STATION_MARKER;
     public static Block RAIL_LINK;
@@ -58,7 +58,7 @@ public class ModBlocks{
         }
     }*/
 
-    //TODO remove 1.13
+    //TODO remove in 1.13
     @SubscribeEvent
     public static void OnMissingItemMapping(MissingMappings<Item> event){
         for(MissingMappings.Mapping<Item> entry : event.getAllMappings()) {

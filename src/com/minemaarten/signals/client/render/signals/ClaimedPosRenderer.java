@@ -1,7 +1,7 @@
 package com.minemaarten.signals.client.render.signals;
 
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.stream.Stream;
 
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.RailObjectHolder;
@@ -24,8 +24,8 @@ public class ClaimedPosRenderer extends AbstractRailRenderer<MCTrainClient>{
 
     @Override
     protected Iterable<MCTrainClient> getRenderableSections(){
-        Iterable<MCTrain> allTrains = RailNetworkManager.getInstance().getAllTrains();
-        return StreamSupport.stream(allTrains.spliterator(), false).map(t -> (MCTrainClient)t).filter(this::canRender).collect(Collectors.toList());
+        Stream<MCTrain> allTrains = RailNetworkManager.getInstance().getAllTrains();
+        return allTrains.map(t -> (MCTrainClient)t).filter(this::canRender).collect(Collectors.toList());
     }
 
     @Override

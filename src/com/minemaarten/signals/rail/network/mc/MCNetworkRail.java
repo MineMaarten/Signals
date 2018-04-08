@@ -36,7 +36,6 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
     private final ImmutableList<MCPos> potentialRailNeighbors, potentialObjectNeighbors;
     private final EnumSet<EnumRailDirection> validRailDirs;
     private final EnumSet<EnumHeading> validNeighborHeadings;
-    private final EnumMap<EnumHeading, Set<MCPos>> entryDirToPotentialRailNeighbors = null; //TODO remove
     private final EnumMap<EnumHeading, EnumSet<EnumHeading>> entryDirToNeighborHeadings;
     private final EnumMap<EnumHeading, Set<MCPos>> headingToNeighbors;
 
@@ -146,11 +145,6 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
     @Override
     public List<MCPos> getPotentialNeighborObjectLocations(){
         return potentialObjectNeighbors;
-    }
-
-    @Override
-    public Collection<MCPos> getPotentialPathfindNeighbors(EnumHeading entryDir){
-        return entryDirToPotentialRailNeighbors.get(entryDir);
     }
 
     private EnumMap<EnumHeading, EnumSet<EnumHeading>> computeExitsForEntries(EnumSet<EnumRailDirection> validRailDirs){

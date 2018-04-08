@@ -22,7 +22,7 @@ public class WidgetFluidFilter extends WidgetBase{
     @Override
     public void render(int mouseX, int mouseY, float partialTick){
         if(fluid != null) {
-            ResourceLocation icon = fluid.getStill(); //TODO 1.8 still or flowing?
+            ResourceLocation icon = fluid.getStill();
             if(icon != null) {
                 GL11.glColor4d(1, 1, 1, 1);
                 GL11.glPushMatrix();

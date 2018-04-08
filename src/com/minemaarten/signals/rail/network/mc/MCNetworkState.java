@@ -98,6 +98,10 @@ public class MCNetworkState extends NetworkState<MCPos>{
         }
     }
 
+    public EntityMinecart getCart(UUID uniqueID){
+        return trackingMinecarts.get(uniqueID);
+    }
+
     public void onMinecartJoinedWorld(EntityMinecart cart){
         //Override any previous records, automatically resolving dimension changes of entities, where the entity in the next dimension
         //is added, before the entity in the previous dimension is noticed to be removed.

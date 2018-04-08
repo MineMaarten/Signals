@@ -44,15 +44,14 @@ public class PacketSpawnParticle extends LocationDoublePacket<PacketSpawnParticl
         dz = buffer.readDouble();
     }
 
-	@Override
-	public void handleClientSide(EntityPlayer player) {
-		 player.world.spawnParticle(EnumParticleTypes.values()[particleId], x, y, z, dx, dy, dz);
-	}
+    @Override
+    public void handleClientSide(EntityPlayer player){
+        player.world.spawnParticle(EnumParticleTypes.values()[particleId], x, y, z, dx, dy, dz);
+    }
 
-	@Override
-	public void handleServerSide(EntityPlayer player) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void handleServerSide(EntityPlayer player){
+
+    }
 
 }

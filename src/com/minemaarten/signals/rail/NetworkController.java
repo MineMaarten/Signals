@@ -24,14 +24,14 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import org.lwjgl.opengl.GL11;
 
+import com.google.common.base.Predicates;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkStation;
 import com.minemaarten.signals.rail.network.RailNetwork;
+import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
-import com.minemaarten.signals.tileentity.TileEntitySignalBase;
-import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class NetworkController{
     public static final int RAIL_COLOR = 0xFF666666;
@@ -105,6 +105,10 @@ public class NetworkController{
         return startZ;
     }
 
+    private List<RailRoute<MCPos>> getAllRoutes(){
+        return RailNetworkManager.getInstance().getAllTrains().map(t -> t.getCurRoute()).filter(Predicates.notNull()).collect(Collectors.toList());
+    }
+
     @SideOnly(Side.CLIENT)
     public void render(World world){
         if(textureLoc == null) setColors(new int[1], 1, 1, 0, 0);
@@ -115,16 +119,19 @@ public class NetworkController{
         Gui.drawModalRectWithCustomSizedTexture(0, 0, 0, 0, width, height, width, height);
         Tessellator t = Tessellator.getInstance();
         BufferBuilder buffer = t.getBuffer();
-        for(EntityMinecart cart : world.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(startX, 0, startZ, startX + width, 255, startZ + height))) {
-            List<BlockPos> path = null;//TODO cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getNBTPath();
-            if(path != null) {
-                for(BlockPos pathPos : path) {
+
+        //Draw the path
+        for(RailRoute<MCPos> route : getAllRoutes()) {
+            for(MCPos pathPos : route.routeRails) {
+                if(pathPos.getDimID() == dimensionId) {
                     int pathX = pathPos.getX() - startX;
                     int pathZ = pathPos.getZ() - startZ;
                     Gui.drawRect(pathX, pathZ, pathX + 1, pathZ + 1, PATH_COLOR);
                 }
             }
         }
+
+        //Draw the destination names next to the trains
         for(EntityMinecart cart : world.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(startX, 0, startZ, startX + width, 255, startZ + height))) {
             double x = cart.posX - startX - 0.5;
             double y = cart.posZ - startZ - 0.5;
@@ -149,6 +156,7 @@ public class NetworkController{
             }
         }
 
+        //Draw the station names next to the stations
         RailNetwork<MCPos> network = RailNetworkManager.getInstance().getNetwork();
         for(NetworkStation<MCPos> station : network.railObjects.getStations().collect(Collectors.toList())) {
             double x = station.pos.getX() - startX - 0.5;
@@ -173,17 +181,7 @@ public class NetworkController{
             rebuildAll();
         } else if(colors[index] != color) {
             colors[index] = color;
-            //if(sendPacket) sendUpdatePacket();
         }
-    }
-
-    public void updateColor(TileEntitySignalBase signal, BlockPos pos){
-        //TODO
-        updateColor(signal != null ? signal.getLampStatus().color : NOTHING_COLOR, pos);
-    }
-
-    public void updateColor(TileEntityStationMarker station, BlockPos pos){
-        updateColor(station != null ? STATION_COLOR : NOTHING_COLOR, pos);
     }
 
     public void updateColor(int color, BlockPos... positions){

@@ -60,7 +60,7 @@ public class ItemRailConfigurator extends ItemSignals{
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand){
         if(!worldIn.isRemote && playerIn.isSneaking()) {
             long milli = System.currentTimeMillis();
-            RailNetworkManager.getInstance().initialize();
+            RailNetworkManager.getInstance().rebuildNetwork();
             playerIn.sendMessage(new TextComponentString("Time: " + (System.currentTimeMillis() - milli) + "ms"));
             playerIn.sendMessage(new TextComponentTranslation("signals.message.clearedCache"));
         }

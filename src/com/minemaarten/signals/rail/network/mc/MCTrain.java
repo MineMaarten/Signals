@@ -1,7 +1,6 @@
 package com.minemaarten.signals.rail.network.mc;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -19,9 +18,9 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.util.Constants;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.minemaarten.signals.api.IRail;
@@ -65,8 +64,7 @@ public class MCTrain extends Train<MCPos>{
     }
 
     public List<EntityMinecart> getCarts(){
-        //TODO cache
-        return Arrays.stream(DimensionManager.getWorlds()).flatMap(w -> w.loadedEntityList.stream().filter(e -> e instanceof EntityMinecart && cartIDs.contains(e.getUniqueID()))).map(e -> (EntityMinecart)e).collect(Collectors.toList());
+        return cartIDs.stream().map(id -> RailNetworkManager.getInstance().getState().getCart(id)).filter(Predicates.notNull()).collect(Collectors.toList());
     }
 
     public void addCartIDs(Collection<UUID> ids){
@@ -139,7 +137,7 @@ public class MCTrain extends Train<MCPos>{
                         Log.warning("Rail with state " + state + " does not allow setting dir " + requiredDir);
                     }
                 } else {
-                    Log.warning("Invalid routing node: " + routeNode); //TODO rail links?
+                    Log.warning("Invalid routing node: " + routeNode);
                 }
 
                 for(PacketUpdateMessage message : messages) {

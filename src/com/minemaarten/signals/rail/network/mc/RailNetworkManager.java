@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
@@ -87,9 +87,8 @@ public class RailNetworkManager{
 
     /**
      * The initial nodes used to build out the network from.
-     * Signals, Station Markers, rail links
+     * Signals, Station Markers, rail links. Only used when force rebuilding the network.
      * @return
-     * TODO remove after testing
      */
     private Set<NetworkRail<MCPos>> getStartNodes(){
         Set<NetworkRail<MCPos>> nodes = new HashSet<>();
@@ -109,25 +108,19 @@ public class RailNetworkManager{
         return nodes;
     }
 
-    public void initialize(){
+    public void rebuildNetwork(){
         validateOnServer();
-        initializeNetwork();
-        state.update(network);
-    }
 
-    private void initializeNetwork(){
-
-        NetworkObjectProvider objProvider = new NetworkObjectProvider();
         NetworkHandler.sendToAll(new PacketClearNetwork());
         network = RailNetwork.empty();
         getStartNodes().forEach(r -> networkUpdater.markDirty(r.pos));
         initTrains();
+        state.update(network);
     }
 
     private void initTrains(){
         List<EntityMinecart> carts = new ArrayList<>();
 
-        //TODO manage own list
         for(World world : DimensionManager.getWorlds()) {
             for(Entity entity : world.loadedEntityList) {
                 if(entity instanceof EntityMinecart) {
@@ -178,8 +171,8 @@ public class RailNetworkManager{
         return (MCTrain)state.getTrain(id);
     }
 
-    public Iterable<MCTrain> getAllTrains(){
-        return state.getTrains().valueCollection().stream().map(t -> (MCTrain)t).collect(Collectors.toList());
+    public Stream<MCTrain> getAllTrains(){
+        return state.getTrains().valueCollection().stream().map(t -> (MCTrain)t);
     }
 
     public void addTrain(MCTrain train){
@@ -224,6 +217,7 @@ public class RailNetworkManager{
                 networkUpdateTask = null;
                 NetworkStorage.getInstance().setNetwork(network);
 
+                state.onNetworkChanged(network);
                 Signals.proxy.onRailNetworkUpdated();
             } catch(InterruptedException e) {
                 e.printStackTrace();

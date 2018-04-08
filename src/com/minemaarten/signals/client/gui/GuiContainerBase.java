@@ -112,7 +112,7 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
     protected void drawDarkGreyText(int x, int y, String localizationKey, Object... args){
         String text = I18n.format(localizationKey, args);
         drawRect(x, y, x + fontRenderer.getStringWidth(text) + 3, y + fontRenderer.FONT_HEIGHT + 3, 0xFF222222);
-	    fontRenderer.drawString(text, x + 2, y + 2, 0xFFFFFFFF);
+        fontRenderer.drawString(text, x + 2, y + 2, 0xFFFFFFFF);
     }
 
     protected boolean shouldDrawBackground(){
@@ -131,7 +131,7 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
         if(getInvNameOffset() != null && te instanceof IInventory) {
             IInventory inv = (IInventory)te;
             String containerName = inv.hasCustomName() ? inv.getName() : I18n.format(inv.getName() + ".name");
-	        fontRenderer.drawString(containerName, xSize / 2 - fontRenderer.getStringWidth(containerName) / 2 + getInvNameOffset().x, 6 + getInvNameOffset().y, 4210752);
+            fontRenderer.drawString(containerName, xSize / 2 - fontRenderer.getStringWidth(containerName) / 2 + getInvNameOffset().x, 6 + getInvNameOffset().y, 4210752);
         }
         if(getInvTextOffset() != null) fontRenderer.drawString(I18n.format("container.inventory"), 8 + getInvTextOffset().x, ySize - 94 + getInvTextOffset().y, 4210752);
     }
@@ -157,15 +157,6 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
             if(widget.getBounds().contains(x, y)) widget.addTooltip(x, y, tooltip, Signals.proxy.isSneakingInGui());
         }
 
-        /*  if(tooltip.size() > 0) {
-              drawHoveringString(tooltip, x, y, fontRendererObj);
-              tooltip.clear();
-          }*/
-
-        /*TODO boolean shift = PneumaticCraft.proxy.isSneakingInGui();
-        for(IGuiWidget widget : widgets) {
-            if(widget.getBounds().contains(x, y)) widget.addTooltip(tooltip, shift);
-        }*/
         if(!tooltip.isEmpty()) {
             List<String> localizedTooltip = new ArrayList<>();
             for(String line : tooltip) {

@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkRail;
@@ -50,11 +49,6 @@ public class DefaultRailNode extends NetworkRail<Pos2D>{
     @Override
     public List<Pos2D> getPotentialNeighborObjectLocations(){
         return getPotentialNeighborRailLocations();
-    }
-
-    @Override
-    public List<Pos2D> getPotentialPathfindNeighbors(EnumHeading entryDir){
-        return EnumHeading.valuesStream().map(pos::offset).collect(Collectors.toList());
     }
 
     @Override

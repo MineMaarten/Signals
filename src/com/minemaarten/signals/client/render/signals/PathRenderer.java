@@ -1,7 +1,7 @@
 package com.minemaarten.signals.client.render.signals;
 
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.stream.Stream;
 
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.RailObjectHolder;
@@ -23,8 +23,8 @@ public class PathRenderer extends AbstractRailRenderer<MCTrain>{
 
     @Override
     protected Iterable<MCTrain> getRenderableSections(){
-        Iterable<MCTrain> allTrains = RailNetworkManager.getInstance().getAllTrains();
-        return StreamSupport.stream(allTrains.spliterator(), false).filter(this::canRender).collect(Collectors.toList());
+        Stream<MCTrain> allTrains = RailNetworkManager.getInstance().getAllTrains();
+        return allTrains.filter(this::canRender).collect(Collectors.toList());
     }
 
     @Override

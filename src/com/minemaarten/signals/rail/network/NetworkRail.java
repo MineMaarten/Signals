@@ -37,8 +37,6 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
      */
     public abstract List<TPos> getPotentialNeighborObjectLocations();
 
-    public abstract Collection<TPos> getPotentialPathfindNeighbors(EnumHeading entryDir);
-
     public abstract EnumSet<EnumHeading> getPathfindHeading(@Nullable EnumHeading entryDir);
 
     public abstract Collection<TPos> getPotentialNeighborRailLocations(EnumHeading side);
@@ -58,12 +56,6 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
 
     public Stream<NetworkRail<TPos>> getSectionNeighborRails(RailObjectHolder<TPos> railObjects){
         Stream<NetworkRail<TPos>> normalNeighbors = railObjects.getNeighborRails(getPotentialNeighborRailLocations());
-        return Streams.concat(normalNeighbors, getRailLinkConnectedRails(railObjects));
-    }
-
-    public Stream<NetworkRail<TPos>> getPathfindingNeighborRails(RailObjectHolder<TPos> railObjects, EnumHeading entryDir){
-        if(entryDir == null) return getSectionNeighborRails(railObjects); //When stuff with Rail Link, we can't properly use pathfind directions
-        Stream<NetworkRail<TPos>> normalNeighbors = railObjects.getNeighborRails(getPotentialPathfindNeighbors(entryDir));
         return Streams.concat(normalNeighbors, getRailLinkConnectedRails(railObjects));
     }
 

@@ -25,7 +25,7 @@ import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 public class NetworkState<TPos extends IPosition<TPos>> {
     private TIntObjectMap<Train<TPos>> trains = new TIntObjectHashMap<>();
     private Map<TPos, EnumLampStatus> signalToLampStatusses = new HashMap<>();
-    protected Map<TPos, EnumForceMode> signalForces = new HashMap<>(); //TODO cleanup forces of signals that have been removed.
+    protected Map<TPos, EnumForceMode> signalForces = new HashMap<>();
     private Map<NetworkSignal<TPos>, Train<TPos>> trainsAtSignals = new HashMap<>();
 
     public void setTrains(Collection<? extends Train<TPos>> trains){
@@ -121,6 +121,14 @@ public class NetworkState<TPos extends IPosition<TPos>> {
 
     protected void onSignalsChanged(Map<TPos, EnumLampStatus> changedSignals){
 
+    }
+
+    /**
+     * Cleanup the forced signals when the signal is removed.
+     * @param network
+     */
+    public void onNetworkChanged(RailNetwork<TPos> network){
+        signalForces.keySet().removeIf(pos -> !(network.railObjects.get(pos) instanceof NetworkSignal));
     }
 
     private Map<TPos, EnumLampStatus> getChangedSignals(Map<TPos, EnumLampStatus> prevStatusses, Map<TPos, EnumLampStatus> newStatusses){
