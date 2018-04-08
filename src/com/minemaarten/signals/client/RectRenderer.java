@@ -12,7 +12,7 @@ public class RectRenderer{
 
     private boolean hasPos;
     private double x, y, z;
-    private final double width = 0.075;
+    public double width = 0.075;
 
     public void setColor(float r, float g, float b){
         this.r = r;

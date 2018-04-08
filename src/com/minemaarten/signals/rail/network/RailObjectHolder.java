@@ -71,7 +71,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         }
     }
 
-    public RailObjectHolder<TPos> subSelection(List<TPos> rails){
+    public RailObjectHolder<TPos> subSelectionForPos(Collection<TPos> rails){
         return subSelection(getNeighborRails(rails).collect(Collectors.toList()));
     }
 

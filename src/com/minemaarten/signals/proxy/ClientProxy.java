@@ -151,6 +151,7 @@ public class ClientProxy extends CommonProxy{
             eventHandler.blockSectionRenderer.updateSectionRenderers();
             eventHandler.edgeRenderer.updateSectionRenderers();
             eventHandler.pathRenderer.updateSectionRenderers();
+            eventHandler.claimRenderer.updateSectionRenderers();
         }
     }
 }

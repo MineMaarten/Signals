@@ -117,6 +117,14 @@ public abstract class AbstractRailRenderer<TSection> {
         }
     }
 
+    public double getLineWidth(){
+        return 0.075;
+    }
+
+    public double getHeightOffset(){
+        return 0;
+    }
+
     /*private void renderSignalDirection(BufferBuilder buffer, TileEntitySignalBase signal){
         EnumFacing signalFacing = signal.getFacing().getOpposite();
         SignalBlockNode rootNode = null;//TODO signal.getSignalBlockInfo();
@@ -163,6 +171,7 @@ public abstract class AbstractRailRenderer<TSection> {
 
         public void compileRender(){
             rectRenderer = new RectRenderer();
+            rectRenderer.width = getLineWidth();
 
             int color = ItemDye.DYE_COLORS[colorIndex];
             float r = (color >> 16) / 256F;
@@ -186,12 +195,12 @@ public abstract class AbstractRailRenderer<TSection> {
 
                 List<NetworkRail<MCPos>> neighbors = node.getSectionNeighborRails(neighborProvider).collect(Collectors.toList());
                 for(NetworkRail<MCPos> neighbor : neighbors) {
-                    rectRenderer.pos(node.pos.getX() + 0.5, node.pos.getY() + (railDir.isAscending() ? 0.6 : 0.1), node.pos.getZ() + 0.5);
+                    rectRenderer.pos(node.pos.getX() + 0.5, node.pos.getY() + (railDir.isAscending() ? 0.6 : 0.1) + getHeightOffset(), node.pos.getZ() + 0.5);
 
                     EnumFacing dir = HeadingUtils.toFacing(neighbor.pos.getRelativeHeading(node.pos));
                     int offset = getRailHeightOffset(node, dir);
                     Vec3d interpolated = Vec3iUtils.interpolate(node.pos.getPos(), neighbor.pos.getPos());
-                    rectRenderer.pos(interpolated.x + 0.5, node.pos.getY() + (offset == 1 ? 1.1 : 0.1), interpolated.z + 0.5);
+                    rectRenderer.pos(interpolated.x + 0.5, node.pos.getY() + (offset == 1 ? 1.1 : 0.1) + getHeightOffset(), interpolated.z + 0.5);
 
                     if(shouldTraverse(section, neighbor) && traversed.add(neighbor)) {
                         toTraverse.push(neighbor);

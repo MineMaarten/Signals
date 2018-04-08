@@ -162,7 +162,7 @@ public class NetworkStateTests{
     }
     
     /**
-     * Assert that Chain Signals can turn green for a given cart, as long as the cart routed (one block away from the signal) is routed through a green signal.
+     * Assert that Chain Signals can turn green for a given cart, as long as the cart routed (one block away) is routed through a green signal.
      * 
      */
     @Test
@@ -170,7 +170,7 @@ public class NetworkStateTests{
         List<String> map = new ArrayList<>();
         map.add("    t  ");
         map.add("    +^ ");
-        map.add("s+++++d");
+        map.add("+s++++d");
         map.add(" 0   > ");
         NetworkParser.createDefaultParser()
                      .addTrainGroups("t")
@@ -260,7 +260,7 @@ public class NetworkStateTests{
     }
     
     /**
-     * Assert chain signals turn yellow when the 2nd section is claimed by a train
+     * Assert chain signals turn red when the section the train needs to pass is claimed by a train
      */
     @Test
     public void testSectionClaimingChained(){    
@@ -281,7 +281,7 @@ public class NetworkStateTests{
                              }
                          };
                      })
-                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.YELLOW)
+                     .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.RED)
                      .addExpectedSignal(1, EnumHeading.EAST, EnumSignalType.BLOCK, EnumLampStatus.YELLOW)
                      .parse(map)
                      .validate();

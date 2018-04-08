@@ -70,6 +70,19 @@ public class PathfindingTests{
     }
 
     @Test
+    public void testSignalOnPath(){
+        List<String> map = new ArrayList<>();
+        map.add("+s++d+");
+        map.add(" >    ");
+        TestRailNetwork network = NetworkParser.createDefaultParser().parse(map);
+        RailRoute<Pos2D> route = network.pathfind();
+        Assert.assertNotNull(route);
+        Assert.assertEquals(0, route.routeNodes.size());
+        Assert.assertEquals(1, route.routeSignals.size());
+    }
+
+    
+    @Test
     public void testBasicIntersectionPath(){
         List<String> map = new ArrayList<>();
         map.add("s+0+d");

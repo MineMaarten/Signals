@@ -34,7 +34,7 @@ public class PathRenderer extends AbstractRailRenderer<MCTrain>{
 
     @Override
     protected RailObjectHolder<MCPos> getNeighborProvider(MCTrain section){
-        return RailNetworkManager.getInstance().getNetwork().railObjects.subSelection(section.getCurRoute().routeRails);
+        return RailNetworkManager.getInstance().getNetwork().railObjects.subSelectionForPos(section.getCurRoute().routeRails);
     }
 
     @Override

@@ -73,6 +73,7 @@ public class MCTrain extends Train<MCPos>{
         cartIDs = Streams.concat(cartIDs.stream(), ids.stream()).collect(ImmutableSet.toImmutableSet());
     }
 
+    @Override
     public void updatePositions(){
         ImmutableSet<MCPos> positions = ImmutableSet.copyOf(getCarts().stream().map(c -> new MCPos(c.world, c.getPosition())).collect(Collectors.toSet()));
         if(!positions.isEmpty()) { //Update if any cart is loaded, currently.

@@ -1,8 +1,7 @@
 package com.minemaarten.signals.util;
 
 import java.util.Collections;
-
-import org.apache.commons.lang3.NotImplementedException;
+import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableSet;
 import com.minemaarten.signals.rail.network.EnumHeading;
@@ -15,10 +14,15 @@ import com.minemaarten.signals.rail.network.Train;
 public class TestTrain extends Train<Pos2D>{
 
     private final char trainID;
+    private Supplier<RailRoute<Pos2D>> pathfinder;
 
     public TestTrain(RailNetwork<Pos2D> network, ImmutableSet<Pos2D> positions, char trainID){
         setPositions(network, positions);
         this.trainID = trainID;
+    }
+
+    public void setPathfinder(Supplier<RailRoute<Pos2D>> pathfinder){
+        this.pathfinder = pathfinder;
     }
 
     public void setPosition(RailNetwork<Pos2D> network, Pos2D pos){
@@ -41,7 +45,7 @@ public class TestTrain extends Train<Pos2D>{
 
     @Override
     public RailRoute<Pos2D> pathfind(Pos2D start, EnumHeading dir){
-        throw new NotImplementedException("");
+        return pathfinder == null ? null : pathfinder.get();
     }
 
     @Override

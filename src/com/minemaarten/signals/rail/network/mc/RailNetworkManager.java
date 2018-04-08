@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
-import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketClearNetwork;
@@ -120,28 +119,31 @@ public class RailNetworkManager{
 
         NetworkObjectProvider objProvider = new NetworkObjectProvider();
         Set<NetworkRail<MCPos>> railsToTraverse = getStartNodes();
-        Set<NetworkObject<MCPos>> allNetworkObjects = new HashSet<>(railsToTraverse);
-        long milli = System.currentTimeMillis();
-        while(!railsToTraverse.isEmpty()) {
-            Iterator<NetworkRail<MCPos>> iterator = railsToTraverse.iterator();
-            NetworkRail<MCPos> curRail = iterator.next();
-            iterator.remove();
+        /*  Set<NetworkObject<MCPos>> allNetworkObjects = new HashSet<>(railsToTraverse);
+          long milli = System.currentTimeMillis();
+          while(!railsToTraverse.isEmpty()) {
+              Iterator<NetworkRail<MCPos>> iterator = railsToTraverse.iterator();
+              NetworkRail<MCPos> curRail = iterator.next();
+              iterator.remove();
 
-            for(MCPos neighborPos : curRail.getPotentialNeighborRailLocations()) {
-                NetworkObject<MCPos> neighbor = objProvider.provide(neighborPos);
-                if(neighbor != null && allNetworkObjects.add(neighbor) && neighbor instanceof NetworkRail) {
-                    railsToTraverse.add((NetworkRail<MCPos>)neighbor);
-                }
-            }
-        }
-        Log.info("Retrieving mc objects:" + (System.currentTimeMillis() - milli) + "ms");
+              for(MCPos neighborPos : curRail.getPotentialNeighborRailLocations()) {
+                  NetworkObject<MCPos> neighbor = objProvider.provide(neighborPos);
+                  if(neighbor != null && allNetworkObjects.add(neighbor) && neighbor instanceof NetworkRail) {
+                      railsToTraverse.add((NetworkRail<MCPos>)neighbor);
+                  }
+              }
+          }
+          Log.info("Retrieving mc objects:" + (System.currentTimeMillis() - milli) + "ms");
+          NetworkHandler.sendToAll(new PacketClearNetwork());
+          for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
+              NetworkHandler.sendToAll(packet);
+          }
+          milli = System.currentTimeMillis();
+          network = new RailNetwork<MCPos>(allNetworkObjects);
+          Log.info("Building network:" + (System.currentTimeMillis() - milli) + "ms");*/
         NetworkHandler.sendToAll(new PacketClearNetwork());
-        for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
-            NetworkHandler.sendToAll(packet);
-        }
-        milli = System.currentTimeMillis();
-        network = new RailNetwork<MCPos>(allNetworkObjects);
-        Log.info("Building network:" + (System.currentTimeMillis() - milli) + "ms");
+        network = RailNetwork.empty();
+        railsToTraverse.forEach(r -> networkUpdater.markDirty(r.pos));
         initTrains();
     }
 

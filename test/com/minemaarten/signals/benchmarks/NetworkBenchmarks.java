@@ -13,6 +13,7 @@ import com.minemaarten.signals.util.railnode.DefaultRailNode;
 
 /**
  * Performance tests of creating different kinds of networks
+ * TODO benchmark network state updating
  * @author Maarten
  *
  */

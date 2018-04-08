@@ -99,11 +99,11 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
 
     public void validate(){
         if(start != null) {
-            state.updateSignalStatusses(this);
             TestTrain train = (TestTrain)state.getTrainAtPositions(Stream.of(start));
-            if(train != null) train.setPath(pathfind());
+            if(train != null) train.setPathfinder(this::pathfind);
+            state.update(this);
         }
-        state.updateSignalStatusses(this);
+        state.update(this);
         StreamUtils.ofInterface(IValidatingNode.class, railObjects).forEach(r -> r.validate(this, state));
     }
 }

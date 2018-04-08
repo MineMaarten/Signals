@@ -13,11 +13,14 @@ public class PacketUpdateTrainPath extends AbstractPacket<PacketUpdateTrainPath>
     private int trainID;
     private RailRoute<MCPos> path;
 
+    //private Set<MCPos> claimedPositions;
+
     public PacketUpdateTrainPath(){}
 
     public PacketUpdateTrainPath(MCTrain train){
         this.trainID = train.id;
         this.path = train.getCurRoute();
+        //this.claimedPositions = train.getClaimedSections().stream().flatMap(s -> s.getRailPositions()).collect(Collectors.toSet());
     }
 
     @Override
@@ -30,6 +33,11 @@ public class PacketUpdateTrainPath extends AbstractPacket<PacketUpdateTrainPath>
                 pos.writeToBuf(b);
             }
         }
+
+        /*b.writeInt(claimedPositions.size());
+        for(MCPos pos : claimedPositions) {
+            pos.writeToBuf(b);
+        }*/
     }
 
     @Override
@@ -43,12 +51,19 @@ public class PacketUpdateTrainPath extends AbstractPacket<PacketUpdateTrainPath>
             }
             path = new RailRoute<>(ImmutableList.of(), routeRails.build(), ImmutableList.of(), ImmutableList.of());
         }
+
+        /*claimedPositions = new HashSet<>();
+        int count = b.readInt();
+        for(int i = 0; i < count; i++) {
+            claimedPositions.add(new MCPos(b));
+        }*/
     }
 
     @Override
     public void handleClientSide(EntityPlayer player){
         MCTrain train = RailNetworkManager.getInstance().getTrainByID(trainID);
         if(train != null) {
+            //((MCTrainClient)train).clientClaimedPositions = claimedPositions;
             train.setPath(path);
         }
     }

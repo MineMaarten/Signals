@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 import com.minemaarten.signals.api.access.ISignal.EnumForceMode;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
-import com.minemaarten.signals.rail.network.mc.MCTrain;
 
 /**
  * Contains the mutable state of a rail network, like the trains (positions and routes), the signal statusses
@@ -49,8 +48,8 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     }
 
     public void update(RailNetwork<TPos> network){
+        getTrains().valueCollection().forEach(Train::updatePositions);
         updateTrainsAtSignals(network);
-        getTrains().valueCollection().forEach(t -> ((MCTrain)t).updatePositions());
         updateSignalStatusses(network);
         pathfindTrains(network);
     }
@@ -69,12 +68,13 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         trainsAtSignals = newTrainsAtSignals;
     }
 
-    public void updateSignalStatusses(RailNetwork<TPos> network){
+    private void updateSignalStatusses(RailNetwork<TPos> network){
         List<NetworkSignal<TPos>> allSignals = network.railObjects.getSignals().collect(Collectors.toList());
         Map<TPos, EnumLampStatus> prevLampStatusses = signalToLampStatusses;
         signalToLampStatusses = new HashMap<>();
 
         //First evaluate the block signal statusses
+        //The status of these is independent of other signals
         for(NetworkSignal<TPos> signal : allSignals) {
             if(signal.type == EnumSignalType.BLOCK) {
                 EnumLampStatus signalStatus = getForcedStatus(signal.pos);
@@ -84,6 +84,8 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         }
 
         //Then evaluate the chain signals
+        //We might need multiple iterations, as chain signal statuses are dependent of the next signal's status.
+        //TODO more efficient, by arranging a signal list, so that statuses can be determined in one iteration (built when the network is rebuilt)
         //@formatter:off
         Set<NetworkSignal<TPos>> toEvaluate = allSignals.stream().filter(s -> s.type == EnumSignalType.CHAIN).collect(Collectors.toSet());
         while(!toEvaluate.isEmpty()){
@@ -137,58 +139,48 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         if(blockSignalStatus == EnumLampStatus.RED || blockSignalStatus == EnumLampStatus.YELLOW) { //It is not going to get any greener if there's a train in the way, or the next section was claimed
             return blockSignalStatus;
         } else {
-            RailSection<TPos> nextRailSection = chainSignal.getNextRailSection(network);
-            if(nextRailSection == null) return EnumLampStatus.GREEN; //No next section is OK
-            Set<EnumLampStatus> nextSignalStatusses = nextRailSection.getSignals().map(s -> getLampStatus(s.pos)).collect(Collectors.toSet());
-
-            //When we can evaluate this chain signal
-            if(!nextSignalStatusses.contains(EnumLampStatus.YELLOW_BLINKING)) {
-                if(nextSignalStatusses.isEmpty()) {
-                    return EnumLampStatus.GREEN; //No signals, is OK
-                } else if(nextSignalStatusses.size() > 1 || nextSignalStatusses.iterator().next() == EnumLampStatus.YELLOW) {//Multiple different statusses -> dependent on the routing
-                    Train<TPos> routedTrain = trainsAtSignals.get(chainSignal);
-                    if(routedTrain != null && routedTrain.getCurRoute() != null) {
-                        return evaluateCurRoutedTrain(network, routedTrain, chainSignal, new HashSet<>());
-                    } else {
-                        return EnumLampStatus.YELLOW; //If we are not routing a train, the status of this signal is not certain
-                    }
+            Train<TPos> routedTrain = trainsAtSignals.get(chainSignal);
+            if(routedTrain != null) {
+                if(routedTrain.getCurRoute() != null) {
+                    return evaluateCurRoutedTrain(network, routedTrain, chainSignal);
                 } else {
-                    return nextSignalStatusses.iterator().next(); //Copy the status of the only other status.
+                    return EnumLampStatus.RED; //A cart with no route cannot be routed.
                 }
-            } else {
-                return EnumLampStatus.YELLOW_BLINKING;
+            } else {//If we are not routing a train, the status of this signal is just for visuals
+                RailSection<TPos> nextRailSection = chainSignal.getNextRailSection(network);
+                if(nextRailSection == null) return EnumLampStatus.GREEN; //No next section is OK
+                Set<EnumLampStatus> nextSignalStatusses = nextRailSection.getSignals().map(s -> getLampStatus(s.pos)).collect(Collectors.toSet());
+                if(nextSignalStatusses.size() == 1) {
+                    return nextSignalStatusses.iterator().next();
+                } else {
+                    return EnumLampStatus.YELLOW; //Different signals, we don't know
+                }
             }
         }
     }
 
-    private EnumLampStatus evaluateCurRoutedTrain(RailNetwork<TPos> network, Train<TPos> train, NetworkSignal<TPos> curSignal, Set<NetworkSignal<TPos>> traversed){
+    private EnumLampStatus evaluateCurRoutedTrain(RailNetwork<TPos> network, Train<TPos> train, NetworkSignal<TPos> curSignal){
         RailRoute<TPos> route = train.getCurRoute();
 
-        RailSection<TPos> nextRailSection = curSignal.getNextRailSection(network);
-        if(nextRailSection == null) return EnumLampStatus.GREEN; //No next section is OK
-        Train<TPos> trainClaimingSection = getClaimingTrain(nextRailSection);
-        if(trainClaimingSection != null && !trainClaimingSection.equals(train)) {
-            return EnumLampStatus.YELLOW; //Claimed by another train.
-        } else {
-            Stream<NetworkSignal<TPos>> nextSignals = nextRailSection.getSignals();
+        if(isTrainClaimingNextSection(network, curSignal, train)) {
+            return EnumLampStatus.RED;
+        }
 
-            //The signals that crosses the route
-            NetworkSignal<TPos> signalInRoute = nextSignals.filter(s -> route.routeEdges.stream().anyMatch(e -> e.contains(s.pos))).findFirst().orElse(null);
-            if(signalInRoute != null) {
+        for(NetworkSignal<TPos> signalInRoute : route.routeSignals) {
+            if(signalInRoute != curSignal) {
                 EnumLampStatus nextSignalStatus = getLampStatus(signalInRoute.pos);
                 if(nextSignalStatus == EnumLampStatus.YELLOW) {
-                    if(traversed.add(signalInRoute)) {
-                        return evaluateCurRoutedTrain(network, train, signalInRoute, traversed);
-                    } else {
-                        return EnumLampStatus.YELLOW_BLINKING; //Infinite loop detected as a result of a recursive call.
+                    if(isTrainClaimingNextSection(network, signalInRoute, train)) {
+                        return EnumLampStatus.RED;
                     }
+                    if(signalInRoute.type == EnumSignalType.BLOCK) return EnumLampStatus.GREEN;
                 } else {
                     return nextSignalStatus; //copy whatever the next signal says (even YELLOW_BLINKING)
                 }
-            } else {
-                return EnumLampStatus.GREEN;
             }
         }
+
+        return EnumLampStatus.GREEN;
     }
 
     private EnumLampStatus getBlockSignalStatus(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
@@ -210,6 +202,14 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         } else {
             return EnumLampStatus.GREEN;
         }
+    }
+
+    private boolean isTrainClaimingNextSection(RailNetwork<TPos> network, NetworkSignal<TPos> signal, Train<TPos> ignoredTrain){
+        RailSection<TPos> nextSection = signal.getNextRailSection(network);
+        if(nextSection == null) return false;
+
+        Train<TPos> trainClaimingSection = getClaimingTrain(nextSection);
+        return trainClaimingSection != null && !trainClaimingSection.equals(ignoredTrain);
     }
 
     public EnumForceMode getForceMode(TPos signalPos){
@@ -259,7 +259,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         return trains.valueCollection().stream().filter(t -> t.getClaimedSections().contains(section)).findFirst().orElse(null);
     }
 
-    public void pathfindTrains(RailNetwork<TPos> network){
+    private void pathfindTrains(RailNetwork<TPos> network){
         List<NetworkSignal<TPos>> allSignals = network.railObjects.getSignals().collect(Collectors.toList());
         for(NetworkSignal<TPos> signal : allSignals) {
             if(signal.type == EnumSignalType.CHAIN || getLampStatus(signal.pos) == EnumLampStatus.GREEN) {

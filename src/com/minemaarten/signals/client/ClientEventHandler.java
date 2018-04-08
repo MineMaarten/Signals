@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.minemaarten.signals.block.BlockSignalBase;
 import com.minemaarten.signals.client.render.signals.BlockSectionRenderer;
+import com.minemaarten.signals.client.render.signals.ClaimedPosRenderer;
 import com.minemaarten.signals.client.render.signals.PathRenderer;
 import com.minemaarten.signals.client.render.signals.RailEdgeRenderer;
 import com.minemaarten.signals.init.ModItems;
@@ -34,6 +35,7 @@ public class ClientEventHandler{
     public final BlockSectionRenderer blockSectionRenderer = new BlockSectionRenderer();
     public final RailEdgeRenderer edgeRenderer = new RailEdgeRenderer();
     public final PathRenderer pathRenderer = new PathRenderer();
+    public final ClaimedPosRenderer claimRenderer = new ClaimedPosRenderer();
 
     private ClientEventHandler(){
 
@@ -60,9 +62,11 @@ public class ClientEventHandler{
         b.setTranslation(0, 0, 0);
 
         List<TileEntity> tes = player.world.loadedTileEntityList;
-        if(player.isSneaking()) {
+        if(!player.isSneaking()) {
             //blockSectionRenderer.render(b);
             pathRenderer.render(b);
+            claimRenderer.render(b);
+
         } else {
             blockSectionRenderer.render(b);
             //edgeRenderer.render(b);

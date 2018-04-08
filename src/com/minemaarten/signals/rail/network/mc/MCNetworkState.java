@@ -134,10 +134,12 @@ public class MCNetworkState extends NetworkState<MCPos>{
         }
     }
 
-    public void update(){
+    @Override
+    public void update(RailNetwork<MCPos> network){
         removeDeadMinecarts();
         splitUngroupedCarts();
         mergeGroupedCarts();
+        super.update(network);
     }
 
     private void removeDeadMinecarts(){

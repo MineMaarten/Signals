@@ -1,5 +1,7 @@
 package com.minemaarten.signals.rail.network.mc;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.collect.ImmutableSet;
@@ -9,6 +11,7 @@ import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
 
 public class MCTrainClient extends MCTrain{
+    public Set<MCPos> clientClaimedPositions = Collections.emptySet();
 
     public MCTrainClient(int id, ImmutableSet<UUID> cartIDs){
         super(id, cartIDs);
@@ -39,5 +42,6 @@ public class MCTrainClient extends MCTrain{
         super.setPath(path);
         RailNetworkManager.getInstance().checkForNewNetwork(true);
         ClientEventHandler.INSTANCE.pathRenderer.updateSpecificSection(this);
+        ClientEventHandler.INSTANCE.claimRenderer.updateSpecificSection(this);
     }
 }

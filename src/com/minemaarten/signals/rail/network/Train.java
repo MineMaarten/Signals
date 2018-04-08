@@ -5,14 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import net.minecraft.util.EnumParticleTypes;
-
 import com.google.common.collect.ImmutableSet;
-import com.minemaarten.signals.network.NetworkHandler;
-import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
-import com.minemaarten.signals.rail.network.mc.MCPos;
 
 /**
  * A train is a collection of one or more carts that behave like one. Notably they share a route, and multiple carts part of the same train are allowed on a rail section.
@@ -60,6 +55,10 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         }
     }
 
+    public void updatePositions(){
+
+    }
+
     protected void onPositionChanged(){
 
     }
@@ -80,14 +79,6 @@ public abstract class Train<TPos extends IPosition<TPos>> {
             //Remove the sections the train is now on from the claim list.
             Set<RailSection<TPos>> curSections = positions.stream().map(network::findSection).collect(Collectors.toSet());
             claimedSections.removeAll(curSections);
-
-            //TODO remove
-            for(RailSection<TPos> section : claimedSections) {
-                RailSection<MCPos> mcSection = (RailSection<MCPos>)section;
-                mcSection.getRailPositions().forEach(pos -> {
-                    NetworkHandler.sendToAll(new PacketSpawnParticle(EnumParticleTypes.REDSTONE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 0, 0, 0));
-                });
-            }
         }
     }
 
@@ -108,7 +99,11 @@ public abstract class Train<TPos extends IPosition<TPos>> {
     public void setPath(RailRoute<TPos> path){
         this.path = path;
         curIntersection = 0;
-        if(path == null) claimedSections = Collections.emptySet();
+        if(path == null) clearClaims();
+    }
+
+    public void clearClaims(){
+        claimedSections = Collections.emptySet();
     }
 
     protected boolean trySetClaims(RailNetwork<TPos> network, NetworkState<TPos> state, RailRoute<TPos> path){

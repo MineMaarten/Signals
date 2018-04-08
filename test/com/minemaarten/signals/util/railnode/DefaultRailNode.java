@@ -15,10 +15,11 @@ public class DefaultRailNode extends NetworkRail<Pos2D>{
 
     public boolean isDestination;
     public boolean isStart;
-    private static final Object railType = new Object();
+    private final Object railType; //Different object every time so that trains need to be right next to a signal
 
     public DefaultRailNode(Pos2D pos){
         super(pos);
+        this.railType = pos;
     }
 
     public DefaultRailNode setDestination(){
