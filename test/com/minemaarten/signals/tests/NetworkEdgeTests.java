@@ -6,6 +6,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.minemaarten.signals.rail.network.RailEdge.EnumDirectionalityResult;
 import com.minemaarten.signals.util.parsing.NetworkParser;
 
 //@formatter:off
@@ -100,10 +101,10 @@ public class NetworkEdgeTests{
         map.add(" bb+uuu    ");
         NetworkParser.createDefaultParser()
                      .addValidator('u', (rail, network) -> {
-                       Assert.assertTrue("Expected unidirectional edge at " + rail.pos + ".", network.findEdge(rail.pos).unidirectional);  
+                       Assert.assertEquals("Expected unidirectional edge at " + rail.pos + ".", EnumDirectionalityResult.UNIDIRECTIONAL_NO_CHANGE, network.findEdge(rail.pos).directionality);  
                      })
                      .addValidator('b', (rail, network) -> {
-                       Assert.assertFalse("Expected bidirectional edge at " + rail.pos + ".", network.findEdge(rail.pos).unidirectional);  
+                       Assert.assertEquals("Expected bidirectional edge at " + rail.pos + ".", EnumDirectionalityResult.BIDIRECTIONAL, network.findEdge(rail.pos).directionality);  
                      })
                      .parse(map)
                      .validate();

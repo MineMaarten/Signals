@@ -26,7 +26,6 @@ import com.minemaarten.signals.client.render.signals.ClaimedPosRenderer;
 import com.minemaarten.signals.client.render.signals.PathRenderer;
 import com.minemaarten.signals.client.render.signals.RailEdgeRenderer;
 import com.minemaarten.signals.init.ModItems;
-import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
 public class ClientEventHandler{
@@ -78,13 +77,7 @@ public class ClientEventHandler{
 
         List<TileEntityStationMarker> markers = new ArrayList<>();
         for(TileEntity te : tes) {
-            if(player.isSneaking() && te instanceof TileEntitySignalBase) {
-                TileEntitySignalBase teSignal = (TileEntitySignalBase)te;
-
-                /*TODO for(TileEntitySignalBase signal : teSignal.getNextSignals()) {
-                    drawBetween(b, signal.getPos(), te.getPos(), 0.5, 1, 1, 1, 1);
-                }*/
-            } else if(te instanceof TileEntityStationMarker) {
+            if(te instanceof TileEntityStationMarker) { //TODO NetworkStation
                 markers.add((TileEntityStationMarker)te);
             }
         }

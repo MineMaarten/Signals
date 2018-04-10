@@ -58,27 +58,37 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     public final int length;
 
     /**
-     * When true, trains can only be routed from startPos to endPos, not the other way around.
+     * Determines if trains can be:
+     * 1. Routed both ways, BIDIRECTIONAL
+     * 2. only be routed from startPos to endPos, not the other way around, UNIDIRECTIONAL
+     * 3. Not at all, ZERODIRECTIONAL
      */
-    public final boolean unidirectional;
+    public final EnumDirectionalityResult directionality;
 
-    private static enum EnumDirectionalityResult{
+    public static enum EnumDirectionalityResult{
         /**
          * Trains can be routed both ways
          */
-        BIDIRECTIONAL,
+        BIDIRECTIONAL(true, true),
         /**
          * Trains can be routed one way only, and the given order is good
          */
-        UNIDIRECTIONAL_NO_CHANGE,
+        UNIDIRECTIONAL_NO_CHANGE(true, false),
         /**
          * Trains can be routed one way only, and the order needs to be reversed
          */
-        UNIDIRECTIONAL_REVERSE,
+        UNIDIRECTIONAL_REVERSE(false, true),
         /**
          * Signals are placed in opposite directions, trains cannot be routed through here at all.
          */
-        ZERODIRECTIONAL
+        ZERODIRECTIONAL(false, false);
+
+        public boolean canTravelForwards, canTravelBackwards;
+
+        private EnumDirectionalityResult(boolean canTravelForwards, boolean canTravelBackwards){
+            this.canTravelForwards = canTravelForwards;
+            this.canTravelBackwards = canTravelBackwards;
+        }
     }
 
     public RailEdge(RailObjectHolder<TPos> allRailObjects, ImmutableList<NetworkRail<TPos>> edge){
@@ -94,29 +104,19 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
             intersections = intersections.stream().filter(i -> railObjects.get(i.pos) != null).collect(Collectors.toList());
         }
 
-        switch(determineDirectionality(allRailObjects, edge)){
-            case BIDIRECTIONAL:
-                unidirectional = false;
-                break;
-            case UNIDIRECTIONAL_NO_CHANGE:
-                unidirectional = true;
-                break;
-            case UNIDIRECTIONAL_REVERSE:
-                unidirectional = true;
-                edge = edge.reverse();
-                break;
-            case ZERODIRECTIONAL:
-                unidirectional = false;//TODO zerodirectional
-                break;
-            default:
-                throw new IllegalStateException();
+        EnumDirectionalityResult rawDirectionality = determineDirectionality(allRailObjects, edge);
+        if(rawDirectionality == EnumDirectionalityResult.UNIDIRECTIONAL_REVERSE) {
+            edge = edge.reverse();
+            directionality = EnumDirectionalityResult.UNIDIRECTIONAL_NO_CHANGE;
+        } else {
+            directionality = rawDirectionality;
         }
 
         TPos firstPos = edge.get(0).pos;
         TPos lastPos = edge.get(edge.size() - 1).pos;
 
         //if bidirectional, save in a deterministic form for equals/hashcode purposes
-        if(!unidirectional) {
+        if(directionality == EnumDirectionalityResult.BIDIRECTIONAL) {
             int compareResult = firstPos.compareTo(lastPos);
 
             if(compareResult == 0) { //When startPos == endPos (happens in looped tracks), we need to check the other with the neighboring positions
@@ -289,10 +289,13 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         int destinationIndex = getIndex(destination);
         List<RailEdge<TPos>> entryPoints = new ArrayList<>(2);
 
-        entryPoints.add(subEdge(0, destinationIndex));
-        RailEdge<TPos> subEdge = subEdge(destinationIndex, edge.size() - 1);
-        if(!subEdge.unidirectional) {
-            //If unidirectional, we can't add the reversed edge, else we can.
+        RailEdge<TPos> subEdge = subEdge(0, destinationIndex);
+        if(subEdge.directionality.canTravelForwards) {
+            entryPoints.add(subEdge);
+        }
+
+        subEdge = subEdge(destinationIndex, edge.size() - 1);
+        if(subEdge.directionality.canTravelBackwards) {
             entryPoints.add(subEdge);
         }
 
@@ -319,14 +322,19 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         TPos nextNeighbor = edge.get(destinationIndex + 1).pos;
         EnumHeading nextNeighborHeading = nextNeighbor.getRelativeHeading(from);
         if(direction == null || nextNeighborHeading == null || nextNeighborHeading == direction) {
-            exitEdges.add(subEdge(destinationIndex, edge.size() - 1));
+            RailEdge<TPos> subEdge = subEdge(destinationIndex, edge.size() - 1);
+            if(subEdge.directionality.canTravelForwards) {
+                exitEdges.add(subEdge);
+            }
         }
 
         TPos prevNeighbor = edge.get(destinationIndex - 1).pos;
         EnumHeading prevNeighborHeading = prevNeighbor.getRelativeHeading(from);
         if(direction == null || prevNeighborHeading == null || prevNeighborHeading == direction) {
             RailEdge<TPos> subEdge = subEdge(0, destinationIndex);
-            if(!subEdge.unidirectional) exitEdges.add(subEdge);//When not unidirectional we can evaluate 'f -> s'
+            if(subEdge.directionality.canTravelBackwards) {
+                exitEdges.add(subEdge);
+            }
         }
         return exitEdges;
     }
@@ -386,7 +394,11 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     }
 
     public boolean canTravelFrom(TPos pos){
-        return !unidirectional || pos.equals(startPos);
+        if(pos.equals(startPos)) {
+            return directionality.canTravelForwards;
+        } else {
+            return directionality.canTravelBackwards;
+        }
     }
 
     @Override
@@ -399,7 +411,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     public boolean equals(Object other){
         if(other instanceof RailEdge) {
             RailEdge<TPos> edge = (RailEdge<TPos>)other;
-            return startPos.equals(edge.startPos) && endPos.equals(edge.endPos) && Objects.equals(startHeading, edge.startHeading) && Objects.equals(endHeading, edge.endHeading) && unidirectional == edge.unidirectional;
+            return startPos.equals(edge.startPos) && endPos.equals(edge.endPos) && Objects.equals(startHeading, edge.startHeading) && Objects.equals(endHeading, edge.endHeading) && directionality == edge.directionality;
         } else {
             return false;
         }

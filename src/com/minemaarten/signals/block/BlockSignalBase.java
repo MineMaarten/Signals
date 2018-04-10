@@ -73,14 +73,6 @@ public class BlockSignalBase extends BlockBase{
         if(!(worldIn instanceof WorldServer) || state.getBlock() != this || lampStatus != EnumLampStatus.GREEN || state.getValue(BlockSignalBase.FACING).rotateY() != side) return 0;
         TileEntitySignalBase signal = (TileEntitySignalBase)worldIn.getTileEntity(pos);
         signal.setWorld((WorldServer)worldIn);
-        /* for(RailWrapper rail : signal.getConnectedRails()) { TODO
-             for(TileEntitySignalBase s : rail.getSignals().values()) {
-                 if(s != signal) {
-                     lampStatus = s.getLampStatus();
-                     if(lampStatus != EnumLampStatus.GREEN && lampStatus != EnumLampStatus.YELLOW) return 0;
-                 }
-             }
-         }*/
         return 15;
     }
 

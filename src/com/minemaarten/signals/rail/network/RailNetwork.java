@@ -308,8 +308,8 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
     private void addEdge(RailEdge<TPos> railEdge){
         if(allEdges.add(railEdge)) {
-            if(!railEdge.unidirectional) positionsToEdgesBackward.put(railEdge.startPos, railEdge);
-            positionsToEdgesBackward.put(railEdge.endPos, railEdge);
+            if(railEdge.directionality.canTravelBackwards) positionsToEdgesBackward.put(railEdge.startPos, railEdge);
+            if(railEdge.directionality.canTravelForwards) positionsToEdgesBackward.put(railEdge.endPos, railEdge);
             for(int i = 0; i < railEdge.length; i++) {
                 railPosToRailEdges.put(railEdge.get(i).pos, railEdge);
             }

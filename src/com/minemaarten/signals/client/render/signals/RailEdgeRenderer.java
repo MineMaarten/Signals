@@ -50,8 +50,8 @@ public class RailEdgeRenderer extends AbstractRailRenderer<RailEdge<MCPos>>{
         super.render(b);
         b.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION_COLOR);
         for(RailEdge<MCPos> edge : sectionsToRenderer.keySet()) {
-            render(b, edge.edge);
-            if(!edge.unidirectional) render(b, edge.edge.reverse());
+            if(edge.directionality.canTravelForwards) render(b, edge.edge);
+            if(edge.directionality.canTravelBackwards) render(b, edge.edge.reverse());
         }
 
         Tessellator.getInstance().draw();
