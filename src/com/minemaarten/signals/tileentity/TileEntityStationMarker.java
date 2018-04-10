@@ -53,9 +53,11 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
         Validate.notNull(stationName);
 
         this.stationName = stationName;
-        RailNetworkManager.getInstance().markDirty(getMCPos());
-        markDirty();
-        sendUpdatePacket();
+        if(!world.isRemote) {
+            RailNetworkManager.getInstance().markDirty(getMCPos());
+            markDirty();
+            sendUpdatePacket();
+        }
     }
 
     public List<MCPos> getNeighborRails(){

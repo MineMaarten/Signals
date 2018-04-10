@@ -1,7 +1,7 @@
 package com.minemaarten.signals.client;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.minecraft.block.BlockRailBase;
 import net.minecraft.client.Minecraft;
@@ -26,7 +26,9 @@ import com.minemaarten.signals.client.render.signals.ClaimedPosRenderer;
 import com.minemaarten.signals.client.render.signals.PathRenderer;
 import com.minemaarten.signals.client.render.signals.RailEdgeRenderer;
 import com.minemaarten.signals.init.ModItems;
-import com.minemaarten.signals.tileentity.TileEntityStationMarker;
+import com.minemaarten.signals.rail.network.NetworkStation;
+import com.minemaarten.signals.rail.network.mc.MCPos;
+import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class ClientEventHandler{
 
@@ -75,24 +77,16 @@ public class ClientEventHandler{
 
         b.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
-        List<TileEntityStationMarker> markers = new ArrayList<>();
-        for(TileEntity te : tes) {
-            if(te instanceof TileEntityStationMarker) { //TODO NetworkStation
-                markers.add((TileEntityStationMarker)te);
-            }
-        }
-        for(int i = 0; i < markers.size(); i++) {
-            TileEntityStationMarker marker1 = markers.get(i);
+        List<NetworkStation<MCPos>> stations = RailNetworkManager.getInstance().getNetwork().railObjects.getStations().collect(Collectors.toList());
+        for(int i = 0; i < stations.size(); i++) {
+            NetworkStation<MCPos> station1 = stations.get(i);
             for(int j = 0; j < i; j++) {
-                TileEntityStationMarker marker2 = markers.get(j);
-                if(marker1.getStationName().equals(marker2.getStationName())) {
-                    drawBetween(b, marker1.getPos(), marker2.getPos(), 1, 0, 1, 0, 1);
+                NetworkStation<MCPos> station2 = stations.get(j);
+                if(station1.stationName.equals(station2.stationName) && station1.pos.getDimID() == station2.pos.getDimID()) {
+                    drawBetween(b, station1.pos.getPos(), station2.pos.getPos(), 1, 0, 1, 0, 1);
                 }
             }
         }
-        //for(RailWrapper rail : rails) {
-        //              wr.pos(rail.getX() + 0.5, rail.getY() + 0.5, rail.getZ() + 0.5).color(1F, 1F, 1F, 1F).endVertex();
-        //}
 
         t.draw();
 
