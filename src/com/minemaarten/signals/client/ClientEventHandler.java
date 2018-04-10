@@ -67,6 +67,7 @@ public class ClientEventHandler{
             pathRenderer.render(b);
             claimRenderer.render(b);
 
+            edgeRenderer.render(b);
         } else {
             blockSectionRenderer.render(b);
             //edgeRenderer.render(b);

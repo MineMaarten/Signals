@@ -29,7 +29,7 @@ import com.minemaarten.signals.rail.network.mc.MCPos;
 
 public abstract class AbstractRailRenderer<TSection> {
 
-    private Map<TSection, SectionRenderer> sectionsToRenderer = new HashMap<>();
+    protected final Map<TSection, SectionRenderer> sectionsToRenderer = new HashMap<>();
 
     private void addSectionRenderer(TSection section){
         SectionRenderer renderer = new SectionRenderer(section);
@@ -85,16 +85,6 @@ public abstract class AbstractRailRenderer<TSection> {
     protected abstract boolean shouldTraverse(TSection section, NetworkRail<MCPos> rail);
 
     public void render(BufferBuilder b){
-
-        /*b.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION_COLOR);
-        for(TileEntity te : tes) {
-            if(te instanceof TileEntitySignalBase) {
-                TileEntitySignalBase teSignal = (TileEntitySignalBase)te;
-             TODO   renderSignalDirection(b, teSignal);
-            }
-        }
-        Tessellator.getInstance().draw();*/
-
         b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
         for(SectionRenderer edgeRenderer : sectionsToRenderer.values()) {
             edgeRenderer.rectRenderer.render(b);
@@ -102,7 +92,7 @@ public abstract class AbstractRailRenderer<TSection> {
         Tessellator.getInstance().draw();
     }
 
-    private static int getRailHeightOffset(NetworkRail<MCPos> rail, EnumFacing dir){
+    public static int getRailHeightOffset(NetworkRail<MCPos> rail, EnumFacing dir){
         switch(((MCNetworkRail)rail).getCurDir()){
             case ASCENDING_EAST:
                 return dir == EnumFacing.EAST ? 1 : (dir == EnumFacing.WEST ? -1 : 0);
@@ -124,40 +114,6 @@ public abstract class AbstractRailRenderer<TSection> {
     public double getHeightOffset(){
         return 0;
     }
-
-    /*private void renderSignalDirection(BufferBuilder buffer, TileEntitySignalBase signal){
-        EnumFacing signalFacing = signal.getFacing().getOpposite();
-        SignalBlockNode rootNode = null;//TODO signal.getSignalBlockInfo();
-        int heightOffset = getRailHeightOffset(rootNode.railDir, signalFacing);
-
-        EnumFacing rotatedFacing = signalFacing.rotateY();
-        EnumFacing rotatedFacing2 = signalFacing.rotateYCCW();
-
-        int colorIndex = getBlockSection(signal).colorIndex;
-        int color = ItemDye.DYE_COLORS[colorIndex];
-        float r = (color >> 16) / 256F;
-        float g = (color >> 8 & 255) / 256F;
-        float b = (color & 255) / 256F;
-
-        BlockPos pos = signal.getPos().offset(rotatedFacing);
-        Vec3d posVec = new Vec3d(pos.getX() + 0.5, pos.getY() + (heightOffset != 0 ? 0.6 : 0.1), pos.getZ() + 0.5);
-
-        double yOffset = heightOffset * 1;
-
-        double arrowSize = 0.2;
-        double spacing = 0.2;
-        for(int i = -2; i < 0; i++) {
-            Vec3d shiftedPosVec = posVec.addVector(signalFacing.getFrontOffsetX() * spacing * i, spacing * i * yOffset, signalFacing.getFrontOffsetZ() * spacing * i);
-            Vec3d vecBack = shiftedPosVec.addVector(signalFacing.getFrontOffsetX() * arrowSize, arrowSize * yOffset, signalFacing.getFrontOffsetZ() * arrowSize);
-            Vec3d c1 = vecBack.addVector(rotatedFacing.getFrontOffsetX() * arrowSize, 0, rotatedFacing.getFrontOffsetZ() * arrowSize);
-            Vec3d c2 = vecBack.addVector(rotatedFacing2.getFrontOffsetX() * arrowSize, 0, rotatedFacing2.getFrontOffsetZ() * arrowSize);
-
-            buffer.pos(shiftedPosVec.x, shiftedPosVec.y, shiftedPosVec.z).color(r, g, b, 1).endVertex();
-            buffer.pos(c1.x, c1.y, c1.z).color(r, g, b, 1).endVertex();
-            //buffer.pos(shiftedPosVec.x, shiftedPosVec.y, shiftedPosVec.z).color(r, g, b, 1).endVertex();
-            buffer.pos(c2.x, c2.y, c2.z).color(r, g, b, 1).endVertex();
-        }
-    }*/
 
     private class SectionRenderer{
 
