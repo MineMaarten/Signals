@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
@@ -40,6 +41,13 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
 public class MCNetworkState extends NetworkState<MCPos>{
     private Map<UUID, EntityMinecart> trackingMinecarts = new HashMap<>();
+
+    public void onPlayerJoin(EntityPlayerMP player){
+        for(Train<MCPos> train : getTrains().valueCollection()) {
+            NetworkHandler.sendTo(new PacketAddOrUpdateTrain((MCTrain)train), player);
+        }
+        NetworkHandler.sendTo(new PacketUpdateSignals(signalToLampStatusses), player);
+    }
 
     @Override
     protected void onCartRouted(Train<MCPos> train, RailRoute<MCPos> route){

@@ -24,7 +24,7 @@ import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
  */
 public class NetworkState<TPos extends IPosition<TPos>> {
     private TIntObjectMap<Train<TPos>> trains = new TIntObjectHashMap<>();
-    private Map<TPos, EnumLampStatus> signalToLampStatusses = new HashMap<>();
+    protected Map<TPos, EnumLampStatus> signalToLampStatusses = new HashMap<>();
     protected Map<TPos, EnumForceMode> signalForces = new HashMap<>();
     private Map<NetworkSignal<TPos>, Train<TPos>> trainsAtSignals = new HashMap<>();
 

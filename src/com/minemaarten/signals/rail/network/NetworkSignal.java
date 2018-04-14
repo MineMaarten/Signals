@@ -1,5 +1,6 @@
 package com.minemaarten.signals.rail.network;
 
+
 /**
  * Immutable, and should expect to be reused in transitions from old to new networks to prevent allocations.
  * @author Maarten

@@ -263,9 +263,7 @@ public class RailNetworkManager{
         for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
             NetworkHandler.sendTo(packet, player);
         }
-        for(Train<MCPos> train : state.getTrains().valueCollection()) {
-            NetworkHandler.sendTo(new PacketAddOrUpdateTrain((MCTrain)train), player);
-        }
+        state.onPlayerJoin(player);
     }
 
     public void onChunkUnload(Chunk chunk){
