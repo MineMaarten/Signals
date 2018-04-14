@@ -1,0 +1,16 @@
+[
+{
+  "modid": "signals",
+  "name": "Signals",
+  "description": "OpenTTD/Factorio style signaling and more!",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://minecraft.curseforge.com/projects/signals",
+  "updateUrl": "",
+  "authorList": ["MineMaarten"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

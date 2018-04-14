@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
+import com.minemaarten.signals.config.SignalsConfig;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketClearNetwork;
@@ -200,6 +201,7 @@ public class RailNetworkManager{
     }
 
     public void onPreServerTick(){
+        if(!SignalsConfig.enableRailNetwork) return;
         Collection<NetworkObject<MCPos>> updates = networkUpdater.getNetworkUpdates(network);
         if(!updates.isEmpty()) {
             applyUpdates(updates);
@@ -244,12 +246,14 @@ public class RailNetworkManager{
     }
 
     public void onPostServerTick(){
+        if(!SignalsConfig.enableRailNetwork) return;
         validateOnServer();
         checkForNewNetwork(true);
         state.update(network);
     }
 
     public void onPreClientTick(){
+        if(!SignalsConfig.enableRailNetwork) return;
         validateOnClient();
         checkForNewNetwork(false);
     }

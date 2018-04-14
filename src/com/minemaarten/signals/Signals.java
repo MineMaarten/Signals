@@ -2,6 +2,8 @@ package com.minemaarten.signals;
 
 import net.minecraft.block.BlockDispenser;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Config.Type;
+import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.Mod.Instance;
@@ -14,11 +16,13 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
+import com.minemaarten.signals.config.SignalsConfig;
 import com.minemaarten.signals.dispenser.BehaviorDispenseTicket;
 import com.minemaarten.signals.event.RailReplacerEventHandler;
 import com.minemaarten.signals.init.ModBlocks;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.lib.Constants;
+import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.lib.Versions;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.proxy.CommonProxy;
@@ -37,7 +41,6 @@ public class Signals{
     @EventHandler
     public void PreInit(FMLPreInitializationEvent event){
         event.getModMetadata().version = Versions.fullVersionString();
-
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, proxy);
         proxy.preInit();
         ModBlocks.init();
@@ -49,6 +52,10 @@ public class Signals{
         MinecraftForge.EVENT_BUS.register(new RailReplacerEventHandler());
         BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(ModItems.TICKET, new BehaviorDispenseTicket());
         asmData = event.getAsmData();
+
+        if(!SignalsConfig.enableRailNetwork) {
+            Log.warning("RAIL NETWORK IS NOT FUNCTIONAL!");
+        }
     }
 
     @EventHandler
@@ -62,6 +69,8 @@ public class Signals{
     public void postInit(FMLPostInitializationEvent event){
         proxy.postInit();
         RailManager.getInstance().initializeAPIImplementors(asmData);
+        SignalsConfig.client.networkVisualization.initDefaults();
+        ConfigManager.sync(Constants.MOD_ID, Type.INSTANCE);
     }
 
 }

@@ -3,7 +3,6 @@ package com.minemaarten.signals.client;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import net.minecraft.block.BlockRailBase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
@@ -11,8 +10,6 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -23,9 +20,11 @@ import org.lwjgl.opengl.GL11;
 import com.minemaarten.signals.block.BlockSignalBase;
 import com.minemaarten.signals.client.render.signals.BlockSectionRenderer;
 import com.minemaarten.signals.client.render.signals.ClaimedPosRenderer;
+import com.minemaarten.signals.client.render.signals.DirectionalityRenderer;
 import com.minemaarten.signals.client.render.signals.PathRenderer;
 import com.minemaarten.signals.client.render.signals.RailEdgeRenderer;
-import com.minemaarten.signals.init.ModItems;
+import com.minemaarten.signals.config.SignalsConfig;
+import com.minemaarten.signals.config.SignalsConfig.NetworkVisualizationSettings;
 import com.minemaarten.signals.rail.network.NetworkStation;
 import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
@@ -37,6 +36,7 @@ public class ClientEventHandler{
     public final RailEdgeRenderer edgeRenderer = new RailEdgeRenderer();
     public final PathRenderer pathRenderer = new PathRenderer();
     public final ClaimedPosRenderer claimRenderer = new ClaimedPosRenderer();
+    private final DirectionalityRenderer directionalityRenderer = new DirectionalityRenderer();
 
     private ClientEventHandler(){
 
@@ -62,18 +62,22 @@ public class ClientEventHandler{
         GlStateManager.disableLighting();
         b.setTranslation(0, 0, 0);
 
-        List<TileEntity> tes = player.world.loadedTileEntityList;
-        if(!player.isSneaking()) {
-            //blockSectionRenderer.render(b);
-            pathRenderer.render(b);
-            claimRenderer.render(b);
-
-            edgeRenderer.render(b);
-        } else {
-            blockSectionRenderer.render(b);
-            //edgeRenderer.render(b);
+        NetworkVisualizationSettings visualizationSettings = player.isSneaking() ? SignalsConfig.client.networkVisualization.sneaking : SignalsConfig.client.networkVisualization.notSneaking;
+        switch(visualizationSettings.renderType){
+            case EDGES:
+                edgeRenderer.render(b);
+                break;
+            case PATHS:
+                pathRenderer.render(b);
+                break;
+            case SECTION:
+                blockSectionRenderer.render(b);
+                break;
         }
-        // pathRenderer.render(b);
+        //claimRenderer.render(b);
+        if(visualizationSettings.renderDirectionality) {
+            directionalityRenderer.render(b);
+        }
 
         b.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
@@ -99,7 +103,7 @@ public class ClientEventHandler{
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayer player = mc.player;
         Item item = player.inventory.getCurrentItem().getItem();
-        if(item == ModItems.RAIL_CONFIGURATOR || (item instanceof ItemBlock) && (((ItemBlock)item).getBlock() instanceof BlockSignalBase || ((ItemBlock)item).getBlock() instanceof BlockRailBase)) {//TODO remove
+        if(SignalsConfig.client.networkVisualization.isValid(item)) {
             return true;
         }
 
