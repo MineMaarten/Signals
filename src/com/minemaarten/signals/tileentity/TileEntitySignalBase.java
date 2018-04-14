@@ -8,6 +8,9 @@ import java.util.stream.Stream;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -140,5 +143,21 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     @Override
     public EnumForceMode getForceMode(){
         return forceMode;
+    }
+
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket(){
+        NBTTagCompound tag = new NBTTagCompound();
+        tag.setString("text", text);
+        tag.setString("arguments", arguments);
+        return new SPacketUpdateTileEntity(getPos(), 0, tag);
+    }
+
+    @Override
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt){
+        if(pkt.getTileEntityType() == 0) {
+            text = pkt.getNbtCompound().getString("text");
+            arguments = pkt.getNbtCompound().getString("arguments");
+        }
     }
 }
