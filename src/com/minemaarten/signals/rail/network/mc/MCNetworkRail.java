@@ -203,7 +203,7 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
     public boolean equals(Object obj){
         if(obj instanceof MCNetworkRail) {
             MCNetworkRail other = (MCNetworkRail)obj;
-            return super.equals(obj) && validRailDirs.equals(other.validRailDirs);
+            return super.equals(obj) && validRailDirs.equals(other.validRailDirs) && curDir.isAscending() == other.curDir.isAscending(); //Only check ascending because that effects rendering
         } else {
             return false;
         }
@@ -211,7 +211,7 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
 
     @Override
     public int hashCode(){
-        return super.hashCode() * 31 + validRailDirs.hashCode();
+        return super.hashCode() * 31 + validRailDirs.hashCode() * 2 + (curDir.isAscending() ? 1 : 0);
     }
 
     @Override
