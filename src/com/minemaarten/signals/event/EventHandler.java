@@ -9,7 +9,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvent;
@@ -34,6 +33,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
 
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
+import com.minemaarten.signals.chunkloading.ChunkLoadManager;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.item.ItemTicket;
 import com.minemaarten.signals.lib.Constants;
@@ -72,10 +72,19 @@ public class EventHandler implements IWorldEventListener{
                     if(heldItem.getItem() == ModItems.CART_ENGINE && !cap.isMotorized()) {
                         if(!event.getPlayer().isCreative()) {
                             heldItem.shrink(1);
-                            if(heldItem.isEmpty()) event.getPlayer().setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
                         }
                         cap.setMotorized();
                         event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
+                        event.setCanceled(true);
+                    } else if(heldItem.getItem() == ModItems.CHUNKLOADER_UPGRADE && !cap.isChunkLoading()) {
+                        if(cap.setChunkloading(event.getPlayer(), event.getMinecart())) {
+                            if(!event.getPlayer().isCreative()) {
+                                heldItem.shrink(1);
+                            }
+                            event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.chunkloader_installed"));
+                        } else {
+                            event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.chunkloader_install_failed"));
+                        }
                         event.setCanceled(true);
                     } else if(heldItem.getItem() == ModItems.RAIL_CONFIGURATOR) {
                         event.getPlayer().openGui(Signals.instance, CommonProxy.EnumGuiId.MINECART_DESTINATION.ordinal(), ((EntityPlayerMP)event.getPlayer()).world, event.getMinecart().getEntityId(), -1, cap.isMotorized() ? 1 : 0);
@@ -122,6 +131,8 @@ public class EventHandler implements IWorldEventListener{
         }
         if(!event.getWorld().isRemote && event.getEntity() instanceof EntityMinecart) {
             RailNetworkManager.getInstance().onMinecartJoinedWorld((EntityMinecart)event.getEntity());
+            CapabilityMinecartDestination cap = event.getEntity().getCapability(CapabilityMinecartDestination.INSTANCE, null);
+            if(cap != null) cap.onCartJoinWorld((EntityMinecart)event.getEntity());
         }
     }
 
@@ -150,6 +161,7 @@ public class EventHandler implements IWorldEventListener{
     public void onPostServerTick(ServerTickEvent event){
         if(event.phase == Phase.END) {
             RailNetworkManager.getInstance().onPostServerTick();
+            ChunkLoadManager.INSTANCE.update();
         }
     }
 

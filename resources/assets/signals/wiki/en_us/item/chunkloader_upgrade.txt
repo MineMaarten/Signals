@@ -1,0 +1,5 @@
+The Signals mod does not require rails, Signals, or stations to be permanently chunkloaded properly route carts to their destination. However, carts still need to be kept loaded when players are not around so they can travel.
+
+Sneak-right-click with this on any cart. This will add a built-in chunkloader to the cart, keeping a 3x3 area of chunks loaded, centered around the cart.
+
+[crafting{200, 130, key=item/chunkloader_upgrade}]

@@ -53,6 +53,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
     protected void onCartRouted(Train<MCPos> train, RailRoute<MCPos> route){
         super.onCartRouted(train, route);
         NetworkHandler.sendToAll(new PacketUpdateTrainPath((MCTrain)train));
+        ((MCTrain)train).getCarts().forEach(cart -> cart.timeUntilPortal = 0); //Carts that pass a signal can travel through portals immediately
     }
 
     @Override
@@ -108,6 +109,12 @@ public class MCNetworkState extends NetworkState<MCPos>{
 
     public EntityMinecart getCart(UUID uniqueID){
         return trackingMinecarts.get(uniqueID);
+    }
+
+    public void getTrackingCartsFrom(MCNetworkState state){
+        for(EntityMinecart cart : state.trackingMinecarts.values()) {
+            onMinecartJoinedWorld(cart);
+        }
     }
 
     public void onMinecartJoinedWorld(EntityMinecart cart){

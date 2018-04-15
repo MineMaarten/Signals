@@ -18,7 +18,7 @@
       "item": "minecraft:stone_button"
     },
     "p": {
-      "item": "signals:path_signal"
+      "item": "signals:chain_signal"
     },
     "d": {
       "type": "forge:ore_dict",

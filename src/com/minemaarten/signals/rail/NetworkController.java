@@ -30,6 +30,7 @@ import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkStation;
 import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
+import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
@@ -131,19 +132,31 @@ public class NetworkController{
             }
         }
 
+        //Draw the train locations
+        GlStateManager.color(0, 0, 1);
+        GlStateManager.disableTexture2D();
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+        for(Train<MCPos> train : RailNetworkManager.getInstance().getAllTrains().collect(Collectors.toList())) {
+            for(MCPos pos : train.getPositions()) {
+                if(pos.getDimID() != dimensionId) continue;
+
+                double x = pos.getX() - startX;
+                double y = pos.getZ() - startZ;
+
+                buffer.pos(x, y, 0).endVertex();
+                buffer.pos(x, y + 1, 0).endVertex();
+                buffer.pos(x + 1, y + 1, 0).endVertex();
+                buffer.pos(x + 1, y, 0).endVertex();
+            }
+        }
+        t.draw();
+        GlStateManager.enableTexture2D();
+
         //Draw the destination names next to the trains
         for(EntityMinecart cart : world.getEntitiesWithinAABB(EntityMinecart.class, new AxisAlignedBB(startX, 0, startZ, startX + width, 255, startZ + height))) {
             double x = cart.posX - startX - 0.5;
             double y = cart.posZ - startZ - 0.5;
             GlStateManager.color(0, 0, 1);
-            GlStateManager.disableTexture2D();
-            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
-            buffer.pos(x, y, 0).endVertex();
-            buffer.pos(x, y + 1, 0).endVertex();
-            buffer.pos(x + 1, y + 1, 0).endVertex();
-            buffer.pos(x + 1, y, 0).endVertex();
-            t.draw();
-            GlStateManager.enableTexture2D();
 
             String dest = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null).getCurrentDestination();
             if(dest != null) {
@@ -179,7 +192,7 @@ public class NetworkController{
         int index = (x - startX) + (z - startZ) * width;
         if(index < 0 || index >= colors.length) { //If we are out of bounds that means we don't properly know the right dims.
             rebuildAll();
-        } else if(colors[index] != color) {
+        } else {
             colors[index] = color;
         }
     }

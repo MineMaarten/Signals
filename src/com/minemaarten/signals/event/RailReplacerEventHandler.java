@@ -20,6 +20,7 @@ public class RailReplacerEventHandler{
 
     /**
      * Makes it so when a player right clicks a rail block with a different rail item, it will be replaced, without having to remove and place a rail.
+     * TODO: Replace signal types
      * @param e
      */
     @SubscribeEvent

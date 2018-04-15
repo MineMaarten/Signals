@@ -27,6 +27,7 @@ import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.network.NetworkHandler;
+import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketUpdateMessage;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.network.EnumHeading;
@@ -81,6 +82,7 @@ public class MCTrain extends Train<MCPos>{
 
     @Override
     protected void onPositionChanged(){
+        NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(this));
         NetworkStorage.getInstance().markDirty();
     }
 

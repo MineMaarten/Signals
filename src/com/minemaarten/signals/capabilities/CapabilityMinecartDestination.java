@@ -5,6 +5,7 @@ import java.util.regex.PatternSyntaxException;
 
 import net.minecraft.block.BlockHopper;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
@@ -32,8 +33,10 @@ import org.apache.commons.lang3.Validate;
 
 import com.minemaarten.signals.api.access.IDestinationAccessor;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
+import com.minemaarten.signals.chunkloading.ChunkLoadManager;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.inventory.EngineItemHandler;
+import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.lib.SignalsUtils;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
@@ -60,6 +63,8 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
     @GuiSynced
     private String invalidDestinations = ""; //Destinations become invalid when the regex is invalid.
 
+    private boolean chunkloading; //True when a ChunkLoader upgrade has been applied.
+    private String chunkloadingPlayer = ""; //The player that keeps this cart chunkloaded.
     private boolean motorized; //True when an engine upgrade has been applied.
     @GuiSynced
     private int fuelLeft;
@@ -87,6 +92,8 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                 tag.setString("destinations", instance.destinationStations);
                 tag.setInteger("destIndex", instance.curDestinationIndex);
 
+                tag.setBoolean("chunkloading", instance.chunkloading);
+                tag.setString("chunkloadingPlayer", instance.chunkloadingPlayer);
                 tag.setBoolean("motorized", instance.motorized);
                 if(instance.motorized) {
                     tag.setInteger("fuelLeft", instance.fuelLeft);
@@ -105,6 +112,8 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                 instance.recompileRegexes();
                 instance.curDestinationIndex = tag.getInteger("destIndex");
 
+                instance.chunkloading = tag.getBoolean("chunkloading");
+                instance.chunkloadingPlayer = tag.getString("chunkloadingPlayer");
                 instance.motorized = tag.getBoolean("motorized");
                 if(instance.motorized) {
                     instance.fuelLeft = tag.getInteger("fuelLeft");
@@ -208,6 +217,20 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
         return curDestinationIndex >= 0 ? destinationRegexes[curDestinationIndex] : EMPTY_PATTERN;
     }
 
+    public boolean setChunkloading(EntityPlayer associatedPlayer, EntityMinecart cart){
+        chunkloadingPlayer = associatedPlayer.getGameProfile().getId().toString();
+        if(ChunkLoadManager.INSTANCE.markAsChunkLoader(associatedPlayer, cart)) {
+            chunkloading = true;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isChunkLoading(){
+        return chunkloading;
+    }
+
     public void setMotorized(){
         motorized = true;
     }
@@ -264,15 +287,34 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
     }
 
     public void onCartBroken(EntityMinecart cart){
-        if(motorized && !travelingBetweenDimensions) {
-            motorized = false;
-            cart.dropItem(ModItems.CART_ENGINE, 1);
-            for(int i = 0; i < fuelInv.getSizeInventory(); i++) {
-                ItemStack fuel = fuelInv.getStackInSlot(i);
-                if(fuel != null) cart.entityDropItem(fuel, 0);
+        if(!travelingBetweenDimensions) {
+            if(motorized) {
+                motorized = false;
+                cart.dropItem(ModItems.CART_ENGINE, 1);
+                for(int i = 0; i < fuelInv.getSizeInventory(); i++) {
+                    ItemStack fuel = fuelInv.getStackInSlot(i);
+                    if(fuel != null) cart.entityDropItem(fuel, 0);
+                }
             }
         }
+
+        if(chunkloading) {
+            ChunkLoadManager.INSTANCE.unmarkAsChunkLoader(cart);
+            if(!travelingBetweenDimensions) {
+                chunkloading = false;
+                cart.dropItem(ModItems.CHUNKLOADER_UPGRADE, 1);
+            }
+        }
+
         travelingBetweenDimensions = false;
+    }
+
+    public void onCartJoinWorld(EntityMinecart cart){
+        if(chunkloading) {
+            if(!ChunkLoadManager.INSTANCE.markAsChunkLoader(chunkloadingPlayer, cart)) {
+                Log.warning("Could not chunkload cart for player '" + chunkloadingPlayer + "'!");
+            }
+        }
     }
 
     public void setEngineActive(boolean active){
@@ -325,6 +367,13 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                     if(motorActive) NetworkHandler.sendToAllAround(new PacketUpdateMinecartEngineState(cart, true), new NetworkRegistry.TargetPoint(cart.world.provider.getDimension(), cart.getPositionVector().x, cart.getPositionVector().y, cart.getPositionVector().z, 64));
                     motorActive = false;
                 }
+            }
+
+            if(chunkloading) {
+                double x = cart.posX + cart.world.rand.nextDouble() - 0.5;
+                double y = cart.posY + cart.world.rand.nextDouble() - 0.5;
+                double z = cart.posZ + cart.world.rand.nextDouble() - 0.5;
+                NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.PORTAL, x, y, z, 0, 0, 0), cart.world);
             }
         } else {
             if(motorActive) {

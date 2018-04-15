@@ -16,6 +16,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
+import com.minemaarten.signals.chunkloading.ChunkLoadManager;
 import com.minemaarten.signals.config.SignalsConfig;
 import com.minemaarten.signals.dispenser.BehaviorDispenseTicket;
 import com.minemaarten.signals.event.RailReplacerEventHandler;
@@ -51,6 +52,9 @@ public class Signals{
         MinecraftForge.EVENT_BUS.register(new com.minemaarten.signals.event.EventHandler());
         MinecraftForge.EVENT_BUS.register(new RailReplacerEventHandler());
         BlockDispenser.DISPENSE_BEHAVIOR_REGISTRY.putObject(ModItems.TICKET, new BehaviorDispenseTicket());
+
+        ChunkLoadManager.INSTANCE.init();
+
         asmData = event.getAsmData();
 
         if(!SignalsConfig.enableRailNetwork) {

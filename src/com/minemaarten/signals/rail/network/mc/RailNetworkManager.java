@@ -155,6 +155,7 @@ public class RailNetworkManager{
 
     public void loadNetwork(RailNetwork<MCPos> network, MCNetworkState state){
         networkUpdateTask = null;
+        state.getTrackingCartsFrom(this.state); // Take carts that were loaded before this network state was loaded from nbt.
         this.network = network;
         this.state = state;
 
@@ -256,6 +257,7 @@ public class RailNetworkManager{
         if(!SignalsConfig.enableRailNetwork) return;
         validateOnClient();
         checkForNewNetwork(false);
+        //Log.info("Trains: " + getAllTrains().count());
     }
 
     public void onPlayerJoin(EntityPlayerMP player){

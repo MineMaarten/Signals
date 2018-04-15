@@ -62,6 +62,7 @@ public class ClientProxy extends CommonProxy{
         }
         registerItemModels(ModItems.RAIL_NETWORK_CONTROLLER);
         registerItemModels(ModItems.CART_ENGINE);
+        registerItemModels(ModItems.CHUNKLOADER_UPGRADE);
         registerItemModels(ModItems.RAIL_CONFIGURATOR);
     }
 

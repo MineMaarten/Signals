@@ -58,6 +58,7 @@ public class ItemRailConfigurator extends ItemSignals{
 
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand){
+        //TODO turn into a command
         if(!worldIn.isRemote && playerIn.isSneaking()) {
             long milli = System.currentTimeMillis();
             RailNetworkManager.getInstance().rebuildNetwork();
