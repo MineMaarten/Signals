@@ -57,7 +57,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     }
 
     public static <TPos extends IPosition<TPos>> RailNetwork<TPos> empty(){
-        return new RailNetwork<>(ImmutableMap.of());
+        return new RailNetwork<>(ImmutableMap.<TPos, NetworkObject<TPos>> of());
     }
 
     private void build(){

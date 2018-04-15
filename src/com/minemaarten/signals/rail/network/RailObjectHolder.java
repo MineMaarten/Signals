@@ -1,7 +1,5 @@
 package com.minemaarten.signals.rail.network;
 
-import static com.minemaarten.signals.lib.StreamUtils.ofType;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +14,8 @@ import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimaps;
+import com.google.common.reflect.TypeToken;
+import com.minemaarten.signals.lib.StreamUtils;
 
 /**
  * Helper class to allow querying network objects. Designed to be immutable.
@@ -111,18 +111,6 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         return findRailLinksConnectingTo(pos).stream().flatMap(l -> l.getNeighborRails(this)).distinct();
     }
 
-    public <T extends NetworkObject<TPos>> Stream<T> networkObjectsOfType(Class<T> clazz){
-        return ofType(clazz, allNetworkObjects.values().stream());
-    }
-
-    public Stream<NetworkRail<TPos>> getRails(){
-        return ofType(NetworkRail.class, allNetworkObjects.values().stream());
-    }
-
-    public Stream<NetworkRail<TPos>> getNeighborRails(Collection<TPos> potentialNeighbors){
-        return ofType(NetworkRail.class, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
-    }
-
     public NetworkRail<TPos> getRail(TPos pos){
         NetworkObject<TPos> obj = get(pos);
         return obj instanceof NetworkRail ? (NetworkRail<TPos>)obj : null;
@@ -138,24 +126,43 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         return count;
     }
 
+    public <T extends NetworkObject<TPos>> Stream<T> networkObjectsOfType(Class<T> clazz){
+        return StreamUtils.ofType(clazz, allNetworkObjects.values().stream());
+    }
+
+    @SuppressWarnings("serial")
+    public Stream<NetworkRail<TPos>> getRails(){
+        return StreamUtils.ofType(new TypeToken<NetworkRail<TPos>>(){}, allNetworkObjects.values().stream());
+    }
+
+    @SuppressWarnings("serial")
+    public Stream<NetworkRail<TPos>> getNeighborRails(Collection<TPos> potentialNeighbors){
+        return StreamUtils.ofType(new TypeToken<NetworkRail<TPos>>(){}, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
+    }
+
+    @SuppressWarnings("serial")
     public Stream<NetworkSignal<TPos>> getSignals(){
-        return ofType(NetworkSignal.class, allNetworkObjects.values().stream());
+        return StreamUtils.ofType(new TypeToken<NetworkSignal<TPos>>(){}, allNetworkObjects.values().stream());
     }
 
+    @SuppressWarnings("serial")
     public Stream<NetworkSignal<TPos>> getNeighborSignals(Collection<TPos> potentialNeighbors){
-        return ofType(NetworkSignal.class, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
+        return StreamUtils.ofType(new TypeToken<NetworkSignal<TPos>>(){}, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
     }
 
+    @SuppressWarnings("serial")
     public Stream<NetworkRailLink<TPos>> getRailLinks(){
-        return ofType(NetworkRailLink.class, allNetworkObjects.values().stream());
+        return StreamUtils.ofType(new TypeToken<NetworkRailLink<TPos>>(){}, allNetworkObjects.values().stream());
     }
 
+    @SuppressWarnings("serial")
     public Stream<NetworkRailLink<TPos>> getNeighborRailLinks(Collection<TPos> potentialNeighbors){
-        return ofType(NetworkRailLink.class, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
+        return StreamUtils.ofType(new TypeToken<NetworkRailLink<TPos>>(){}, potentialNeighbors.stream().map(n -> allNetworkObjects.get(n)));
     }
 
+    @SuppressWarnings("serial")
     public Stream<NetworkStation<TPos>> getStations(){
-        return ofType(NetworkStation.class, allNetworkObjects.values().stream());
+        return StreamUtils.ofType(new TypeToken<NetworkStation<TPos>>(){}, allNetworkObjects.values().stream());
     }
 
     @Override

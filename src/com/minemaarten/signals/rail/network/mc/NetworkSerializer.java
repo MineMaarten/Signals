@@ -49,7 +49,7 @@ public class NetworkSerializer{
             }
             return new RailNetwork<>(objects);
         } else {
-            return new RailNetwork<>(ImmutableMap.of());
+            return new RailNetwork<>(ImmutableMap.<MCPos, NetworkObject<MCPos>> of());
         }
     }
 

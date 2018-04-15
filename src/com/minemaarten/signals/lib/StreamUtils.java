@@ -3,6 +3,8 @@ package com.minemaarten.signals.lib;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import com.google.common.reflect.TypeToken;
+
 public class StreamUtils{
     /**
      * Filter by the requested type and cast the remaining items.
@@ -16,6 +18,11 @@ public class StreamUtils{
 
     public static <T> Stream<T> ofType(Class<? extends T> type, Iterable<? super T> iterable){
         return ofType(type, StreamSupport.stream(iterable.spliterator(), false));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Stream<T> ofType(TypeToken<T> type, Stream<? super T> stream){
+        return stream.filter(el -> el != null && type.getRawType().isAssignableFrom(el.getClass())).map(el -> (T)type.getRawType().cast(el));
     }
 
     public static <T> Stream<T> ofInterface(Class<? extends T> inter, Stream<?> stream){
