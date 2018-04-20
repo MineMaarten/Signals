@@ -103,6 +103,12 @@ sourceSets {
         }
     }
 	
+	test {
+		java {
+			srcDir 'test'
+		}
+	}
+	
 	api {
     java {
 
