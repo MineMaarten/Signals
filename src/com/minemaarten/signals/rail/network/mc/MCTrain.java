@@ -74,6 +74,7 @@ public class MCTrain extends Train<MCPos>{
 
     @Override
     public void updatePositions(){
+        super.updatePositions();
         ImmutableSet<MCPos> positions = ImmutableSet.copyOf(getCarts().stream().map(c -> new MCPos(c.world, c.getPosition())).collect(Collectors.toSet()));
         if(!positions.isEmpty()) { //Update if any cart is loaded, currently.
             setPositions(RailNetworkManager.getInstance().getNetwork(), positions);

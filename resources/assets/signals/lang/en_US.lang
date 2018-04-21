@@ -80,3 +80,7 @@ signals.gui.cart_hopper.emitRedstoneWhen.cart_empty.tooltip=Emits as soon as the
 signals.gui.cart_hopper.interactWith=Interact with:
 signals.gui.cart_hopper.interactWith.cartInventory=Cart inventory
 signals.gui.cart_hopper.interactWith.cartEngine=Cart Engine
+
+signals.gui.rail_link.holdDelay=Hold delay:
+signals.gui.rail_link.holdDelay.tooltip=How long a passing cart should be simulated as if it were still at the Rail Link.
+signals.gui.rail_link.ticks=ticks

@@ -12,7 +12,7 @@ public class TestRailLink extends NetworkRailLink<Pos2D> implements IPreNetworkP
     private final char destinationID;
 
     public TestRailLink(Pos2D pos, char destinationID){
-        super(pos, null);
+        super(pos, null, 0);
         this.destinationID = destinationID;
     }
 

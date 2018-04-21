@@ -52,6 +52,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         updateTrainsAtSignals(network);
         updateSignalStatusses(network);
         pathfindTrains(network);
+        updateRailLinkHolds(network);
     }
 
     private void updateTrainsAtSignals(RailNetwork<TPos> network){
@@ -292,5 +293,16 @@ public class NetworkState<TPos extends IPosition<TPos>> {
 
     protected void onCartRouted(Train<TPos> train, RailRoute<TPos> route){
 
+    }
+
+    private void updateRailLinkHolds(RailNetwork<TPos> network){
+        for(Train<TPos> train : getTrains().valueCollection()) {
+            for(TPos trainPos : train.getPositions()) {
+                int holdDelay = network.getRailLinkDelayFor(trainPos);
+                if(holdDelay > 0) {
+                    train.addRailLinkHold(trainPos, holdDelay);
+                }
+            }
+        }
     }
 }

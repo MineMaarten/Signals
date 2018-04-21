@@ -27,7 +27,7 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
     }
 
     /**
-     * Retrieves the currently present train on the block
+     * Retrieves the currently present train on the block, or mimicked, with a Rail Link hold delay
      * @param trains
      * @return the only train that should be on this block, or null.
      */
@@ -36,6 +36,7 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
             for(TPos trainPos : train.getPositions()) {
                 if(rails.get(trainPos) != null) return train;
             }
+            if(train.getRailLinkHolds().stream().anyMatch(pos -> rails.get(pos) != null)) return train;
         }
         return null;
     }

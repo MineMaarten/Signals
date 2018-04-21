@@ -1,5 +1,9 @@
 package com.minemaarten.signals.rail.network;
 
+import gnu.trove.iterator.TObjectIntIterator;
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +29,8 @@ public abstract class Train<TPos extends IPosition<TPos>> {
     protected ImmutableSet<TPos> positions = ImmutableSet.of();
     protected Set<RailSection<TPos>> claimedSections = Collections.emptySet();
 
+    private TObjectIntMap<TPos> railLinkHolds = new TObjectIntHashMap<TPos>();
+
     public Train(){
         this(curID++);
     }
@@ -46,6 +52,10 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         return positions;
     }
 
+    public final Set<TPos> getRailLinkHolds(){
+        return railLinkHolds.keySet();
+    }
+
     public final void setPositions(RailNetwork<TPos> network, ImmutableSet<TPos> positions){
         if(!this.positions.equals(positions)) { //When the train has moved
             this.positions = positions;
@@ -55,8 +65,20 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         }
     }
 
-    public void updatePositions(){
+    public void addRailLinkHold(TPos pos, int timeout){
+        railLinkHolds.put(pos, timeout);
+    }
 
+    public void updatePositions(){
+        TObjectIntIterator<TPos> iterator = railLinkHolds.iterator();
+        while(iterator.hasNext()) {
+            iterator.advance();
+            if(iterator.value() == 1) {
+                iterator.remove();
+            } else {
+                iterator.setValue(iterator.value() - 1);
+            }
+        }
     }
 
     protected void onPositionChanged(){

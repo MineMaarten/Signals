@@ -1,5 +1,8 @@
 package com.minemaarten.signals.rail.network;
 
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -33,6 +36,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     private Map<TPos, RailSection<TPos>> railPosToRailSections = new HashMap<>();
     private Set<RailEdge<TPos>> allEdges = new HashSet<>();
     private Set<RailSection<TPos>> allSections = new HashSet<>();
+    private TObjectIntMap<TPos> railLinkPosToDelays = new TObjectIntHashMap<TPos>();
     public String[] stationNames;
 
     /**
@@ -62,9 +66,12 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
     private void build(){
         buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
+
         Set<RailEdge<TPos>> allEdges = buildRoughRailEdges();
         mergeCrossingEdges(allEdges).forEach(edge -> addEdge(edge));
+
         buildStationNames();
+        buildRailLinkToDelayMap();
     }
 
     private void buildStationNames(){
@@ -108,6 +115,23 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
             addSection(new RailSection<>(railObjects, sectionSet));
         }
+    }
+
+    private void buildRailLinkToDelayMap(){
+        for(NetworkRailLink<TPos> railLink : railObjects.getRailLinks().collect(Collectors.toList())) {
+            if(railLink.holdDelay > 0) {
+                for(EnumHeading heading : EnumHeading.VALUES) {
+                    TPos neighbor = railLink.pos.offset(heading);
+                    if(railObjects.getRail(neighbor) != null) {
+                        railLinkPosToDelays.put(neighbor, railLink.holdDelay);
+                    }
+                }
+            }
+        }
+    }
+
+    public int getRailLinkDelayFor(TPos pos){
+        return railLinkPosToDelays.get(pos);
     }
 
     private NetworkSignal<TPos> getSignalInDir(NetworkRail<TPos> rail, EnumHeading dir){
@@ -158,9 +182,6 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
             Stack<NetworkRail<TPos>> edgeToTraverse = new Stack<>();
             edgeToTraverse.push(first);
 
-            boolean startHitIntersection = false;//Used to keep track if the edge stopped because of a dead end or intersection.
-            boolean endHitIntersection = false;
-
             while(!edgeToTraverse.isEmpty()) {
                 NetworkRail<TPos> curEntry = edgeToTraverse.pop();
                 List<NetworkRail<TPos>> neighbors = curEntry.getSectionNeighborRails(railObjects).collect(Collectors.toList());
@@ -185,7 +206,6 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                     toTraverse.remove(curEntry);
                     //When evaluating from an intersection, only look at directly neighboring intersections.
                     for(NetworkRail<TPos> neighbor : neighbors) {
-                        EnumHeading heading = neighbor.pos.getRelativeHeading(curEntry.pos);
                         List<NetworkRail<TPos>> neighborNeighbors = neighbor.getSectionNeighborRails(railObjects).collect(Collectors.toList());
                         if(neighborNeighbors.size() > 2) { //When the neighbor also is on an intersection, we have an edge
                             ImmutableList<NetworkRail<TPos>> e = ImmutableList.of(curEntry, neighbor);
@@ -193,9 +213,6 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                             allEdges.add(railEdge);
                         }
                     }
-                } else {
-                    if(edge.get(edge.size() - 1).pos.equals(curEntry.pos)) endHitIntersection = true;
-                    if(edge.get(0).pos.equals(curEntry.pos)) startHitIntersection = true;
                 }
             }
 
@@ -271,39 +288,6 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         } while(hasCombined);
 
         return combinedEdge;
-    }
-
-    /**
-     * Helper class that equals on rail.pos and heading, as the NetworkRail's hashcode is too slow and doesn't add anything.
-     * @author Maarten
-     *
-     * @param <TPos>
-     */
-    private static class PosHeadingRailPair<TPos extends IPosition<TPos>> {
-        public final NetworkRail<TPos> rail;
-        public final EnumHeading heading;
-        private final int hashcode;
-
-        public PosHeadingRailPair(NetworkRail<TPos> rail, EnumHeading heading){
-            this.rail = rail;
-            this.heading = heading;
-            this.hashcode = rail.pos.hashCode() << 2 + (heading == null ? 0 : heading.ordinal());
-        }
-
-        @Override
-        public int hashCode(){
-            return hashcode;
-        }
-
-        @Override
-        public boolean equals(Object obj){
-            if(obj instanceof PosHeadingRailPair) {
-                PosHeadingRailPair<TPos> other = (PosHeadingRailPair<TPos>)obj;
-                return rail.pos.equals(other.rail.pos) && heading == other.heading;
-            } else {
-                return false;
-            }
-        }
     }
 
     private void addEdge(RailEdge<TPos> railEdge){

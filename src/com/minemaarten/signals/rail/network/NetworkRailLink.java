@@ -9,11 +9,13 @@ public class NetworkRailLink<TPos extends IPosition<TPos>> extends NetworkObject
 
     private final TPos destination;
     private final List<TPos> potentialNeighbors;
+    public final int holdDelay;
 
-    public NetworkRailLink(TPos pos, TPos destination){
+    public NetworkRailLink(TPos pos, TPos destination, int holdDelay){
         super(pos);
         this.destination = destination;
         potentialNeighbors = EnumHeading.valuesStream().map(pos::offset).collect(Collectors.toList());
+        this.holdDelay = holdDelay;
     }
 
     public TPos getDestinationPos(){

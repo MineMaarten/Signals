@@ -18,7 +18,7 @@ import com.minemaarten.signals.inventory.ContainerSelectDestinationProvider;
 
 public class CommonProxy implements IGuiHandler{
     public enum EnumGuiId{
-        STATION_MARKER, MINECART_DESTINATION, NETWORK_CONTROLLER, SELECT_DESTINATION_PROVIDER, ITEM_HANDLER_DESTINATION, CART_HOPPER, TICKET_DESTINATION
+        STATION_MARKER, MINECART_DESTINATION, NETWORK_CONTROLLER, SELECT_DESTINATION_PROVIDER, ITEM_HANDLER_DESTINATION, CART_HOPPER, TICKET_DESTINATION, RAIL_LINK
     }
 
     public void preInit(){}
@@ -42,6 +42,7 @@ public class CommonProxy implements IGuiHandler{
         TileEntity te = y >= 0 ? world.getTileEntity(new BlockPos(x, y, z)) : null;
         Entity entity = y == -1 ? world.getEntityByID(x) : null;
         switch(EnumGuiId.values()[ID]){
+            case RAIL_LINK:
             case STATION_MARKER:
             case CART_HOPPER:
                 return new ContainerBase<>(te);

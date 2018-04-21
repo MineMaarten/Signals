@@ -2,4 +2,7 @@ A Rail Link is a block that can be used to link rail networks, which allows sign
 
 The Rail Link can be placed next to a rail that is just in front of the portal. Next up, right-click a rail just after the portal (in the other dimension) with a Rail Configurator. Right-click the Rail Link with that same Rail Configurator to bind it to the rail. Through this process, you have linked both dimensions to each other. Now, the signaling will also include rails on the other dimension to determine which carts are allowed to pass.
 
-[crafting{200, 205, key=block/rail_link}]
+[prefix{l}]Hold delay [prefix{}]
+It is likely that a Rail Link is used to bridge parts where a cart momentarily is not on rails (letting carts drop off a cliff, for example). During this, Signals will consider the next rail section to be free, as there are no carts on the rails. To prevent this, a 'hold delay' can be configured, by right-clicking the Rail Link. The hold delay means: how long a passing cart should be simulated as if it were still at the Rail Link.
+
+[crafting{200, 315, key=block/rail_link}]

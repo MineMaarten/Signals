@@ -8,8 +8,8 @@ import com.minemaarten.signals.rail.network.mc.NetworkSerializer.EnumNetworkObje
 
 public class MCNetworkRailLink extends NetworkRailLink<MCPos> implements ISerializableNetworkObject{
 
-    public MCNetworkRailLink(MCPos pos, MCPos destination){
-        super(pos, destination);
+    public MCNetworkRailLink(MCPos pos, MCPos destination, int holdDelay){
+        super(pos, destination, holdDelay);
     }
 
     public static MCNetworkRailLink fromTag(NBTTagCompound tag){
@@ -17,7 +17,7 @@ public class MCNetworkRailLink extends NetworkRailLink<MCPos> implements ISerial
         if(tag.hasKey("dest")) {
             destination = new MCPos(tag.getCompoundTag("dest"));
         }
-        return new MCNetworkRailLink(new MCPos(tag), destination);
+        return new MCNetworkRailLink(new MCPos(tag), destination, tag.getInteger("holdDelay"));
     }
 
     public static MCNetworkRailLink fromByteBuf(ByteBuf buf){
@@ -26,7 +26,7 @@ public class MCNetworkRailLink extends NetworkRailLink<MCPos> implements ISerial
         if(buf.readBoolean()) {
             destination = new MCPos(buf);
         }
-        return new MCNetworkRailLink(pos, destination);
+        return new MCNetworkRailLink(pos, destination, buf.readInt());
     }
 
     @Override
@@ -37,6 +37,7 @@ public class MCNetworkRailLink extends NetworkRailLink<MCPos> implements ISerial
             getDestinationPos().writeToNBT(destTag);
             tag.setTag("dest", destTag);
         }
+        tag.setInteger("holdDelay", holdDelay);
     }
 
     @Override
@@ -48,6 +49,7 @@ public class MCNetworkRailLink extends NetworkRailLink<MCPos> implements ISerial
         } else {
             b.writeBoolean(false);
         }
+        b.writeInt(holdDelay);
     }
 
     @Override

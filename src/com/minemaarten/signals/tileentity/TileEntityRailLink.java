@@ -2,16 +2,20 @@ package com.minemaarten.signals.tileentity;
 
 import java.util.Objects;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 
 import com.minemaarten.signals.block.BlockRailLink;
+import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
-public class TileEntityRailLink extends TileEntityBase{
+public class TileEntityRailLink extends TileEntityBase implements IGUIButtonSensitive{
     private MCPos linkedPos;
+    @GuiSynced
+    private int holdDelay;
 
     public MCPos getLinkedPosition(){
         return linkedPos;
@@ -31,6 +35,18 @@ public class TileEntityRailLink extends TileEntityBase{
     }
 
     @Override
+    public void handleGUIButtonPress(EntityPlayer player, int... data){
+        if(data[0] != holdDelay) {
+            holdDelay = data[0];
+            RailNetworkManager.getInstance().markDirty(getMCPos());
+        }
+    }
+
+    public int getHoldDelay(){
+        return holdDelay;
+    }
+
+    @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag){
         if(linkedPos != null) {
             tag.setInteger("linkedX", linkedPos.getX());
@@ -39,6 +55,7 @@ public class TileEntityRailLink extends TileEntityBase{
             tag.setInteger("linkedDim", linkedPos.getDimID());
         }
 
+        tag.setInteger("holdDelay", holdDelay);
         return super.writeToNBT(tag);
     }
 
@@ -51,6 +68,7 @@ public class TileEntityRailLink extends TileEntityBase{
             linkedPos = null;
         }
 
+        holdDelay = tag.getInteger("holdDelay");
         super.readFromNBT(tag);
     }
 }

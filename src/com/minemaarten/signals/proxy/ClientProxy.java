@@ -32,6 +32,7 @@ import com.minemaarten.signals.client.gui.GuiCartHopper;
 import com.minemaarten.signals.client.gui.GuiItemHandlerDestination;
 import com.minemaarten.signals.client.gui.GuiMinecart;
 import com.minemaarten.signals.client.gui.GuiNetworkController;
+import com.minemaarten.signals.client.gui.GuiRailLink;
 import com.minemaarten.signals.client.gui.GuiSelectDestinationProvider;
 import com.minemaarten.signals.client.gui.GuiStationMarker;
 import com.minemaarten.signals.client.gui.GuiTicket;
@@ -41,6 +42,7 @@ import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.item.ItemTicket;
 import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.tileentity.TileEntityCartHopper;
+import com.minemaarten.signals.tileentity.TileEntityRailLink;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
 
@@ -124,6 +126,8 @@ public class ClientProxy extends CommonProxy{
                 return new GuiItemHandlerDestination(te);
             case CART_HOPPER:
                 return new GuiCartHopper((TileEntityCartHopper)te);
+            case RAIL_LINK:
+                return new GuiRailLink((TileEntityRailLink)te);
             case TICKET_DESTINATION:
                 ItemStack stack = player.getHeldItemMainhand();
                 CapabilityMinecartDestination accessor = stack.getCapability(CapabilityMinecartDestination.INSTANCE, null);

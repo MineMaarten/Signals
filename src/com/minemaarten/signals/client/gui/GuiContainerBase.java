@@ -269,4 +269,8 @@ public class GuiContainerBase<Tile extends TileEntity> extends GuiContainer impl
     public void onKeyTyped(IGuiWidget widget){
 
     }
+
+    public void onFieldSynced(){
+
+    }
 }

@@ -3,6 +3,7 @@ package com.minemaarten.signals.inventory;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -14,6 +15,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
+import com.minemaarten.signals.client.gui.GuiContainerBase;
 import com.minemaarten.signals.inventory.slots.IPhantomSlot;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
@@ -51,6 +53,9 @@ public class ContainerBase<Tile extends TileEntity> extends Container implements
     public void updateField(int index, Object value){
 
         syncedFields.get(index).setValue(value);
+        if(Minecraft.getMinecraft().currentScreen instanceof GuiContainerBase) {
+            ((GuiContainerBase<?>)Minecraft.getMinecraft().currentScreen).onFieldSynced();
+        }
     }
 
     @Override

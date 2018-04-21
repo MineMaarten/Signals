@@ -40,7 +40,7 @@ public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
         if(te instanceof TileEntityRailLink) {
             TileEntityRailLink railLink = (TileEntityRailLink)te;
             MCPos linkedPos = railLink.getLinkedPosition();
-            if(linkedPos != null) return new MCNetworkRailLink(mcPos, linkedPos);
+            if(linkedPos != null) return new MCNetworkRailLink(mcPos, linkedPos, railLink.getHoldDelay());
         }
 
         if(te instanceof TileEntitySignalBase) {
