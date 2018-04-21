@@ -34,6 +34,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.chunkloading.ChunkLoadManager;
+import com.minemaarten.signals.config.SignalsConfig;
+import com.minemaarten.signals.config.SignalsConfig.CartBlacklists;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.item.ItemTicket;
 import com.minemaarten.signals.lib.Constants;
@@ -70,12 +72,16 @@ public class EventHandler implements IWorldEventListener{
                 CapabilityMinecartDestination cap = event.getMinecart().getCapability(CapabilityMinecartDestination.INSTANCE, null);
                 if(cap != null) {
                     if(heldItem.getItem() == ModItems.CART_ENGINE && !cap.isMotorized()) {
-                        if(!event.getPlayer().isCreative()) {
-                            heldItem.shrink(1);
+                        if(CartBlacklists.isBlacklisted(event.getMinecart(), SignalsConfig.cartBlacklists.cartEngines)) {
+                            event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.cart_engine_blacklisted"));
+                        } else {
+                            if(!event.getPlayer().isCreative()) {
+                                heldItem.shrink(1);
+                            }
+                            cap.setMotorized();
+                            event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
+                            event.setCanceled(true);
                         }
-                        cap.setMotorized();
-                        event.getPlayer().sendMessage(new TextComponentTranslation("signals.message.cart_engine_installed"));
-                        event.setCanceled(true);
                     } else if(heldItem.getItem() == ModItems.CHUNKLOADER_UPGRADE && !cap.isChunkLoading()) {
                         if(cap.setChunkloading(event.getPlayer(), event.getMinecart())) {
                             if(!event.getPlayer().isCreative()) {

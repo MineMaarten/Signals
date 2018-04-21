@@ -29,6 +29,7 @@ signals.message.path_found=[$ROUTER$] Path found.
 signals.message.changing_junction=[$ROUTER$] Set junction at (%1$s, %2$s, %3$s) from %4$s to %5$s.
 signals.message.changing_junction_failed=[$ROUTER$] Failed setting junction at (%1$s, %2$s, %3$s) from %4$s to %5$s. Rail does not support.
 signals.message.cart_engine_installed=Installed Cart Engine.
+signals.message.cart_engine_blacklisted=Cannot install Cart Engine: Cart is blacklisted in the config.
 signals.message.chunkloader_installed=Installed Chunk Loader.
 signals.message.chunkloader_install_failed=Could not install Chunk Loader. Chunk loading blocked/limited by the server?
 signals.message.clearedCache=Cleared rail network cache.

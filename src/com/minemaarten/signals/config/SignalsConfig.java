@@ -5,8 +5,10 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRailBase;
+import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.Config.Comment;
 import net.minecraftforge.common.config.Config.Name;
@@ -15,6 +17,9 @@ import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent.OnConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.registry.EntityEntry;
+import net.minecraftforge.fml.common.registry.EntityRegistry;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 import com.minemaarten.signals.block.BlockSignalBase;
 import com.minemaarten.signals.init.ModBlocks;
@@ -30,6 +35,10 @@ public class SignalsConfig{
     @Name("Enable rail network")
     @Comment("ONLY SET TO FALSE IN CASE OF CRASHES. With this set to false, Signals will not work at all!")
     public static boolean enableRailNetwork = true;
+
+    @Name("Cart blacklists")
+    @Comment("Useful to disallow carts from Signals interaction. Cart names are how they would be used in a 'summon' command (<modid>:<entityName>).")
+    public static CartBlacklists cartBlacklists = new CartBlacklists();
 
     @SubscribeEvent
     public static void onConfigChangedEvent(OnConfigChangedEvent event){
@@ -108,5 +117,23 @@ public class SignalsConfig{
 
     public static enum EnumRenderType{
         SECTION, PATHS, EDGES
+    }
+
+    public static class CartBlacklists{
+        @Name("Cart Engine")
+        @Comment("Engines cannot be applied to carts in this config option")
+        public String[] cartEngines = new String[0];
+
+        public static boolean isBlacklisted(EntityMinecart cart, String[] config){
+            if(config.length == 0) return false;
+            EntityEntry entry = EntityRegistry.getEntry(cart.getClass());
+            ResourceLocation cartID = ForgeRegistries.ENTITIES.getKey(entry);
+            for(String blacklist : config) {
+                if(cartID.equals(new ResourceLocation(blacklist))) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
