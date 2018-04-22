@@ -33,7 +33,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.config.SignalsConfig;
-import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketClearNetwork;
@@ -167,18 +166,18 @@ public class RailNetworkManager{
 
     public void loadNetwork(RailNetwork<MCPos> network, MCNetworkState state){
         networkUpdateTask = null;
-        /*state.getTrackingCartsFrom(this.state); // Take carts that were loaded before this network state was loaded from nbt.
+        state.getTrackingCartsFrom(this.state); // Take carts that were loaded before this network state was loaded from nbt.
         this.network = network;
-        this.state = state;*/
+        this.state = state;
 
         NetworkHandler.sendToAll(new PacketClearNetwork());
-        /*for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
+        for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
             NetworkHandler.sendToAll(packet);
         }
 
         for(Train<MCPos> train : state.getTrains().valueCollection()) {
             NetworkHandler.sendToAll(new PacketAddOrUpdateTrain((MCTrain)train));
-        }*/
+        }
     }
 
     public MCTrain getTrainByID(int id){
@@ -263,7 +262,6 @@ public class RailNetworkManager{
             //On the client, when the network was already updating, simply schedule the new update after the current one.
             final Future<RailNetwork<MCPos>> prevTask = networkUpdateTask;
             networkUpdateTask = railNetworkExecutor.submit(() -> {
-                Log.info("Entering new network");
                 return networkUpdater.applyUpdates(prevTask.get(), changedObjects);//Update from the previous update, and wait for this.
             });
         }

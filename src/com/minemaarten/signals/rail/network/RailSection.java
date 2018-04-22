@@ -29,7 +29,7 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
     public RailSection(RailObjectHolder<TPos> railObjects, Collection<NetworkRail<TPos>> rails){
         this.rails = ImmutableMap.<TPos, NetworkRail<TPos>> copyOf(rails.stream().collect(Collectors.toMap(n -> n.pos, n -> n)));
         this.railObjects = railObjects.subSelection(rails);
-        this.aabb = new PosAABB<>(railObjects.getRails().map(r -> r.pos).collect(Collectors.toList()));
+        this.aabb = new PosAABB<>(rails.stream().map(r -> r.pos).collect(Collectors.toList()));
         allRailNeighbors = calculateRailNeighbors();
     }
 

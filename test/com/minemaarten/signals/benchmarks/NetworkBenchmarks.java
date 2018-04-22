@@ -89,7 +89,7 @@ public class NetworkBenchmarks{
     //2ms
     @Test
     public void benchmarkUpdateLargeNetwork(){
-        for(int i = 0; i < 100000; i++) {
+        for(int i = 0; i < 100; i++) {
             largeNetworkState.update(largeNetworkNetwork);
         }
     }

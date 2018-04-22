@@ -8,7 +8,7 @@ import java.util.stream.StreamSupport;
 import com.google.common.reflect.TypeToken;
 
 public class StreamUtils{
-    private static final Map<TypeToken<?>, Class<?>> tokenToRawType = new ConcurrentHashMap<>(); //TODO remove when performance_enhancements branch gets merged
+    private static final Map<TypeToken<?>, Class<?>> tokenToRawType = new ConcurrentHashMap<>();
 
     private static Class<?> getRawType(TypeToken<?> token){
         return tokenToRawType.computeIfAbsent(token, t -> t.getRawType());
