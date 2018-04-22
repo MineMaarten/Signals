@@ -155,6 +155,7 @@ public class ClientProxy extends CommonProxy{
         if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
             eventHandler.blockSectionRenderer.updateSectionRenderers();
             eventHandler.edgeRenderer.updateSectionRenderers();
+            eventHandler.directionalityRenderer.updateRender();
             eventHandler.pathRenderer.updateSectionRenderers();
             eventHandler.claimRenderer.updateSectionRenderers();
         }

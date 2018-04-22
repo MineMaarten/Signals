@@ -36,7 +36,7 @@ public class ClientEventHandler{
     public final RailEdgeRenderer edgeRenderer = new RailEdgeRenderer();
     public final PathRenderer pathRenderer = new PathRenderer();
     public final ClaimedPosRenderer claimRenderer = new ClaimedPosRenderer();
-    private final DirectionalityRenderer directionalityRenderer = new DirectionalityRenderer();
+    public final DirectionalityRenderer directionalityRenderer = new DirectionalityRenderer();
 
     private ClientEventHandler(){
 

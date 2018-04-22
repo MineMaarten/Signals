@@ -11,13 +11,9 @@ import java.util.stream.Stream;
 
 import net.minecraft.block.BlockRailBase.EnumRailDirection;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemDye;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.Vec3d;
-
-import org.lwjgl.opengl.GL11;
 
 import com.minemaarten.signals.client.RectRenderer;
 import com.minemaarten.signals.lib.HeadingUtils;
@@ -85,11 +81,9 @@ public abstract class AbstractRailRenderer<TSection> {
     protected abstract boolean shouldTraverse(TSection section, NetworkRail<MCPos> rail);
 
     public void render(BufferBuilder b){
-        b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
         for(SectionRenderer edgeRenderer : sectionsToRenderer.values()) {
             edgeRenderer.rectRenderer.render(b);
         }
-        Tessellator.getInstance().draw();
     }
 
     public static int getRailHeightOffset(NetworkRail<MCPos> rail, EnumFacing dir){
