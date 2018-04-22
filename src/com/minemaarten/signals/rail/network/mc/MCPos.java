@@ -153,4 +153,24 @@ public class MCPos implements IPosition<MCPos>{
     public String toString(){
         return "(" + pos + ", dim:" + dimID + ")";
     }
+
+    @Override
+    public MCPos min(MCPos other){
+        if(dimID != other.dimID) return null;
+        return new MCPos(dimID, new BlockPos(Math.min(getX(), other.getX()), Math.min(getY(), other.getY()), Math.min(getZ(), other.getZ())));
+    }
+
+    @Override
+    public MCPos max(MCPos other){
+        if(dimID != other.dimID) return null;
+        return new MCPos(dimID, new BlockPos(Math.max(getX(), other.getX()), Math.max(getY(), other.getY()), Math.max(getZ(), other.getZ())));
+    }
+
+    @Override
+    public boolean isInAABB(MCPos min, MCPos max){
+        boolean xOk = min.getX() <= getX() && getX() <= max.getX();
+        boolean yOk = min.getY() <= getY() && getY() <= max.getY();
+        boolean zOk = min.getZ() <= getZ() && getZ() <= max.getZ();
+        return xOk && yOk && zOk;
+    }
 }

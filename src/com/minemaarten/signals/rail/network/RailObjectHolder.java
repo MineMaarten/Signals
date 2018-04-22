@@ -26,6 +26,7 @@ import com.minemaarten.signals.lib.StreamUtils;
 public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<NetworkObject<TPos>>{
     private final ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects;
     private ImmutableListMultimap<TPos, NetworkRailLink<TPos>> destinationsToRailLinks;
+    private final Map<Class<? extends NetworkObject<TPos>>, List<? extends NetworkObject<TPos>>> objectTypeCache = new HashMap<>();
 
     public RailObjectHolder(Collection<NetworkObject<TPos>> allNetworkObjects){
         this(allNetworkObjects.stream());
@@ -130,9 +131,19 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
         return StreamUtils.ofType(clazz, allNetworkObjects.values().stream());
     }
 
+    @SuppressWarnings("unchecked")
+    public <T extends NetworkObject<TPos>> Stream<T> networkObjectsOfType(TypeToken<T> token){
+        List<? extends NetworkObject<TPos>> list = objectTypeCache.get(token.getRawType());
+        if(list == null) {
+            list = StreamUtils.ofType(token, allNetworkObjects.values().stream()).collect(Collectors.toList());
+            objectTypeCache.put((Class<? extends NetworkObject<TPos>>)token.getRawType(), list);
+        }
+        return ((List<T>)list).stream();
+    }
+
     @SuppressWarnings("serial")
     public Stream<NetworkRail<TPos>> getRails(){
-        return StreamUtils.ofType(new TypeToken<NetworkRail<TPos>>(){}, allNetworkObjects.values().stream());
+        return networkObjectsOfType(new TypeToken<NetworkRail<TPos>>(){});
     }
 
     @SuppressWarnings("serial")
@@ -142,7 +153,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
 
     @SuppressWarnings("serial")
     public Stream<NetworkSignal<TPos>> getSignals(){
-        return StreamUtils.ofType(new TypeToken<NetworkSignal<TPos>>(){}, allNetworkObjects.values().stream());
+        return networkObjectsOfType(new TypeToken<NetworkSignal<TPos>>(){});
     }
 
     @SuppressWarnings("serial")
@@ -152,7 +163,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
 
     @SuppressWarnings("serial")
     public Stream<NetworkRailLink<TPos>> getRailLinks(){
-        return StreamUtils.ofType(new TypeToken<NetworkRailLink<TPos>>(){}, allNetworkObjects.values().stream());
+        return networkObjectsOfType(new TypeToken<NetworkRailLink<TPos>>(){});
     }
 
     @SuppressWarnings("serial")
@@ -162,7 +173,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
 
     @SuppressWarnings("serial")
     public Stream<NetworkStation<TPos>> getStations(){
-        return StreamUtils.ofType(new TypeToken<NetworkStation<TPos>>(){}, allNetworkObjects.values().stream());
+        return networkObjectsOfType(new TypeToken<NetworkStation<TPos>>(){});
     }
 
     @Override

@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.Assert;
 
+import com.google.common.collect.ImmutableList;
 import com.minemaarten.signals.lib.StreamUtils;
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkObject;
@@ -99,7 +99,7 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
 
     public void validate(){
         if(start != null) {
-            TestTrain train = (TestTrain)state.getTrainAtPositions(Stream.of(start));
+            TestTrain train = (TestTrain)state.getTrainAtPositions(ImmutableList.of(start));
             if(train != null) train.setPathfinder(this::pathfind);
             state.update(this);
         }

@@ -5,6 +5,7 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +38,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     private Set<RailEdge<TPos>> allEdges = new HashSet<>();
     private Set<RailSection<TPos>> allSections = new HashSet<>();
     private TObjectIntMap<TPos> railLinkPosToDelays = new TObjectIntHashMap<TPos>();
+    private Map<TPos, List<TPos>> signalToPositionsInFrontCache = new HashMap<>();
     public String[] stationNames;
 
     /**
@@ -329,37 +331,45 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      * @param signal
      * @return
      */
-    public Stream<TPos> getPositionsInFront(NetworkSignal<TPos> signal){
-        RailEdge<TPos> edge = findEdge(signal.getRailPos());
-        if(edge == null) return Stream.empty();
-        TPos firstPosInFront = signal.getRailPos().offset(signal.heading.getOpposite());
-        int index = edge.getIndex(signal.getRailPos());
-        Object blockType = edge.get(index).getRailType();
-        boolean countingUp = index < edge.length - 1 && firstPosInFront.equals(edge.get(index + 1));
+    public List<TPos> getPositionsInFront(NetworkSignal<TPos> signal){
+        List<TPos> positions = signalToPositionsInFrontCache.get(signal.pos);
+        if(positions == null) {
 
-        List<TPos> positions = new ArrayList<>(MAX_RAILS_IN_FRONT_SIGNAL);
-        if(countingUp) {
-            int maxIndex = Math.min(index + MAX_RAILS_IN_FRONT_SIGNAL, edge.length);
-            for(int i = index; i < maxIndex; i++) {
-                NetworkRail<TPos> rail = edge.get(i);
-                if(blockType.equals(rail.getRailType())) {
-                    positions.add(rail.pos);
+            RailEdge<TPos> edge = findEdge(signal.getRailPos());
+            if(edge == null) {
+                positions = Collections.emptyList();
+            } else {
+                TPos firstPosInFront = signal.getRailPos().offset(signal.heading.getOpposite());
+                int index = edge.getIndex(signal.getRailPos());
+                Object blockType = edge.get(index).getRailType();
+                boolean countingUp = index < edge.length - 1 && firstPosInFront.equals(edge.get(index + 1));
+
+                positions = new ArrayList<>(MAX_RAILS_IN_FRONT_SIGNAL);
+                if(countingUp) {
+                    int maxIndex = Math.min(index + MAX_RAILS_IN_FRONT_SIGNAL, edge.length);
+                    for(int i = index; i < maxIndex; i++) {
+                        NetworkRail<TPos> rail = edge.get(i);
+                        if(blockType.equals(rail.getRailType())) {
+                            positions.add(rail.pos);
+                        } else {
+                            break;
+                        }
+                    }
                 } else {
-                    break;
+                    int minIndex = Math.max(index - MAX_RAILS_IN_FRONT_SIGNAL + 1, 0);
+                    for(int i = index; i >= minIndex; i--) {
+                        NetworkRail<TPos> rail = edge.get(i);
+                        if(blockType.equals(rail.getRailType())) {
+                            positions.add(rail.pos);
+                        } else {
+                            break;
+                        }
+                    }
                 }
             }
-        } else {
-            int minIndex = Math.max(index - MAX_RAILS_IN_FRONT_SIGNAL + 1, 0);
-            for(int i = index; i >= minIndex; i--) {
-                NetworkRail<TPos> rail = edge.get(i);
-                if(blockType.equals(rail.getRailType())) {
-                    positions.add(rail.pos);
-                } else {
-                    break;
-                }
-            }
+            signalToPositionsInFrontCache.put(signal.pos, positions);
         }
-        return positions.stream();
+        return positions;
     }
 
     public Set<TPos> getStationRails(Train<TPos> train, Pattern destinationRegex){

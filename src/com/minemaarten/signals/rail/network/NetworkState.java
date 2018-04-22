@@ -43,6 +43,10 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         return trains.get(id);
     }
 
+    private Stream<Train<TPos>> getTrainsInAABB(PosAABB<TPos> aabb){
+        return getTrains().valueCollection().stream().filter(t -> t.isInAABB(aabb));
+    }
+
     public void removeTrain(Train<TPos> train){
         trains.remove(train.id);
     }
@@ -248,8 +252,9 @@ public class NetworkState<TPos extends IPosition<TPos>> {
 
     }
 
-    public Train<TPos> getTrainAtPositions(Stream<TPos> positions){
-        return positions.flatMap(pos -> trains.valueCollection().stream().filter(t -> t.getPositions().contains(pos))).findFirst().orElse(null);
+    public Train<TPos> getTrainAtPositions(List<TPos> positions){
+        PosAABB<TPos> aabb = new PosAABB<>(positions);
+        return getTrainsInAABB(aabb).findFirst().orElse(null);
     }
 
     private Train<TPos> getTrainAtSignal(RailNetwork<TPos> network, NetworkSignal<TPos> signal){

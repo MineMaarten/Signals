@@ -79,7 +79,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     protected List<EntityMinecart> getNeighborMinecarts(){
         NetworkSignal<MCPos> signal = getSignal();
         if(signal == null) return Collections.emptyList();
-        return getNeighborMinecarts(RailNetworkManager.getInstance().getNetwork().getPositionsInFront(signal));
+        return getNeighborMinecarts(RailNetworkManager.getInstance().getNetwork().getPositionsInFront(signal).stream());
     }
 
     public static List<EntityMinecart> getNeighborMinecarts(Stream<MCPos> positions){

@@ -82,4 +82,19 @@ public class Pos2D implements IPosition<Pos2D>{
     public Stream<Pos2D> allHorizontalNeighbors(){
         return EnumHeading.valuesStream().map(this::offset);
     }
+
+    @Override
+    public Pos2D min(Pos2D other){
+        return new Pos2D(Math.min(x, other.x), Math.min(y, other.y));
+    }
+
+    @Override
+    public Pos2D max(Pos2D other){
+        return new Pos2D(Math.max(x, other.x), Math.max(y, other.y));
+    }
+
+    @Override
+    public boolean isInAABB(Pos2D min, Pos2D max){
+        return min.x <= x && x <= max.x && min.y <= y && y <= max.y;
+    }
 }

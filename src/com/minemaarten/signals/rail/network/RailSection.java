@@ -20,10 +20,12 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
 
     private final ImmutableMap<TPos, NetworkRail<TPos>> rails;
     public final RailObjectHolder<TPos> railObjects;
+    private final PosAABB<TPos> aabb;
 
     public RailSection(RailObjectHolder<TPos> railObjects, Collection<NetworkRail<TPos>> rails){
         this.rails = ImmutableMap.<TPos, NetworkRail<TPos>> copyOf(rails.stream().collect(Collectors.toMap(n -> n.pos, n -> n)));
         this.railObjects = railObjects.subSelection(rails);
+        this.aabb = new PosAABB<>(railObjects.getRails().map(r -> r.pos).collect(Collectors.toList()));
     }
 
     /**
@@ -31,14 +33,8 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
      * @param trains
      * @return the only train that should be on this block, or null.
      */
-    public Train<TPos> getTrain(Iterable<? extends Train<TPos>> trains){
-        for(Train<TPos> train : trains) {
-            for(TPos trainPos : train.getPositions()) {
-                if(rails.get(trainPos) != null) return train;
-            }
-            if(train.getRailLinkHolds().stream().anyMatch(pos -> rails.get(pos) != null)) return train;
-        }
-        return null;
+    public Train<TPos> getTrain(Collection<? extends Train<TPos>> trains){
+        return trains.stream().filter(t -> t.isInAABB(aabb, true)).findFirst().orElse(null);
     }
 
     public Stream<TPos> getRailPositions(){

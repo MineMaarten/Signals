@@ -52,6 +52,22 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         return positions;
     }
 
+    public boolean isInAABB(PosAABB<TPos> aabb){
+        return isInAABB(aabb, false);
+    }
+
+    public boolean isInAABB(PosAABB<TPos> aabb, boolean includeRailLinkHolds){
+        for(TPos pos : getPositions()) {
+            if(aabb.isInAABB(pos)) return true;
+        }
+
+        if(includeRailLinkHolds) {
+            return getRailLinkHolds().stream().anyMatch(pos -> aabb.isInAABB(pos));
+        } else {
+            return false;
+        }
+    }
+
     public final Set<TPos> getRailLinkHolds(){
         return railLinkHolds.keySet();
     }
@@ -70,13 +86,15 @@ public abstract class Train<TPos extends IPosition<TPos>> {
     }
 
     public void updatePositions(){
-        TObjectIntIterator<TPos> iterator = railLinkHolds.iterator();
-        while(iterator.hasNext()) {
-            iterator.advance();
-            if(iterator.value() == 1) {
-                iterator.remove();
-            } else {
-                iterator.setValue(iterator.value() - 1);
+        if(!railLinkHolds.isEmpty()) {
+            TObjectIntIterator<TPos> iterator = railLinkHolds.iterator();
+            while(iterator.hasNext()) {
+                iterator.advance();
+                if(iterator.value() == 1) {
+                    iterator.remove();
+                } else {
+                    iterator.setValue(iterator.value() - 1);
+                }
             }
         }
     }

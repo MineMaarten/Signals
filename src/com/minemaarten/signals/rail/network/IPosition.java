@@ -17,4 +17,20 @@ public interface IPosition<TPos> extends Comparable<TPos>{
     public TPos offset(EnumHeading heading);
 
     public Stream<TPos> allHorizontalNeighbors();
+
+    /**
+     * Should return the minimum of every axis of the two positions.
+     * @param other
+     * @return
+     */
+    public TPos min(TPos other);
+
+    /**
+     * Should return the maximum of every axis of the two positions.
+     * @param other
+     * @return
+     */
+    public TPos max(TPos other);
+
+    public boolean isInAABB(TPos min, TPos max);
 }

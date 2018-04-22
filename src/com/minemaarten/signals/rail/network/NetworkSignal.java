@@ -1,6 +1,5 @@
 package com.minemaarten.signals.rail.network;
 
-
 /**
  * Immutable, and should expect to be reused in transitions from old to new networks to prevent allocations.
  * @author Maarten
@@ -29,6 +28,7 @@ public class NetworkSignal<TPos extends IPosition<TPos>> extends NetworkObject<T
     }
 
     //@formatter:off
+    //TODO improve perf by querying smarter.
     public RailSection<TPos> getNextRailSection(RailNetwork<TPos> network){
         NetworkRail<TPos> rail = (NetworkRail<TPos>)network.railObjects.get(getRailPos()); //Safe to cast, as invalid signals have been filtered
         NetworkRail<TPos> nextSectionRail = network.railObjects.getNeighborRails(rail.getPotentialNeighborRailLocations())
