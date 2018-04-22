@@ -34,12 +34,12 @@ import com.google.common.collect.Streams;
 public class RailNetwork<TPos extends IPosition<TPos>> {
     private static final int MAX_RAILS_IN_FRONT_SIGNAL = 5;
     public final RailObjectHolder<TPos> railObjects;
-    private Map<TPos, RailSection<TPos>> railPosToRailSections = new HashMap<>();
-    private Set<RailEdge<TPos>> allEdges = new HashSet<>();
-    private Set<RailSection<TPos>> allSections = new HashSet<>();
-    private TObjectIntMap<TPos> railLinkPosToDelays = new TObjectIntHashMap<TPos>();
-    private Map<TPos, List<TPos>> signalToPositionsInFrontCache = new HashMap<>();
-    public String[] stationNames;
+    private Map<TPos, RailSection<TPos>> railPosToRailSections;
+    private Set<RailEdge<TPos>> allEdges;
+    private Set<RailSection<TPos>> allSections;
+    private TObjectIntMap<TPos> railLinkPosToDelays;
+    private final Map<TPos, List<TPos>> signalToPositionsInFrontCache = new HashMap<>();
+    private String[] stationNames;
 
     /**
      * Given a position of a path node, which edges can end up in this node?
@@ -66,20 +66,40 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         return new RailNetwork<>(ImmutableMap.<TPos, NetworkObject<TPos>> of());
     }
 
-    private void build(){
-        buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
+    /**
+     * Build the network from the stored rail objects, if it wasn't loaded already
+     */
+    public RailNetwork<TPos> build(){
+        if(railPosToRailSections == null) {
+            synchronized(this) {
+                if(railPosToRailSections == null) {
+                    railPosToRailSections = new HashMap<>();
+                    allEdges = new HashSet<>();
+                    allSections = new HashSet<>();
+                    railLinkPosToDelays = new TObjectIntHashMap<TPos>();
 
-        Set<RailEdge<TPos>> allEdges = buildRoughRailEdges();
-        mergeCrossingEdges(allEdges).forEach(edge -> addEdge(edge));
+                    buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
 
-        buildStationNames();
-        buildRailLinkToDelayMap();
+                    Set<RailEdge<TPos>> allEdges = buildRoughRailEdges();
+                    mergeCrossingEdges(allEdges).forEach(edge -> addEdge(edge));
+
+                    buildStationNames();
+                    buildRailLinkToDelayMap();
+                }
+            }
+        }
+        return this;
     }
 
     private void buildStationNames(){
         Stream<String> stationNameStream = railObjects.getStations().map(s -> s.stationName).filter(s -> !"".equals(s));
         stationNameStream = Streams.concat(stationNameStream, Stream.of("ITEM")).distinct().sorted();
         stationNames = stationNameStream.toArray(String[]::new);
+    }
+
+    public String[] getStationNames(){
+        build();
+        return stationNames;
     }
 
     private void buildRailSections(){
@@ -133,6 +153,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     }
 
     public int getRailLinkDelayFor(TPos pos){
+        build();
         return railLinkPosToDelays.get(pos);
     }
 
@@ -140,11 +161,13 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         return railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.heading == dir && s.getRailPos().equals(rail.pos)).findFirst().orElse(null);
     }
 
-    public Iterable<RailSection<TPos>> getAllSections(){
+    public Collection<RailSection<TPos>> getAllSections(){
+        build();
         return allSections;
     }
 
-    public Iterable<RailEdge<TPos>> getAllEdges(){
+    public Collection<RailEdge<TPos>> getAllEdges(){
+        build();
         return allEdges;
     }
 
@@ -156,6 +179,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     }
 
     public RailSection<TPos> findSection(TPos pos){
+        build();
         return railPosToRailSections.get(pos);
     }
 

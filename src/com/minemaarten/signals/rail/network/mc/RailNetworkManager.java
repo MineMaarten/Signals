@@ -16,21 +16,24 @@ import java.util.stream.Stream;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.config.SignalsConfig;
+import com.minemaarten.signals.lib.Log;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketClearNetwork;
@@ -40,6 +43,7 @@ import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.NetworkUpdater;
 import com.minemaarten.signals.rail.network.RailNetwork;
+import com.minemaarten.signals.rail.network.RailNetworkClient;
 import com.minemaarten.signals.rail.network.RailPathfinder;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.Train;
@@ -56,26 +60,30 @@ public class RailNetworkManager{
 
     private static RailNetworkManager getClientInstance(){
         if(CLIENT_INSTANCE == null) {
-            CLIENT_INSTANCE = new RailNetworkManager();
+            CLIENT_INSTANCE = new RailNetworkManager(true);
         }
         return CLIENT_INSTANCE;
     }
 
     private static RailNetworkManager getServerInstance(){
         if(SERVER_INSTANCE == null) {
-            SERVER_INSTANCE = new RailNetworkManager();
+            SERVER_INSTANCE = new RailNetworkManager(false);
         }
         return SERVER_INSTANCE;
     }
 
     private final ExecutorService railNetworkExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("signals-network-thread-%d").build());
     private Future<RailNetwork<MCPos>> networkUpdateTask;
-    private RailNetwork<MCPos> network = new RailNetwork<MCPos>(ImmutableMap.of());
+    private RailNetwork<MCPos> network;
     private MCNetworkState state = new MCNetworkState();
     private final NetworkUpdater<MCPos> networkUpdater = new NetworkUpdater<>(new NetworkObjectProvider());
 
-    private RailNetworkManager(){
-
+    private RailNetworkManager(boolean client){
+        if(client) {
+            network = RailNetworkClient.empty();
+        } else {
+            network = RailNetwork.empty();
+        }
     }
 
     private void validateOnServer(){
@@ -141,6 +149,10 @@ public class RailNetworkManager{
         return network;
     }
 
+    public RailNetworkClient<MCPos> getClientNetwork(){
+        return (RailNetworkClient<MCPos>)network;
+    }
+
     public MCNetworkState getState(){
         return state;
     }
@@ -155,18 +167,18 @@ public class RailNetworkManager{
 
     public void loadNetwork(RailNetwork<MCPos> network, MCNetworkState state){
         networkUpdateTask = null;
-        state.getTrackingCartsFrom(this.state); // Take carts that were loaded before this network state was loaded from nbt.
+        /*state.getTrackingCartsFrom(this.state); // Take carts that were loaded before this network state was loaded from nbt.
         this.network = network;
-        this.state = state;
+        this.state = state;*/
 
         NetworkHandler.sendToAll(new PacketClearNetwork());
-        for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
+        /*for(PacketUpdateNetwork packet : getSplitNetworkUpdatePackets(network.railObjects.getAllNetworkObjects().values())) {
             NetworkHandler.sendToAll(packet);
         }
 
         for(Train<MCPos> train : state.getTrains().valueCollection()) {
             NetworkHandler.sendToAll(new PacketAddOrUpdateTrain((MCTrain)train));
-        }
+        }*/
     }
 
     public MCTrain getTrainByID(int id){
@@ -220,8 +232,15 @@ public class RailNetworkManager{
                 networkUpdateTask = null;
                 NetworkStorage.getInstance().setNetwork(network);
 
+                if(this == CLIENT_INSTANCE) {
+                    //Asynchronously update the renderers
+                    railNetworkExecutor.submit(() -> {
+                        network.build(); //Build the network cache off thread
+                        Signals.proxy.onRailNetworkUpdated();
+                    });
+                }
+
                 state.onNetworkChanged(network);
-                Signals.proxy.onRailNetworkUpdated();
             } catch(InterruptedException e) {
                 e.printStackTrace();
             } catch(ExecutionException e) {
@@ -236,12 +255,23 @@ public class RailNetworkManager{
      * @param changedObjects
      */
     public void applyUpdates(Collection<NetworkObject<MCPos>> changedObjects){
-        checkForNewNetwork(true);
-        networkUpdateTask = railNetworkExecutor.submit(() -> networkUpdater.applyUpdates(network, changedObjects));
+        if(this == SERVER_INSTANCE || networkUpdateTask == null) {
+
+            checkForNewNetwork(true);
+            networkUpdateTask = railNetworkExecutor.submit(() -> networkUpdater.applyUpdates(getNetwork(), changedObjects).build());
+        } else {
+            //On the client, when the network was already updating, simply schedule the new update after the current one.
+            final Future<RailNetwork<MCPos>> prevTask = networkUpdateTask;
+            networkUpdateTask = railNetworkExecutor.submit(() -> {
+                Log.info("Entering new network");
+                return networkUpdater.applyUpdates(prevTask.get(), changedObjects);//Update from the previous update, and wait for this.
+            });
+        }
     }
 
     public void clearNetwork(){
-        network = new RailNetwork<>(Collections.emptyList());
+        validateOnClient();
+        network = RailNetworkClient.empty();
         state.setTrains(Collections.emptyList());
         Signals.proxy.onRailNetworkUpdated();
     }
@@ -251,6 +281,18 @@ public class RailNetworkManager{
         validateOnServer();
         checkForNewNetwork(true);
         state.update(network);
+        if(networkUpdater.didJustTurnBusy()) {
+            notifyAllPlayers(new TextComponentTranslation("signals.message.signals_busy"));
+        }
+        if(networkUpdater.didJustTurnIdle()) {
+            notifyAllPlayers(new TextComponentTranslation("signals.message.signals_idle"));
+        }
+    }
+
+    private void notifyAllPlayers(ITextComponent text){
+        for(EntityPlayer player : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayers()) {
+            player.sendMessage(text);
+        }
     }
 
     public void onPreClientTick(){

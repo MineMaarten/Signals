@@ -2,12 +2,14 @@ package com.minemaarten.signals.rail.network;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * A rail section is a collection of rails that are separated by signals.
@@ -16,16 +18,31 @@ import com.google.common.collect.ImmutableMap;
  *
  * @param <TPos>
  */
-public class RailSection<TPos extends IPosition<TPos>> implements Iterable<NetworkRail<TPos>>{
+public class RailSection<TPos extends IPosition<TPos>> implements Iterable<NetworkRail<TPos>>,
+        IAdjacentCheckable<RailSection<TPos>>{
 
     private final ImmutableMap<TPos, NetworkRail<TPos>> rails;
     public final RailObjectHolder<TPos> railObjects;
     private final PosAABB<TPos> aabb;
+    private final Set<TPos> allRailNeighbors;
 
     public RailSection(RailObjectHolder<TPos> railObjects, Collection<NetworkRail<TPos>> rails){
         this.rails = ImmutableMap.<TPos, NetworkRail<TPos>> copyOf(rails.stream().collect(Collectors.toMap(n -> n.pos, n -> n)));
         this.railObjects = railObjects.subSelection(rails);
         this.aabb = new PosAABB<>(railObjects.getRails().map(r -> r.pos).collect(Collectors.toList()));
+        allRailNeighbors = calculateRailNeighbors();
+    }
+
+    private ImmutableSet<TPos> calculateRailNeighbors(){
+        ImmutableSet.Builder<TPos> builder = ImmutableSet.builder();
+        for(TPos railPos : rails.keySet()) {
+            for(TPos neighbor : railPos.allHorizontalNeighbors()) {
+                if(!rails.containsKey(neighbor)) { //Only neighbors, not actual rails
+                    builder.add(neighbor);
+                }
+            }
+        }
+        return builder.build();
     }
 
     /**
@@ -54,8 +71,12 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
         return rails.containsKey(pos);
     }
 
+    @Override
     public boolean isAdjacent(RailSection<TPos> section){
-        return rails.keySet().stream().flatMap(TPos::allHorizontalNeighbors).anyMatch(section::containsRail);
+        for(TPos railPos : section.rails.keySet()) {
+            if(allRailNeighbors.contains(railPos)) return true;
+        }
+        return false;
     }
 
     @Override

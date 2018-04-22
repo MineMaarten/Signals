@@ -2,7 +2,8 @@ package com.minemaarten.signals.rail.network.mc;
 
 import io.netty.buffer.ByteBuf;
 
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -129,9 +130,14 @@ public class MCPos implements IPosition<MCPos>{
         return new MCPos(dimID, pos.offset(facing));
     }
 
+    //TODO height offset?
     @Override
-    public Stream<MCPos> allHorizontalNeighbors(){
-        return EnumHeading.valuesStream().map(this::offset);
+    public List<MCPos> allHorizontalNeighbors(){
+        List<MCPos> neighbors = new ArrayList<>(4);
+        for(EnumHeading heading : EnumHeading.VALUES) {
+            neighbors.add(offset(heading));
+        }
+        return neighbors;
     }
 
     @Override

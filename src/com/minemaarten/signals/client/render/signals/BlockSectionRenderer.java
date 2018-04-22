@@ -10,7 +10,7 @@ public class BlockSectionRenderer extends AbstractRailRenderer<RailSection<MCPos
 
     @Override
     protected boolean isAdjacent(RailSection<MCPos> s1, RailSection<MCPos> s2){
-        return s1.isAdjacent(s2);
+        return RailNetworkManager.getInstance().getClientNetwork().areAdjacent(s1, s2);
     }
 
     @Override

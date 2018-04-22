@@ -24,7 +24,8 @@ import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
  *
  * @param <TPos>
  */
-public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkRail<TPos>>{
+public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkRail<TPos>>,
+        IAdjacentCheckable<RailEdge<TPos>>{
 
     private static final double RED_SIGNAL_PENALTY = 10000;
 
@@ -424,5 +425,10 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         hash = hash * 13 + (startHeading == null ? 5 : startHeading.hashCode());
         hash = hash * 13 + (endHeading == null ? 5 : endHeading.hashCode());
         return hash;
+    }
+
+    @Override
+    public boolean isAdjacent(RailEdge<TPos> other){
+        return contains(other.startPos) || contains(other.endPos);
     }
 }

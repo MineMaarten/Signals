@@ -1,6 +1,6 @@
 package com.minemaarten.signals.rail.network;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 public interface IPosition<TPos> extends Comparable<TPos>{
     public double distanceSq(TPos other);
@@ -16,7 +16,7 @@ public interface IPosition<TPos> extends Comparable<TPos>{
 
     public TPos offset(EnumHeading heading);
 
-    public Stream<TPos> allHorizontalNeighbors();
+    public List<TPos> allHorizontalNeighbors();
 
     /**
      * Should return the minimum of every axis of the two positions.

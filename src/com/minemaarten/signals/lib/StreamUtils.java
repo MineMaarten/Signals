@@ -1,11 +1,19 @@
 package com.minemaarten.signals.lib;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.google.common.reflect.TypeToken;
 
 public class StreamUtils{
+    private static final Map<TypeToken<?>, Class<?>> tokenToRawType = new ConcurrentHashMap<>(); //TODO remove when performance_enhancements branch gets merged
+
+    private static Class<?> getRawType(TypeToken<?> token){
+        return tokenToRawType.computeIfAbsent(token, t -> t.getRawType());
+    }
+
     /**
      * Filter by the requested type and cast the remaining items.
      * @param type
@@ -22,7 +30,7 @@ public class StreamUtils{
 
     @SuppressWarnings("unchecked")
     public static <T> Stream<T> ofType(TypeToken<T> type, Stream<? super T> stream){
-        return stream.filter(el -> el != null && type.getRawType().isAssignableFrom(el.getClass())).map(el -> (T)type.getRawType().cast(el));
+        return stream.filter(el -> el != null && getRawType(type).isAssignableFrom(el.getClass())).map(el -> (T)getRawType(type).cast(el));
     }
 
     public static <T> Stream<T> ofInterface(Class<? extends T> inter, Stream<?> stream){

@@ -1,13 +1,13 @@
 package com.minemaarten.signals.client;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+
+import org.lwjgl.opengl.GL11;
 
 public class RectRenderer{
-    private List<Vec3d> verteces = new ArrayList<Vec3d>();
+    private BakedRenderer bakedRenderer = new BakedRenderer();
     private float r, g, b;
 
     private boolean hasPos;
@@ -21,13 +21,15 @@ public class RectRenderer{
     }
 
     public void render(BufferBuilder buffer){
-        for(Vec3d v : verteces) {
-            buffer.pos(v.x, v.y, v.z).color(r, g, b, 1).endVertex();
-        }
+        GL11.glColor3f(r, g, b);
+        buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+        bakedRenderer.render(buffer);
+        Tessellator.getInstance().draw();
+        GL11.glColor3f(1, 1, 1);
     }
 
     private void add(double x, double y, double z){
-        verteces.add(new Vec3d(x, y, z));
+        bakedRenderer.add(x, y, z);
     }
 
     public void pos(double x, double y, double z){
