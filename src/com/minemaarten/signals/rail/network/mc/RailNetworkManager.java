@@ -26,7 +26,6 @@ import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.relauncher.Side;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.minemaarten.signals.Signals;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
@@ -40,6 +39,7 @@ import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.NetworkUpdater;
 import com.minemaarten.signals.rail.network.RailNetwork;
+import com.minemaarten.signals.rail.network.RailNetworkClient;
 import com.minemaarten.signals.rail.network.RailPathfinder;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.Train;
@@ -56,26 +56,30 @@ public class RailNetworkManager{
 
     private static RailNetworkManager getClientInstance(){
         if(CLIENT_INSTANCE == null) {
-            CLIENT_INSTANCE = new RailNetworkManager();
+            CLIENT_INSTANCE = new RailNetworkManager(true);
         }
         return CLIENT_INSTANCE;
     }
 
     private static RailNetworkManager getServerInstance(){
         if(SERVER_INSTANCE == null) {
-            SERVER_INSTANCE = new RailNetworkManager();
+            SERVER_INSTANCE = new RailNetworkManager(false);
         }
         return SERVER_INSTANCE;
     }
 
     private final ExecutorService railNetworkExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("signals-network-thread-%d").build());
     private Future<RailNetwork<MCPos>> networkUpdateTask;
-    private RailNetwork<MCPos> network = new RailNetwork<MCPos>(ImmutableMap.of());
+    private RailNetwork<MCPos> network;
     private MCNetworkState state = new MCNetworkState();
     private final NetworkUpdater<MCPos> networkUpdater = new NetworkUpdater<>(new NetworkObjectProvider());
 
-    private RailNetworkManager(){
-
+    private RailNetworkManager(boolean client){
+        if(client) {
+            network = RailNetworkClient.empty();
+        } else {
+            network = RailNetwork.empty();
+        }
     }
 
     private void validateOnServer(){
@@ -139,6 +143,10 @@ public class RailNetworkManager{
 
     public RailNetwork<MCPos> getNetwork(){
         return network;
+    }
+
+    public RailNetworkClient<MCPos> getClientNetwork(){
+        return (RailNetworkClient<MCPos>)network;
     }
 
     public MCNetworkState getState(){
@@ -241,7 +249,8 @@ public class RailNetworkManager{
     }
 
     public void clearNetwork(){
-        network = new RailNetwork<>(Collections.emptyList());
+        validateOnClient();
+        network = RailNetworkClient.empty();
         state.setTrains(Collections.emptyList());
         Signals.proxy.onRailNetworkUpdated();
     }

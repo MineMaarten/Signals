@@ -29,6 +29,7 @@ import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkStation;
 import com.minemaarten.signals.rail.network.RailNetwork;
+import com.minemaarten.signals.rail.network.RailNetworkClient;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.rail.network.mc.MCPos;
@@ -41,7 +42,7 @@ public class NetworkController{
     public static final int STATION_COLOR = 0xFFDDDD00;
     public static final int NOTHING_COLOR = 0xFF222222;
     private static Map<Integer, NetworkController> cache = new HashMap<>();
-    private static RailNetwork<MCPos> network = RailNetwork.empty();
+    private static RailNetworkClient<MCPos> network = RailNetworkClient.empty();
 
     public static NetworkController getInstance(World world){
         if(!world.isRemote) throw new IllegalStateException("Can only be called client side!");
@@ -49,8 +50,8 @@ public class NetworkController{
     }
 
     public static NetworkController getInstance(int dimension){
-        if(network != RailNetworkManager.getInstance().getNetwork()) {
-            network = RailNetworkManager.getInstance().getNetwork();
+        if(network != RailNetworkManager.getInstance().getClientNetwork()) {
+            network = RailNetworkManager.getInstance().getClientNetwork();
             cache = rebuildAll();
         }
 

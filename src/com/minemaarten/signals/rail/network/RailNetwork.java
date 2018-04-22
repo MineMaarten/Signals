@@ -138,11 +138,11 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         return railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.heading == dir && s.getRailPos().equals(rail.pos)).findFirst().orElse(null);
     }
 
-    public Iterable<RailSection<TPos>> getAllSections(){
+    public Collection<RailSection<TPos>> getAllSections(){
         return allSections;
     }
 
-    public Iterable<RailEdge<TPos>> getAllEdges(){
+    public Collection<RailEdge<TPos>> getAllEdges(){
         return allEdges;
     }
 

@@ -86,6 +86,10 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
             }
         }
 
-        return new RailNetwork<TPos>(ImmutableMap.copyOf(allObjects));
+        if(network instanceof RailNetworkClient) {
+            return new RailNetworkClient<TPos>(ImmutableMap.copyOf(allObjects));
+        } else {
+            return new RailNetwork<TPos>(ImmutableMap.copyOf(allObjects));
+        }
     }
 }
