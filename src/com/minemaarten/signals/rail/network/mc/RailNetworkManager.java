@@ -244,8 +244,18 @@ public class RailNetworkManager{
      * @param changedObjects
      */
     public void applyUpdates(Collection<NetworkObject<MCPos>> changedObjects){
-        checkForNewNetwork(true);
-        networkUpdateTask = railNetworkExecutor.submit(() -> networkUpdater.applyUpdates(network, changedObjects));
+        if(this == SERVER_INSTANCE || networkUpdateTask == null) {
+
+            checkForNewNetwork(true);
+            networkUpdateTask = railNetworkExecutor.submit(() -> networkUpdater.applyUpdates(getNetwork(), changedObjects));
+        } else {
+            //On the client, when the network was already updating, simply schedule the new update after the current one.
+            final Future<RailNetwork<MCPos>> prevTask = networkUpdateTask;
+            networkUpdateTask = railNetworkExecutor.submit(() -> {
+                Log.info("Entering new network");
+                return networkUpdater.applyUpdates(prevTask.get(), changedObjects);//Update from the previous update, and wait for this.
+            });
+        }
     }
 
     public void clearNetwork(){
