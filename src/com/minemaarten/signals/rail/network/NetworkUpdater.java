@@ -11,6 +11,7 @@ import java.util.Stack;
 import com.google.common.collect.ImmutableMap;
 
 public class NetworkUpdater<TPos extends IPosition<TPos>> {
+    private static final int MAX_UPDATES_PER_TICK = 500;
     private final INetworkObjectProvider<TPos> objectProvider;
     private final Set<TPos> dirtyPositions = new HashSet<>(); //Positions that have possibly changed
 
@@ -44,6 +45,7 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
         //Re-acquire positions that were marked dirty, and possibly recursively look up other parts.
         Stack<TPos> toEvaluate = new Stack<>();
         dirtyPositions.forEach(pos -> toEvaluate.push(pos));
+        int updates = 0;
         while(!toEvaluate.isEmpty()) {
             TPos curPos = toEvaluate.pop();
 
@@ -55,6 +57,7 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
                     NetworkObject<TPos> prevObj = network.railObjects.get(curPos);
                     if(!networkObject.equals(prevObj)) { //Only mark stuff changed that actually changed
                         changedObjects.put(curPos, networkObject);
+                        updates++;
                     } else {
                         changedObjects.remove(curPos); //Remove any possible removal markers that were inserted.
                     }
@@ -65,10 +68,17 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
                         }
                     }
                 }
+                if(updates >= MAX_UPDATES_PER_TICK) {
+                    break;
+                }
             }
         }
 
         dirtyPositions.clear();
+        while(!toEvaluate.isEmpty()) {
+            TPos curPos = toEvaluate.pop();
+            dirtyPositions.add(curPos);
+        }
 
         return changedObjects.values();
     }
