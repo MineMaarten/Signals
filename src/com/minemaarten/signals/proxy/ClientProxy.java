@@ -21,9 +21,7 @@ import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
 
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.client.ClientEventHandler;
@@ -152,12 +150,10 @@ public class ClientProxy extends CommonProxy{
 
     @Override
     public void onRailNetworkUpdated(){
-        if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-            eventHandler.blockSectionRenderer.updateSectionRenderers();
-            eventHandler.edgeRenderer.updateSectionRenderers();
-            eventHandler.directionalityRenderer.updateRender();
-            eventHandler.pathRenderer.updateSectionRenderers();
-            eventHandler.claimRenderer.updateSectionRenderers();
-        }
+        eventHandler.blockSectionRenderer.updateSectionRenderers();
+        eventHandler.edgeRenderer.updateSectionRenderers();
+        eventHandler.directionalityRenderer.updateRender();
+        eventHandler.pathRenderer.updateSectionRenderers();
+        eventHandler.claimRenderer.updateSectionRenderers();
     }
 }

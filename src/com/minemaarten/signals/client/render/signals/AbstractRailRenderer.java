@@ -1,11 +1,11 @@
 package com.minemaarten.signals.client.render.signals;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,7 +25,7 @@ import com.minemaarten.signals.rail.network.mc.MCPos;
 
 public abstract class AbstractRailRenderer<TSection> {
 
-    protected final Map<TSection, SectionRenderer> sectionsToRenderer = new HashMap<>();
+    protected final Map<TSection, SectionRenderer> sectionsToRenderer = new ConcurrentHashMap<>();
 
     private void addSectionRenderer(TSection section){
         SectionRenderer renderer = new SectionRenderer(section);

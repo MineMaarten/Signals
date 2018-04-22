@@ -29,14 +29,15 @@ public class DirectionalityRenderer{
     }
 
     public void updateRender(){
-        bakedRenderer = new BakedRenderer();
+        BakedRenderer bakedRenderer = new BakedRenderer();
         for(RailEdge<MCPos> edge : RailNetworkManager.getInstance().getNetwork().getAllEdges()) {
-            if(edge.directionality.canTravelForwards) build(edge.edge);
-            if(edge.directionality.canTravelBackwards) build(edge.edge.reverse());
+            if(edge.directionality.canTravelForwards) build(bakedRenderer, edge.edge);
+            if(edge.directionality.canTravelBackwards) build(bakedRenderer, edge.edge.reverse());
         }
+        this.bakedRenderer = bakedRenderer;
     }
 
-    private void build(ImmutableList<NetworkRail<MCPos>> edge){
+    private void build(BakedRenderer bakedRenderer, ImmutableList<NetworkRail<MCPos>> edge){
 
         for(int edgeIndex = 1; edgeIndex < edge.size() - 1; edgeIndex++) {
             NetworkRail<MCPos> prevRail = edge.get(edgeIndex - 1);
