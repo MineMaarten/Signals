@@ -37,6 +37,8 @@ signals.message.added_destination=Added '%1$s' as a destination to the Ticket. T
 signals.message.cleared_ticket=Cleared the ticket.
 signals.message.destinations_set=Applied the following destinations to the cart: %1$s.
 signals.message.destinations_saved=Saved the following destinations to the ticket: %1$s.
+signals.message.signals_busy=Signals is busy computing the Rail Network. Some lag is expected. You will be notified when this is done.
+signals.message.signals_idle=Signals has finished computing the Rail Network.
 
 signals.signal_message.cart_without_destination=Block signal behaviour: Cart routed without destination.
 signals.signal_message.cart_on_track_without_destination=Red signal: Cart on track without destination.  Cart position: (%1$s, %2$s, %3$s).

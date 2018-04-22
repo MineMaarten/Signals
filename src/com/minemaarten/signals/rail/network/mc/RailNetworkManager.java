@@ -16,10 +16,13 @@ import java.util.stream.Stream;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.DimensionManager;
@@ -229,12 +232,15 @@ public class RailNetworkManager{
                 networkUpdateTask = null;
                 NetworkStorage.getInstance().setNetwork(network);
 
-                state.onNetworkChanged(network);
-
                 if(this == CLIENT_INSTANCE) {
                     //Asynchronously update the renderers
-                    railNetworkExecutor.submit(() -> Signals.proxy.onRailNetworkUpdated());
+                    railNetworkExecutor.submit(() -> {
+                        network.build(); //Build the network cache off thread
+                        Signals.proxy.onRailNetworkUpdated();
+                    });
                 }
+
+                state.onNetworkChanged(network);
             } catch(InterruptedException e) {
                 e.printStackTrace();
             } catch(ExecutionException e) {
@@ -252,7 +258,7 @@ public class RailNetworkManager{
         if(this == SERVER_INSTANCE || networkUpdateTask == null) {
 
             checkForNewNetwork(true);
-            networkUpdateTask = railNetworkExecutor.submit(() -> networkUpdater.applyUpdates(getNetwork(), changedObjects));
+            networkUpdateTask = railNetworkExecutor.submit(() -> networkUpdater.applyUpdates(getNetwork(), changedObjects).build());
         } else {
             //On the client, when the network was already updating, simply schedule the new update after the current one.
             final Future<RailNetwork<MCPos>> prevTask = networkUpdateTask;
@@ -275,6 +281,18 @@ public class RailNetworkManager{
         validateOnServer();
         checkForNewNetwork(true);
         state.update(network);
+        if(networkUpdater.didJustTurnBusy()) {
+            notifyAllPlayers(new TextComponentTranslation("signals.message.signals_busy"));
+        }
+        if(networkUpdater.didJustTurnIdle()) {
+            notifyAllPlayers(new TextComponentTranslation("signals.message.signals_idle"));
+        }
+    }
+
+    private void notifyAllPlayers(ITextComponent text){
+        for(EntityPlayer player : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayers()) {
+            player.sendMessage(text);
+        }
     }
 
     public void onPreClientTick(){

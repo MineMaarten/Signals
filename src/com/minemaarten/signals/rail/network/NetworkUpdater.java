@@ -14,6 +14,7 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
     private static final int MAX_UPDATES_PER_TICK = 500;
     private final INetworkObjectProvider<TPos> objectProvider;
     private final Set<TPos> dirtyPositions = new HashSet<>(); //Positions that have possibly changed
+    private boolean wasVeryBusy, isVeryBusy;
 
     public NetworkUpdater(INetworkObjectProvider<TPos> objectProvider){
         this.objectProvider = objectProvider;
@@ -21,6 +22,24 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
 
     public void markDirty(TPos pos){
         dirtyPositions.add(pos);
+    }
+
+    public boolean didJustTurnBusy(){
+        if(!wasVeryBusy && isVeryBusy) {
+            wasVeryBusy = true;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean didJustTurnIdle(){
+        if(wasVeryBusy && !isVeryBusy) {
+            wasVeryBusy = false;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -78,6 +97,12 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
         while(!toEvaluate.isEmpty()) {
             TPos curPos = toEvaluate.pop();
             dirtyPositions.add(curPos);
+        }
+
+        if(dirtyPositions.isEmpty()) {
+            isVeryBusy = false;
+        } else if(dirtyPositions.size() > 10000) {
+            isVeryBusy = true;
         }
 
         return changedObjects.values();
