@@ -2,12 +2,16 @@ package com.minemaarten.signals.rail.network;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ArrayListMultimap;
@@ -31,6 +35,11 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
     public final RailObjectHolder<TPos> railObjects;
     public final ImmutableList<NetworkRail<TPos>> edge;
+
+    /**
+     * Caching the sub edges created from this edge, as creating edges is CPU intensive, and with pathfinding, the same sub edges are queried.
+     */
+    private final Map<Pair<Integer, Integer>, RailEdge<TPos>> subEdgeCache = new HashMap<>();
 
     /**
      * All signals part of this edge, in order of the edge.
@@ -373,9 +382,15 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         throw new IllegalStateException("Pos " + firstPos + " not start/end of edge " + this);
     }
 
-    public RailEdge<TPos> subEdge(int startIndex, int endIndex){
-        ImmutableList<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndex + 1);
-        return new RailEdge<TPos>(railObjects, subEdge, intersections);
+    public RailEdge<TPos> subEdge(int startIndex, int endIndexInclusive){
+        Pair<Integer, Integer> key = new ImmutablePair<>(startIndex, endIndexInclusive);
+        RailEdge<TPos> e = subEdgeCache.get(key);
+        if(e == null) {
+            ImmutableList<NetworkRail<TPos>> subEdge = edge.subList(startIndex, endIndexInclusive + 1);
+            e = new RailEdge<TPos>(railObjects, subEdge, intersections);
+            subEdgeCache.put(key, e);
+        }
+        return e;
     }
 
     public RailEdge<TPos> combine(RailEdge<TPos> other, TPos commonPos){
