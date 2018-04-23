@@ -7,13 +7,11 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 
 import com.minemaarten.signals.Signals;
@@ -54,18 +52,6 @@ public class ItemRailConfigurator extends ItemSignals{
             }
         }
         return super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand);
-    }
-
-    @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand){
-        //TODO turn into a command
-        if(!worldIn.isRemote && playerIn.isSneaking()) {
-            long milli = System.currentTimeMillis();
-            RailNetworkManager.getInstance().rebuildNetwork();
-            playerIn.sendMessage(new TextComponentString("Time: " + (System.currentTimeMillis() - milli) + "ms"));
-            playerIn.sendMessage(new TextComponentTranslation("signals.message.clearedCache"));
-        }
-        return super.onItemRightClick(worldIn, playerIn, hand);
     }
 
     @Override

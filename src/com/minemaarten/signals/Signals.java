@@ -1,6 +1,7 @@
 package com.minemaarten.signals;
 
 import net.minecraft.block.BlockDispenser;
+import net.minecraft.command.ServerCommandManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Config.Type;
 import net.minecraftforge.common.config.ConfigManager;
@@ -12,11 +13,13 @@ import net.minecraftforge.fml.common.discovery.ASMDataTable;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.chunkloading.ChunkLoadManager;
+import com.minemaarten.signals.commands.CommandSignals;
 import com.minemaarten.signals.config.SignalsConfig;
 import com.minemaarten.signals.dispenser.BehaviorDispenseTicket;
 import com.minemaarten.signals.event.RailReplacerEventHandler;
@@ -77,4 +80,9 @@ public class Signals{
         ConfigManager.sync(Constants.MOD_ID, Type.INSTANCE);
     }
 
+    @EventHandler
+    public void onServerStart(FMLServerStartingEvent event){
+        ServerCommandManager comManager = (ServerCommandManager)event.getServer().getCommandManager();
+        comManager.registerCommand(new CommandSignals());
+    }
 }
