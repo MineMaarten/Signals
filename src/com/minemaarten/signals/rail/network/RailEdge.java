@@ -353,8 +353,13 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
 
     public int getPathLength(NetworkState<TPos> state){
         //Penalize red signals on the way
-        int pathPenalty = (int)(signals.stream().filter(s -> state.getLampStatus(s.pos) == EnumLampStatus.RED).count() * RED_SIGNAL_PENALTY);
-        return length + pathPenalty;
+        int curLength = length;
+        for(NetworkSignal<TPos> signal : signals) {
+            if(state.getLampStatus(signal.pos) == EnumLampStatus.RED) {
+                curLength += RED_SIGNAL_PENALTY;
+            }
+        }
+        return curLength;
     }
 
     public int getIndex(TPos pos){
