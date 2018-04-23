@@ -287,6 +287,8 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
      * @return
      */
     public Collection<RailEdge<TPos>> createEntryPoints(TPos destination){
+        if(isAtStartOrEnd(destination)) throw new IllegalArgumentException("Cannot create an entry point from start/end pos!");
+
         int destinationIndex = getIndex(destination);
         List<RailEdge<TPos>> entryPoints = new ArrayList<>(2);
 

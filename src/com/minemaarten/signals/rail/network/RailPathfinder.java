@@ -161,7 +161,11 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             //When nothing is found, check if we are currently checking the destination nodes, if so, we may not be on an intersection
             if(networkEntryEdges.isEmpty() && goals.contains(node.pos)) {
                 RailEdge<TPos> destEdge = network.findEdge(node.pos);
-                networkEntryEdges = destEdge.createEntryPoints(node.pos);
+
+                //Make sure the edge to be considered can be split up, or else it should've been considered already in 'findConnectedEdgesBackwards'
+                if(destEdge != null && !destEdge.isAtStartOrEnd(node.pos)) {
+                    networkEntryEdges = destEdge.createEntryPoints(node.pos);
+                }
             }
 
             //Append the fake start edges, if applicable.
