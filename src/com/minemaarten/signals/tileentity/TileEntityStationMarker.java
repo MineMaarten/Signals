@@ -62,7 +62,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
 
     public List<MCPos> getNeighborRails(){
         List<MCPos> neighbors = new ArrayList<>(1);
-        for(EnumFacing d : EnumFacing.values()) {
+        for(EnumFacing d : EnumFacing.VALUES) {
             MCPos neighborPos = getMCPos().offset(d);
             NetworkObject<MCPos> rail = RailNetworkManager.getInstance().getNetwork().railObjects.get(neighborPos);
             if(rail instanceof NetworkRail) neighbors.add(rail.pos);

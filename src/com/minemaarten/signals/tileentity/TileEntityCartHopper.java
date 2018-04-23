@@ -59,7 +59,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
         super.readFromNBT(tag);
         hopperMode = HopperMode.values()[tag.getByte("hopperMode")];
         interactEngine = tag.getBoolean("interactEngine");
-        pushDir = EnumFacing.values()[tag.getByte("pushDir")];
+        pushDir = EnumFacing.VALUES[tag.getByte("pushDir")];
         pushedLastTick = tag.getBoolean("pushedLastTick");
     }
 
