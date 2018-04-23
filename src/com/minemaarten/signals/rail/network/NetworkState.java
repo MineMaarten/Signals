@@ -27,6 +27,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     protected Map<TPos, EnumLampStatus> signalToLampStatusses = new HashMap<>();
     protected Map<TPos, EnumForceMode> signalForces = new HashMap<>();
     private Map<NetworkSignal<TPos>, Train<TPos>> trainsAtSignals = new HashMap<>();
+    private Map<RailSection<TPos>, Train<TPos>> trainsOnSections = new HashMap<>();
 
     public void setTrains(Collection<? extends Train<TPos>> trains){
         this.trains = new TIntObjectHashMap<>(trains.size());
@@ -54,6 +55,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     public void update(RailNetwork<TPos> network){
         getTrains().valueCollection().forEach(Train::updatePositions);
         updateTrainsAtSignals(network);
+        updateTrainsAtSections(network);
         updateSignalStatusses(network);
         pathfindTrains(network);
         updateRailLinkHolds(network);
@@ -71,6 +73,16 @@ public class NetworkState<TPos extends IPosition<TPos>> {
             }
         }
         trainsAtSignals = newTrainsAtSignals;
+    }
+
+    private void updateTrainsAtSections(RailNetwork<TPos> network){
+        trainsOnSections.clear();
+        for(RailSection<TPos> section : network.getAllSections()) {
+            Train<TPos> train = section.getTrain(trains.valueCollection());
+            if(train != null) {
+                trainsOnSections.put(section, train);
+            }
+        }
     }
 
     private void updateSignalStatusses(RailNetwork<TPos> network){
@@ -199,7 +211,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     private EnumLampStatus getBlockSignalStatus(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
         RailSection<TPos> nextSection = signal.getNextRailSection(network);
         if(nextSection != null) {
-            Train<TPos> trainOnSection = nextSection.getTrain(trains.valueCollection());
+            Train<TPos> trainOnSection = trainsOnSections.get(nextSection);
 
             //When there's a train on the next section, and it is not a train that's exiting this signal
             if(trainOnSection != null && !trainOnSection.getPositions().contains(signal.getRailPos())) {
@@ -270,7 +282,12 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     }
 
     public Train<TPos> getClaimingTrain(RailSection<TPos> section){
-        return trains.valueCollection().stream().filter(t -> t.getClaimedSections().contains(section)).findFirst().orElse(null);
+        for(Train<TPos> train : trains.valueCollection()) {
+            if(train.getClaimedSections().contains(section)) {
+                return train;
+            }
+        }
+        return null;
     }
 
     private void pathfindTrains(RailNetwork<TPos> network){
