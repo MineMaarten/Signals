@@ -80,7 +80,7 @@ public class NetworkSectionTests{
         map.add(" + +  +    ");
         map.add(" ++++++^   ");
         TestRailNetwork network = NetworkParser.createDefaultParser().parse(map);
-        Assert.assertEquals(0, network.railObjects.getSignals().count());
+        Assert.assertEquals(0, network.railObjects.getSignals().size());
     }
     
     /**

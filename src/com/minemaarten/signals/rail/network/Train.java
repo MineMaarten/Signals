@@ -31,12 +31,31 @@ public abstract class Train<TPos extends IPosition<TPos>> {
 
     private TObjectIntMap<TPos> railLinkHolds = new TObjectIntHashMap<TPos>();
 
+    private TPos lastPathfindLocation;
+    private int pathfindTimeout; //Limit the pathfind interval
+    private static final int PATHFIND_TIMEOUT = 20;
+
     public Train(){
         this(curID++);
     }
 
     public Train(int id){
         this.id = id;
+    }
+
+    /**
+     * Limit the pathfinding rate.
+     * @param pos
+     * @return
+     */
+    public boolean shouldPathfind(TPos pos){
+        if(!pos.equals(lastPathfindLocation) || pathfindTimeout-- <= 0) {
+            lastPathfindLocation = pos;
+            pathfindTimeout = PATHFIND_TIMEOUT;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public abstract RailRoute<TPos> pathfind(TPos start, EnumHeading dir);

@@ -300,7 +300,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
 
     private void pathfindTrains(RailNetwork<TPos> network, NetworkSignal<TPos> signal){
         Train<TPos> trainAtSignal = trainsAtSignals.get(signal);
-        if(trainAtSignal != null) {
+        if(trainAtSignal != null && trainAtSignal.shouldPathfind(signal.pos)) {
             RailRoute<TPos> route = trainAtSignal.pathfind(signal.getRailPos(), signal.heading);
             if(trainAtSignal.tryUpdatePath(network, this, route) && signal.type == EnumSignalType.CHAIN) {
                 EnumLampStatus status = getChainSignalStatus(network, new HashSet<>(), signal);
