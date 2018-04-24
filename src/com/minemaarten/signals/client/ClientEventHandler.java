@@ -1,7 +1,6 @@
 package com.minemaarten.signals.client;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -81,7 +80,7 @@ public class ClientEventHandler{
 
         b.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
-        List<NetworkStation<MCPos>> stations = RailNetworkManager.getInstance().getNetwork().railObjects.getStations().collect(Collectors.toList());
+        List<NetworkStation<MCPos>> stations = RailNetworkManager.getInstance().getNetwork().railObjects.getStations();
         for(int i = 0; i < stations.size(); i++) {
             NetworkStation<MCPos> station1 = stations.get(i);
             for(int j = 0; j < i; j++) {

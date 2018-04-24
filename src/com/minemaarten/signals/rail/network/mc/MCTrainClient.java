@@ -40,7 +40,6 @@ public class MCTrainClient extends MCTrain{
     @Override
     public void setPath(RailRoute<MCPos> path){
         super.setPath(path);
-        RailNetworkManager.getInstance().checkForNewNetwork(true);
         ClientEventHandler.INSTANCE.pathRenderer.updateSpecificSection(this);
         ClientEventHandler.INSTANCE.claimRenderer.updateSpecificSection(this);
     }

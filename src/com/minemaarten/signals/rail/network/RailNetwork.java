@@ -39,27 +39,28 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     private Set<RailSection<TPos>> allSections;
     private TObjectIntMap<TPos> railLinkPosToDelays;
     private final Map<TPos, List<TPos>> signalToPositionsInFrontCache = new HashMap<>();
+    private final ImmutableMap<TPos, NetworkCache<TPos>> cache;
     private String[] stationNames;
 
     /**
      * Given a position of a path node, which edges can end up in this node?
      */
-    private Multimap<TPos, RailEdge<TPos>> positionsToEdgesBackward = ArrayListMultimap.create();
+    private Multimap<TPos, RailEdge<TPos>> positionsToEdgesBackward;
 
     /**
      * given any rail pos, which edge belongs to this rail?
      * Intersections don't return an edge.
      */
-    private Map<TPos, RailEdge<TPos>> railPosToRailEdges = new HashMap<>();
+    private Map<TPos, RailEdge<TPos>> railPosToRailEdges;
 
     public RailNetwork(Collection<NetworkObject<TPos>> allNetworkObjects){
         this.railObjects = new RailObjectHolder<>(allNetworkObjects).filterInvalidSignals();
-        build();
+        cache = allNetworkObjects.stream().collect(ImmutableMap.toImmutableMap(o -> o.pos, NetworkCache<TPos>::new));
     }
 
     public RailNetwork(ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects){
         this.railObjects = new RailObjectHolder<>(allNetworkObjects).filterInvalidSignals();
-        build();
+        cache = allNetworkObjects.values().stream().collect(ImmutableMap.toImmutableMap(o -> o.pos, NetworkCache<TPos>::new));
     }
 
     public static <TPos extends IPosition<TPos>> RailNetwork<TPos> empty(){
@@ -77,6 +78,8 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                     allEdges = new HashSet<>();
                     allSections = new HashSet<>();
                     railLinkPosToDelays = new TObjectIntHashMap<TPos>();
+                    railPosToRailEdges = new HashMap<>();
+                    positionsToEdgesBackward = ArrayListMultimap.create();
 
                     buildRailSections();//TODO rail section and edge building can be done in parallel? No MC dependences or interdependencies.
 
@@ -85,14 +88,19 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
                     buildStationNames();
                     buildRailLinkToDelayMap();
+                    onAfterBuild();
                 }
             }
         }
         return this;
     }
 
+    protected void onAfterBuild(){
+
+    }
+
     private void buildStationNames(){
-        Stream<String> stationNameStream = railObjects.getStations().map(s -> s.stationName).filter(s -> !"".equals(s));
+        Stream<String> stationNameStream = railObjects.getStations().stream().map(s -> s.stationName).filter(s -> !"".equals(s));
         stationNameStream = Streams.concat(stationNameStream, Stream.of("ITEM")).distinct().sorted();
         stationNames = stationNameStream.toArray(String[]::new);
     }
@@ -104,7 +112,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
     private void buildRailSections(){
         //Wrap in HashSet because java doesn't guarantee mutability with Collectors.toSet()
-        Set<NetworkRail<TPos>> toTraverse = new HashSet<>(railObjects.getRails().collect(Collectors.toList()));
+        Set<NetworkRail<TPos>> toTraverse = new HashSet<>(railObjects.getRails());
 
         while(!toTraverse.isEmpty()) {
             Iterator<NetworkRail<TPos>> toTraverseIterator = toTraverse.iterator();
@@ -140,7 +148,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     }
 
     private void buildRailLinkToDelayMap(){
-        for(NetworkRailLink<TPos> railLink : railObjects.getRailLinks().collect(Collectors.toList())) {
+        for(NetworkRailLink<TPos> railLink : railObjects.getRailLinks()) {
             if(railLink.holdDelay > 0) {
                 for(EnumHeading heading : EnumHeading.VALUES) {
                     TPos neighbor = railLink.pos.offset(heading);
@@ -158,7 +166,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     }
 
     private NetworkSignal<TPos> getSignalInDir(NetworkRail<TPos> rail, EnumHeading dir){
-        return railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.heading == dir && s.getRailPos().equals(rail.pos)).findFirst().orElse(null);
+        return cache.get(rail.pos).getObjectNeighbors(this).getSignals().stream().filter(s -> s.heading == dir && s.getRailPos().equals(rail.pos)).findFirst().orElse(null);
     }
 
     public Collection<RailSection<TPos>> getAllSections(){
@@ -191,7 +199,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      */
     private Set<RailEdge<TPos>> buildRoughRailEdges(){
         //All rails need to be traversed, in every direction, because a rail may be a junction, in which case a single block is part of multiple edges.
-        Set<NetworkRail<TPos>> toTraverse = new HashSet<>(railObjects.getRails().collect(Collectors.toSet()));
+        Set<NetworkRail<TPos>> toTraverse = new HashSet<>(railObjects.getRails());
 
         Set<NetworkRail<TPos>> edgeSet = new HashSet<>();
         List<NetworkRail<TPos>> edge = new ArrayList<>();
@@ -331,10 +339,12 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      * Intersections don't return an edge.
      */
     public RailEdge<TPos> findEdge(TPos pos){
+        build();
         return railPosToRailEdges.get(pos);
     }
 
     public Collection<RailEdge<TPos>> findConnectedEdgesBackwards(TPos intersection){
+        build();
         return positionsToEdgesBackward.get(intersection);
     }
 
@@ -356,6 +366,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      * @return
      */
     public List<TPos> getPositionsInFront(NetworkSignal<TPos> signal){
+        build();
         List<TPos> positions = signalToPositionsInFrontCache.get(signal.pos);
         if(positions == null) {
 
@@ -399,7 +410,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     public Set<TPos> getStationRails(Train<TPos> train, Pattern destinationRegex){
         Set<TPos> rails = new HashSet<>();
         Set<String> validNames = new HashSet<>();
-        List<NetworkStation<TPos>> stations = railObjects.getStations().collect(Collectors.toList());
+        List<NetworkStation<TPos>> stations = railObjects.getStations();
         for(NetworkStation<TPos> station : stations) {
             if(station.isTrainApplicable(train, destinationRegex)) {
                 rails.addAll(station.getConnectedRailPositions(this));

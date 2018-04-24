@@ -160,7 +160,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     }
 
     private ImmutableList<NetworkSignal<TPos>> computeSignals(){
-        Multimap<TPos, NetworkSignal<TPos>> posToSignals = railObjects.getSignals().collect(Multimaps.toMultimap(NetworkSignal::getRailPos, Functions.identity(), ArrayListMultimap::create));
+        Multimap<TPos, NetworkSignal<TPos>> posToSignals = railObjects.getSignals().stream().collect(Multimaps.toMultimap(NetworkSignal::getRailPos, Functions.identity(), ArrayListMultimap::create));
 
         ImmutableList.Builder<NetworkSignal<TPos>> builder = ImmutableList.builder();
         for(NetworkRail<TPos> rail : edge) {

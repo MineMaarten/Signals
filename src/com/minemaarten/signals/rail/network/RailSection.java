@@ -59,7 +59,7 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
     }
 
     public Stream<NetworkSignal<TPos>> getSignals(){
-        return railObjects.getSignals();
+        return railObjects.getSignals().stream();
     }
 
     /**

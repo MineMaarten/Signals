@@ -86,7 +86,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     }
 
     private void updateSignalStatusses(RailNetwork<TPos> network){
-        List<NetworkSignal<TPos>> allSignals = network.railObjects.getSignals().collect(Collectors.toList());
+        List<NetworkSignal<TPos>> allSignals = network.railObjects.getSignals();
         Map<TPos, EnumLampStatus> prevLampStatusses = signalToLampStatusses;
         signalToLampStatusses = new HashMap<>();
 
@@ -291,8 +291,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     }
 
     private void pathfindTrains(RailNetwork<TPos> network){
-        List<NetworkSignal<TPos>> allSignals = network.railObjects.getSignals().collect(Collectors.toList());
-        for(NetworkSignal<TPos> signal : allSignals) {
+        for(NetworkSignal<TPos> signal : network.railObjects.getSignals()) {
             if(signal.type == EnumSignalType.CHAIN || getLampStatus(signal.pos) == EnumLampStatus.GREEN) {
                 pathfindTrains(network, signal); //Only check signals that signal green, or are route dependent
             }

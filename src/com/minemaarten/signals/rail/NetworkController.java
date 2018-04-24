@@ -172,7 +172,7 @@ public class NetworkController{
 
         //Draw the station names next to the stations
         RailNetwork<MCPos> network = RailNetworkManager.getInstance().getNetwork();
-        for(NetworkStation<MCPos> station : network.railObjects.getStations().collect(Collectors.toList())) {
+        for(NetworkStation<MCPos> station : network.railObjects.getStations()) {
             double x = station.pos.getX() - startX - 0.5;
             double y = station.pos.getZ() - startZ - 0.5;
 

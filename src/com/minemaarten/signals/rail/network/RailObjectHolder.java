@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimaps;
@@ -26,7 +27,7 @@ import com.minemaarten.signals.lib.StreamUtils;
 public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<NetworkObject<TPos>>{
     private final ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects;
     private ImmutableListMultimap<TPos, NetworkRailLink<TPos>> destinationsToRailLinks;
-    private final Map<Class<? extends NetworkObject<TPos>>, List<? extends NetworkObject<TPos>>> objectTypeCache = new HashMap<>();
+    private final Map<Class<? extends NetworkObject<TPos>>, ImmutableList<? extends NetworkObject<TPos>>> objectTypeCache = new HashMap<>();
 
     public RailObjectHolder(Collection<NetworkObject<TPos>> allNetworkObjects){
         this(allNetworkObjects.stream());
@@ -37,7 +38,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
     }
 
     public RailObjectHolder(ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects){
-        this.allNetworkObjects = ImmutableMap.copyOf(allNetworkObjects);
+        this.allNetworkObjects = allNetworkObjects;
     }
 
     public ImmutableMap<TPos, NetworkObject<TPos>> getAllNetworkObjects(){
@@ -132,17 +133,18 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends NetworkObject<TPos>> Stream<T> networkObjectsOfType(TypeToken<T> token){
-        List<? extends NetworkObject<TPos>> list = objectTypeCache.get(token.getRawType());
+    public <T extends NetworkObject<TPos>> ImmutableList<T> networkObjectsOfType(TypeToken<T> token){
+        Class<?> type = StreamUtils.getRawType(token);
+        ImmutableList<? extends NetworkObject<TPos>> list = objectTypeCache.get(type);
         if(list == null) {
-            list = StreamUtils.ofType(token, allNetworkObjects.values().stream()).collect(Collectors.toList());
-            objectTypeCache.put((Class<? extends NetworkObject<TPos>>)token.getRawType(), list);
+            list = StreamUtils.ofType(token, allNetworkObjects.values().stream()).collect(ImmutableList.toImmutableList());
+            objectTypeCache.put((Class<? extends NetworkObject<TPos>>)type, list);
         }
-        return ((List<T>)list).stream();
+        return (ImmutableList<T>)list;
     }
 
     @SuppressWarnings("serial")
-    public Stream<NetworkRail<TPos>> getRails(){
+    public List<NetworkRail<TPos>> getRails(){
         return networkObjectsOfType(new TypeToken<NetworkRail<TPos>>(){});
     }
 
@@ -152,7 +154,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
     }
 
     @SuppressWarnings("serial")
-    public Stream<NetworkSignal<TPos>> getSignals(){
+    public List<NetworkSignal<TPos>> getSignals(){
         return networkObjectsOfType(new TypeToken<NetworkSignal<TPos>>(){});
     }
 
@@ -162,7 +164,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
     }
 
     @SuppressWarnings("serial")
-    public Stream<NetworkRailLink<TPos>> getRailLinks(){
+    public List<NetworkRailLink<TPos>> getRailLinks(){
         return networkObjectsOfType(new TypeToken<NetworkRailLink<TPos>>(){});
     }
 
@@ -172,7 +174,7 @@ public class RailObjectHolder<TPos extends IPosition<TPos>> implements Iterable<
     }
 
     @SuppressWarnings("serial")
-    public Stream<NetworkStation<TPos>> getStations(){
+    public List<NetworkStation<TPos>> getStations(){
         return networkObjectsOfType(new TypeToken<NetworkStation<TPos>>(){});
     }
 

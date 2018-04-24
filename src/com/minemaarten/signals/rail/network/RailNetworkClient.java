@@ -8,17 +8,22 @@ import com.minemaarten.signals.lib.IdentityHashSet;
 
 public class RailNetworkClient<TPos extends IPosition<TPos>> extends RailNetwork<TPos>{
 
-    private final IdentityHashMap<RailSection<TPos>, IdentityHashSet<RailSection<TPos>>> adjacentSectionCache;
-    private final IdentityHashMap<RailEdge<TPos>, IdentityHashSet<RailEdge<TPos>>> adjacentEdgeCache;
+    private IdentityHashMap<RailSection<TPos>, IdentityHashSet<RailSection<TPos>>> adjacentSectionCache;
+    private IdentityHashMap<RailEdge<TPos>, IdentityHashSet<RailEdge<TPos>>> adjacentEdgeCache;
 
     public RailNetworkClient(ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects){
         super(allNetworkObjects);
-        adjacentSectionCache = calculateAdjacentSections(getAllSections());
-        adjacentEdgeCache = calculateAdjacentSections(getAllEdges());
     }
 
     public static <TPos extends IPosition<TPos>> RailNetworkClient<TPos> empty(){
         return new RailNetworkClient<>(ImmutableMap.<TPos, NetworkObject<TPos>> of());
+    }
+
+    @Override
+    protected void onAfterBuild(){
+        super.onAfterBuild();
+        adjacentSectionCache = calculateAdjacentSections(getAllSections());
+        adjacentEdgeCache = calculateAdjacentSections(getAllEdges());
     }
 
     private <T extends IAdjacentCheckable<T>> IdentityHashMap<T, IdentityHashSet<T>> calculateAdjacentSections(Collection<T> allSections){
@@ -39,10 +44,12 @@ public class RailNetworkClient<TPos extends IPosition<TPos>> extends RailNetwork
     }
 
     public boolean areAdjacent(RailSection<TPos> s1, RailSection<TPos> s2){
+        build();
         return adjacentSectionCache.get(s1).contains(s2);
     }
 
     public boolean areAdjacent(RailEdge<TPos> e1, RailEdge<TPos> e2){
+        build();
         return adjacentEdgeCache.get(e1).contains(e2);
     }
 }
