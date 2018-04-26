@@ -16,6 +16,9 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
     private final Set<TPos> dirtyPositions = new HashSet<>(); //Positions that have possibly changed
     private boolean wasVeryBusy, isVeryBusy;
 
+    private Map<TPos, NetworkObject<TPos>> changedObjects = new HashMap<>(); //Global var to prevent putting pressure on GC
+    private Set<TPos> allPositions = new HashSet<>(); //Global var to prevent putting pressure on GC
+
     public NetworkUpdater(INetworkObjectProvider<TPos> objectProvider){
         this.objectProvider = objectProvider;
     }
@@ -51,12 +54,13 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
     public Collection<NetworkObject<TPos>> getNetworkUpdates(RailNetwork<TPos> network){
         if(dirtyPositions.isEmpty()) return Collections.emptyList(); //Nothing to update.
 
-        Map<TPos, NetworkObject<TPos>> changedObjects = new HashMap<>();
-        Map<TPos, NetworkObject<TPos>> allObjects = new HashMap<>(network.railObjects.getAllNetworkObjects());
+        changedObjects.clear();
+        allPositions.clear();
+        allPositions.addAll(network.railObjects.getAllNetworkObjects().keySet());
 
         //Remove all existing objects that were marked dirty.
         for(TPos dirtyPos : dirtyPositions) {
-            if(allObjects.remove(dirtyPos) != null) {
+            if(allPositions.remove(dirtyPos)) {
                 changedObjects.put(dirtyPos, objectProvider.provideRemovalMarker(dirtyPos));
             }
         }
@@ -68,10 +72,10 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
         while(!toEvaluate.isEmpty()) {
             TPos curPos = toEvaluate.pop();
 
-            if(!allObjects.containsKey(curPos)) {
+            if(!allPositions.contains(curPos)) {
                 NetworkObject<TPos> networkObject = objectProvider.provide(curPos);
                 if(networkObject != null) {
-                    allObjects.put(curPos, networkObject);
+                    allPositions.add(curPos);
 
                     NetworkObject<TPos> prevObj = network.railObjects.get(curPos);
                     if(!networkObject.equals(prevObj)) { //Only mark stuff changed that actually changed
