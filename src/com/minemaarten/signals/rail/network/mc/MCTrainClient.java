@@ -18,7 +18,7 @@ public class MCTrainClient extends MCTrain{
     }
 
     @Override
-    protected void onPositionChanged(){
+    protected void onPositionChanged(RailNetwork<MCPos> network, NetworkState<MCPos> state){
         //NOP
     }
 

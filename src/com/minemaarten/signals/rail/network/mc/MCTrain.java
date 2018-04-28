@@ -31,6 +31,8 @@ import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketUpdateMessage;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.network.EnumHeading;
+import com.minemaarten.signals.rail.network.NetworkState;
+import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 import com.minemaarten.signals.rail.network.Train;
@@ -73,16 +75,19 @@ public class MCTrain extends Train<MCPos>{
     }
 
     @Override
-    public void updatePositions(){
-        super.updatePositions();
+    public boolean updatePositions(NetworkState<MCPos> state){
+        super.updatePositions(state);
         ImmutableSet<MCPos> positions = ImmutableSet.copyOf(getCarts().stream().map(c -> new MCPos(c.world, c.getPosition())).collect(Collectors.toSet()));
         if(!positions.isEmpty()) { //Update if any cart is loaded, currently.
-            setPositions(RailNetworkManager.getInstance().getNetwork(), positions);
+            return setPositions(RailNetworkManager.getInstance().getNetwork(), state, positions);
+        } else {
+            return false;
         }
     }
 
     @Override
-    protected void onPositionChanged(){
+    protected void onPositionChanged(RailNetwork<MCPos> network, NetworkState<MCPos> state){
+        super.onPositionChanged(network, state);
         NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(this));
         NetworkStorage.getInstance().markDirty();
     }

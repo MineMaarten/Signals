@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
+import com.minemaarten.signals.lib.IdentityHashSet;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
 
@@ -30,6 +31,7 @@ public abstract class Train<TPos extends IPosition<TPos>> {
     protected Set<RailSection<TPos>> claimedSections = Collections.emptySet();
 
     private TObjectIntMap<TPos> railLinkHolds = new TObjectIntHashMap<TPos>();
+    private IdentityHashSet<RailSection<TPos>> curSections = new IdentityHashSet<>(); //Usually 1 big for single carts
 
     private TPos lastPathfindLocation;
     private int pathfindTimeout; //Limit the pathfind interval
@@ -91,12 +93,15 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         return railLinkHolds.keySet();
     }
 
-    public final void setPositions(RailNetwork<TPos> network, ImmutableSet<TPos> positions){
+    public final boolean setPositions(RailNetwork<TPos> network, NetworkState<TPos> state, ImmutableSet<TPos> positions){
         if(!this.positions.equals(positions)) { //When the train has moved
             this.positions = positions;
             updateIntersections();
             updateClaimedSections(network);
-            onPositionChanged();
+            onPositionChanged(network, state);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -104,7 +109,12 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         railLinkHolds.put(pos, timeout);
     }
 
-    public void updatePositions(){
+    public void invalidate(NetworkState<TPos> state){
+        //Remove the train from the train sections -> train cache
+        state.updateTrainAtSections(this, curSections.keySet(), Collections.emptyList());
+    }
+
+    public boolean updatePositions(NetworkState<TPos> state){
         if(!railLinkHolds.isEmpty()) {
             TObjectIntIterator<TPos> iterator = railLinkHolds.iterator();
             while(iterator.hasNext()) {
@@ -116,10 +126,29 @@ public abstract class Train<TPos extends IPosition<TPos>> {
                 }
             }
         }
+        return false;
     }
 
-    protected void onPositionChanged(){
+    protected void onPositionChanged(RailNetwork<TPos> network, NetworkState<TPos> state){
+        if(network == null || state == null) return; //Client side
+        if(curSections.size() == 1 && positions.size() == 1) {
+            TPos position = positions.iterator().next();
+            RailSection<TPos> section = curSections.keySet().iterator().next();
+            if(section.containsRail(position)) {
+                return; //Short-cutting the common case
+            }
+        }
 
+        //Re-aqcuire the current rail sections
+        IdentityHashSet<RailSection<TPos>> newSections = new IdentityHashSet<>();
+        for(TPos pos : positions) {
+            RailSection<TPos> section = network.findSection(pos);
+            if(section != null) {
+                newSections.add(section);
+            }
+        }
+        state.updateTrainAtSections(this, curSections.keySet(), newSections.keySet());
+        curSections = newSections;
     }
 
     protected void updateIntersections(){

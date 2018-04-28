@@ -175,7 +175,7 @@ public class RailNetworkManager{
             NetworkHandler.sendToAll(packet);
         }
 
-        for(Train<MCPos> train : state.getTrains().valueCollection()) {
+        for(Train<MCPos> train : state.getTrains()) {
             NetworkHandler.sendToAll(new PacketAddOrUpdateTrain((MCTrain)train));
         }
     }
@@ -185,18 +185,18 @@ public class RailNetworkManager{
     }
 
     public Stream<MCTrain> getAllTrains(){
-        return state.getTrains().valueCollection().stream().map(t -> (MCTrain)t);
+        return state.getTrainStream().map(t -> (MCTrain)t);
     }
 
     public void addTrain(MCTrain train){
         if(this == SERVER_INSTANCE) {
             NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
         }
-        state.getTrains().put(train.id, train);
+        state.addTrain(train);
     }
 
     public void removeTrain(int trainID){
-        state.getTrains().remove(trainID);
+        state.removeTrain(trainID);
     }
 
     public EnumLampStatus getLampStatus(World world, BlockPos pos){

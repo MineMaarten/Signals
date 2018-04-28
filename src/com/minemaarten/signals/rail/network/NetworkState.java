@@ -36,8 +36,8 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         }
     }
 
-    public TIntObjectMap<Train<TPos>> getTrains(){
-        return trains;
+    public void addTrain(Train<TPos> train){
+        trains.put(train.id, train);
     }
 
     public Train<TPos> getTrain(int id){
@@ -45,17 +45,27 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     }
 
     private Stream<Train<TPos>> getTrainsInAABB(PosAABB<TPos> aabb){
-        return getTrains().valueCollection().stream().filter(t -> t.isInAABB(aabb));
+        return trains.valueCollection().stream().filter(t -> t.isInAABB(aabb));
+    }
+
+    public Iterable<Train<TPos>> getTrains(){
+        return trains.valueCollection();
+    }
+
+    public Stream<Train<TPos>> getTrainStream(){
+        return trains.valueCollection().stream();
     }
 
     public void removeTrain(Train<TPos> train){
-        trains.remove(train.id);
+        Train<TPos> t = trains.remove(train.id);
+        if(t != null) {
+            t.invalidate(this);
+        }
     }
 
     public void update(RailNetwork<TPos> network){
-        getTrains().valueCollection().forEach(Train::updatePositions);
+        trains.valueCollection().forEach(train -> train.updatePositions(this));
         updateTrainsAtSignals(network);
-        updateTrainsAtSections(network);
         updateSignalStatusses(network);
         pathfindTrains(network);
         updateRailLinkHolds(network);
@@ -75,13 +85,13 @@ public class NetworkState<TPos extends IPosition<TPos>> {
         trainsAtSignals = newTrainsAtSignals;
     }
 
-    private void updateTrainsAtSections(RailNetwork<TPos> network){
-        trainsOnSections.clear();
-        for(RailSection<TPos> section : network.getAllSections()) {
-            Train<TPos> train = section.getTrain(trains.valueCollection());
-            if(train != null) {
-                trainsOnSections.put(section, train);
-            }
+    public void updateTrainAtSections(Train<TPos> train, Iterable<RailSection<TPos>> prevSections, Iterable<RailSection<TPos>> newSections){
+        for(RailSection<TPos> prevSection : prevSections) {
+            trainsOnSections.remove(prevSection);
+        }
+
+        for(RailSection<TPos> newSection : newSections) {
+            trainsOnSections.put(newSection, train);
         }
     }
 
@@ -317,7 +327,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     }
 
     private void updateRailLinkHolds(RailNetwork<TPos> network){
-        for(Train<TPos> train : getTrains().valueCollection()) {
+        for(Train<TPos> train : trains.valueCollection()) {
             for(TPos trainPos : train.getPositions()) {
                 int holdDelay = network.getRailLinkDelayFor(trainPos);
                 if(holdDelay > 0) {

@@ -3,6 +3,7 @@ package com.minemaarten.signals.util.railnode;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
+import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.TestTrain;
 import com.minemaarten.signals.util.parsing.TestRailNetwork;
@@ -16,9 +17,9 @@ public class RailNodeTrainProvider extends DefaultRailNode{
         this.trainID = trainID;
     }
 
-    public TestTrain provideTrain(TestRailNetwork network){
+    public TestTrain provideTrain(TestRailNetwork network, NetworkState<Pos2D> state){
         final ImmutableSet<Pos2D> positions = ImmutableSet.copyOf(network.railObjects.networkObjectsOfType(RailNodeTrainProvider.class).filter(r -> r.trainID == trainID).map(r -> r.pos).collect(Collectors.toSet()));
 
-        return new TestTrain(network, positions, trainID);
+        return new TestTrain(network, state, positions, trainID);
     }
 }

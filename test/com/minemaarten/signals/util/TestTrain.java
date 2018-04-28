@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableSet;
 import com.minemaarten.signals.rail.network.EnumHeading;
+import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
@@ -16,8 +17,8 @@ public class TestTrain extends Train<Pos2D>{
     private final char trainID;
     private Supplier<RailRoute<Pos2D>> pathfinder;
 
-    public TestTrain(RailNetwork<Pos2D> network, ImmutableSet<Pos2D> positions, char trainID){
-        setPositions(network, positions);
+    public TestTrain(RailNetwork<Pos2D> network, NetworkState<Pos2D> state, ImmutableSet<Pos2D> positions, char trainID){
+        setPositions(network, state, positions);
         this.trainID = trainID;
     }
 
@@ -25,8 +26,8 @@ public class TestTrain extends Train<Pos2D>{
         this.pathfinder = pathfinder;
     }
 
-    public void setPosition(RailNetwork<Pos2D> network, Pos2D pos){
-        setPositions(network, ImmutableSet.of(pos));
+    public void setPosition(RailNetwork<Pos2D> network, NetworkState<Pos2D> state, Pos2D pos){
+        setPositions(network, state, ImmutableSet.of(pos));
     }
 
     public void setClaimingSection(RailSection<Pos2D> section){

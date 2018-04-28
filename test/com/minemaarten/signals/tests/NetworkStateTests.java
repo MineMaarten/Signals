@@ -8,6 +8,7 @@ import org.junit.Test;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
+import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.TestTrain;
 import com.minemaarten.signals.util.parsing.NetworkParser;
@@ -246,9 +247,9 @@ public class NetworkStateTests{
                      .addObjCreator('c', pos -> {
                          return new RailNodeTrainProvider(pos, 'c'){
                              @Override
-                            public TestTrain provideTrain(TestRailNetwork network){
-                                 TestTrain train = super.provideTrain(network);
-                                 train.setPosition(network, new Pos2D(-1, -1));//Move the train off the map
+                            public TestTrain provideTrain(TestRailNetwork network, NetworkState<Pos2D> state){
+                                 TestTrain train = super.provideTrain(network, state);
+                                 train.setPosition(network, state, new Pos2D(-1, -1));//Move the train off the map
                                  train.setClaimingSection(network.findSection(pos)); //Claim the section the train was created on
                                  return train;
                              }
@@ -273,9 +274,9 @@ public class NetworkStateTests{
                      .addObjCreator('c', pos -> {
                          return new RailNodeTrainProvider(pos, 'c'){
                              @Override
-                            public TestTrain provideTrain(TestRailNetwork network){
-                                 TestTrain train = super.provideTrain(network);
-                                 train.setPosition(network, new Pos2D(-1, -1));//Move the train off the map
+                            public TestTrain provideTrain(TestRailNetwork network, NetworkState<Pos2D> state){
+                                 TestTrain train = super.provideTrain(network, state);
+                                 train.setPosition(network, state, new Pos2D(-1, -1));//Move the train off the map
                                  train.setClaimingSection(network.findSection(pos)); //Claim the section the train was created on
                                  return train;
                              }

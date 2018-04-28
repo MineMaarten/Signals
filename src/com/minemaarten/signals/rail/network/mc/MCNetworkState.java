@@ -43,7 +43,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
     private Map<UUID, EntityMinecart> trackingMinecarts = new HashMap<>();
 
     public void onPlayerJoin(EntityPlayerMP player){
-        for(Train<MCPos> train : getTrains().valueCollection()) {
+        for(Train<MCPos> train : getTrains()) {
             NetworkHandler.sendTo(new PacketAddOrUpdateTrain((MCTrain)train), player);
         }
         NetworkHandler.sendTo(new PacketUpdateSignals(signalToLampStatusses), player);
@@ -134,9 +134,16 @@ public class MCNetworkState extends NetworkState<MCPos>{
 
     private MCTrain addTrain(ImmutableSet<UUID> uuids){
         MCTrain train = new MCTrain(uuids);
-        getTrains().put(train.id, train);
+        addTrain(train);
         NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
         return train;
+    }
+
+    public void removeTrain(int id){
+        Train<MCPos> train = getTrain(id);
+        if(train != null) {
+            removeTrain(train);
+        }
     }
 
     @Override
@@ -173,7 +180,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
     }
 
     private void splitUngroupedCarts(){
-        List<MCTrain> trainsWithMultipleCarts = getTrains().valueCollection().stream().map(t -> (MCTrain)t).filter(t -> t.cartIDs.size() > 1).collect(Collectors.toList());
+        List<MCTrain> trainsWithMultipleCarts = getTrainStream().map(t -> (MCTrain)t).filter(t -> t.cartIDs.size() > 1).collect(Collectors.toList());
         for(MCTrain train : trainsWithMultipleCarts) {
             List<EntityMinecart> carts = getLoadedMinecarts(train.cartIDs).collect(Collectors.toList());
             if(!carts.isEmpty()) {
@@ -208,8 +215,8 @@ public class MCNetworkState extends NetworkState<MCPos>{
     }
 
     private void mergeGroupedCarts(){
-        List<MCTrain> traversedTrains = new ArrayList<>(getTrains().size());
-        Iterator<Train<MCPos>> iterator = getTrains().valueCollection().iterator();
+        List<MCTrain> traversedTrains = new ArrayList<>();
+        Iterator<Train<MCPos>> iterator = getTrains().iterator();
         while(iterator.hasNext()) {
             MCTrain train = (MCTrain)iterator.next();
             EntityMinecart cart = getLoadedMinecarts(train.cartIDs).findFirst().orElse(null);
@@ -254,12 +261,12 @@ public class MCNetworkState extends NetworkState<MCPos>{
     }
 
     private MCTrain findTrainForCartID(UUID uuid){
-        return getTrains().valueCollection().stream().map(t -> (MCTrain)t).filter(t -> t.cartIDs.contains(uuid)).findFirst().orElse(null);
+        return getTrainStream().map(t -> (MCTrain)t).filter(t -> t.cartIDs.contains(uuid)).findFirst().orElse(null);
     }
 
     public void writeToNBT(NBTTagCompound tag){
         NBTTagList trainList = new NBTTagList();
-        for(Train<MCPos> train : getTrains().valueCollection()) {
+        for(Train<MCPos> train : getTrains()) {
             NBTTagCompound t = new NBTTagCompound();
             ((MCTrain)train).writeToNBT(t);
             trainList.appendTag(t);

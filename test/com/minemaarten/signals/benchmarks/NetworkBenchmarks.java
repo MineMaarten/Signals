@@ -48,7 +48,7 @@ public class NetworkBenchmarks{
         List<Train<Pos2D>> trains = new ArrayList<>();
         for(int i = 0; i < 100; i++) {
             Pos2D pos = fullGrid.get(rand.nextInt(fullGrid.size())).pos;
-            trains.add(new TestTrain(fullGridNetwork, ImmutableSet.of(pos), 'a'));
+            trains.add(new TestTrain(fullGridNetwork, fullGridState, ImmutableSet.of(pos), 'a'));
         }
         fullGridState.setTrains(trains);
 
@@ -69,7 +69,7 @@ public class NetworkBenchmarks{
         trains = new ArrayList<>();
         for(int i = 0; i < 100; i++) {
             Pos2D pos = largeNetwork.get(rand.nextInt(largeNetwork.size())).pos;
-            trains.add(new TestTrain(largeNetworkNetwork, ImmutableSet.of(pos), 'a'));
+            trains.add(new TestTrain(largeNetworkNetwork, largeNetworkState, ImmutableSet.of(pos), 'a'));
         }
         largeNetworkState.setTrains(trains);
 
