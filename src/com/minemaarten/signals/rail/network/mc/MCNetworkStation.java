@@ -26,8 +26,13 @@ import com.minemaarten.signals.rail.network.mc.NetworkSerializer.EnumNetworkObje
 
 public class MCNetworkStation extends NetworkStation<MCPos> implements ISerializableNetworkObject{
 
+    private final List<MCPos> potentialNeighbors = new ArrayList<>();
+
     public MCNetworkStation(MCPos pos, String stationName){
         super(pos, stationName);
+        for(EnumHeading heading : EnumHeading.VALUES) {
+            potentialNeighbors.add(pos.offset(heading));
+        }
     }
 
     public static MCNetworkStation fromTag(NBTTagCompound tag){
@@ -51,10 +56,14 @@ public class MCNetworkStation extends NetworkStation<MCPos> implements ISerializ
     }
 
     @Override
+    public List<MCPos> getNetworkNeighbors(){
+        return potentialNeighbors;
+    }
+
+    @Override
     public List<MCPos> getConnectedRailPositions(RailNetwork<MCPos> network){
         List<MCPos> rails = new ArrayList<>(1);
-        for(EnumHeading heading : EnumHeading.VALUES) {
-            MCPos neighbor = pos.offset(heading);
+        for(MCPos neighbor : potentialNeighbors) {
             if(network.railObjects.getRail(neighbor) != null) {
                 rails.add(neighbor);
             }

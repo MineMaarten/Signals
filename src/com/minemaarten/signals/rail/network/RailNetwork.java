@@ -34,6 +34,7 @@ import com.google.common.collect.Streams;
 public class RailNetwork<TPos extends IPosition<TPos>> {
     private static final int MAX_RAILS_IN_FRONT_SIGNAL = 5;
     public final RailObjectHolder<TPos> railObjects;
+    public final RailObjectHolder<TPos> unfilteredRailObjects; //All network objects, without filtered invalid signals.
     private Map<TPos, RailSection<TPos>> railPosToRailSections;
     private Set<RailEdge<TPos>> allEdges;
     private Set<RailSection<TPos>> allSections;
@@ -54,12 +55,14 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     private Map<TPos, RailEdge<TPos>> railPosToRailEdges;
 
     public RailNetwork(Collection<NetworkObject<TPos>> allNetworkObjects){
-        this.railObjects = new RailObjectHolder<>(allNetworkObjects).filterInvalidSignals();
+        this.unfilteredRailObjects = new RailObjectHolder<>(allNetworkObjects);
+        this.railObjects = unfilteredRailObjects.filterInvalidSignals();
         cache = allNetworkObjects.stream().collect(ImmutableMap.toImmutableMap(o -> o.pos, NetworkCache<TPos>::new));
     }
 
     public RailNetwork(ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects){
-        this.railObjects = new RailObjectHolder<>(allNetworkObjects).filterInvalidSignals();
+        this.unfilteredRailObjects = new RailObjectHolder<>(allNetworkObjects);
+        this.railObjects = unfilteredRailObjects.filterInvalidSignals();
         cache = allNetworkObjects.values().stream().collect(ImmutableMap.toImmutableMap(o -> o.pos, NetworkCache<TPos>::new));
     }
 

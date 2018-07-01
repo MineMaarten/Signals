@@ -98,17 +98,15 @@ public class RailNetworkManager{
      * Signals, Station Markers, rail links. Only used when force rebuilding the network.
      * @return
      */
-    private Set<NetworkRail<MCPos>> getStartNodes(){
-        Set<NetworkRail<MCPos>> nodes = new HashSet<>();
+    private Set<MCPos> getStartNodes(){
+        Set<MCPos> nodes = new HashSet<>();
         for(World world : DimensionManager.getWorlds()) {
             for(TileEntity te : world.loadedTileEntityList) {
                 if(te instanceof TileEntityBase) { //Any Signals TE for testing purposes
-                    for(EnumFacing facing : EnumFacing.HORIZONTALS) {
+                    nodes.add(new MCPos(world, te.getPos()));
+                    for(EnumFacing facing : EnumFacing.VALUES) {
                         BlockPos pos = te.getPos().offset(facing);
-                        NetworkObject<MCPos> networkObject = new NetworkObjectProvider().provide(world, pos);
-                        if(networkObject instanceof MCNetworkRail) {
-                            nodes.add((MCNetworkRail)networkObject);
-                        }
+                        nodes.add(new MCPos(world, pos));
                     }
                 }
             }
@@ -121,7 +119,7 @@ public class RailNetworkManager{
 
         NetworkHandler.sendToAll(new PacketClearNetwork());
         network = RailNetwork.empty();
-        getStartNodes().forEach(r -> networkUpdater.markDirty(r.pos));
+        getStartNodes().forEach(networkUpdater::markDirty);
         initTrains();
         state.update(network);
     }

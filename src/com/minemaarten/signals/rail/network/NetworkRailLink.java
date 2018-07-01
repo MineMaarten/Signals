@@ -22,6 +22,11 @@ public class NetworkRailLink<TPos extends IPosition<TPos>> extends NetworkObject
         return destination;
     }
 
+    @Override
+    public List<TPos> getNetworkNeighbors(){
+        return potentialNeighbors;
+    }
+
     public Stream<NetworkRail<TPos>> getNeighborRails(RailObjectHolder<TPos> railObjects){
         return railObjects.getNeighborRails(potentialNeighbors);
     }

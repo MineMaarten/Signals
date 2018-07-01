@@ -1,5 +1,7 @@
 package com.minemaarten.signals.rail.network;
 
+import java.util.List;
+
 import com.minemaarten.signals.rail.NetworkController;
 
 /**
@@ -19,6 +21,8 @@ public abstract class NetworkObject<TPos> {
     public int getColor(){
         return NetworkController.NOTHING_COLOR;
     }
+
+    public abstract List<TPos> getNetworkNeighbors();
 
     @Override
     public String toString(){

@@ -23,6 +23,11 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
      */
     public abstract @Nonnull Object getRailType();
 
+    @Override
+    public List<TPos> getNetworkNeighbors(){
+        return getPotentialNeighborRailLocations();
+    }
+
     /**
      * All potential positions a neighboring rail could be. This does not take entry directions into account.
      * @return

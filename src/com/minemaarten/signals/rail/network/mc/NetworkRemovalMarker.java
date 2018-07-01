@@ -1,7 +1,12 @@
 package com.minemaarten.signals.rail.network.mc;
 
 import io.netty.buffer.ByteBuf;
+
+import java.util.List;
+
 import net.minecraft.nbt.NBTTagCompound;
+
+import org.apache.commons.lang3.NotImplementedException;
 
 import com.minemaarten.signals.rail.network.IRemovalMarker;
 import com.minemaarten.signals.rail.network.NetworkObject;
@@ -39,6 +44,11 @@ public class NetworkRemovalMarker extends NetworkObject<MCPos> implements ISeria
     @Override
     public EnumNetworkObject getType(){
         return EnumNetworkObject.REMOVAL_MARKER;
+    }
+
+    @Override
+    public List<MCPos> getNetworkNeighbors(){
+        throw new NotImplementedException("");
     }
 
     @Override

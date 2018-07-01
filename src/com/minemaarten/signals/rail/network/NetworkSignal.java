@@ -1,5 +1,8 @@
 package com.minemaarten.signals.rail.network;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Immutable, and should expect to be reused in transitions from old to new networks to prevent allocations.
  * @author Maarten
@@ -21,6 +24,11 @@ public class NetworkSignal<TPos extends IPosition<TPos>> extends NetworkObject<T
         super(pos);
         this.heading = heading;
         this.type = type;
+    }
+
+    @Override
+    public List<TPos> getNetworkNeighbors(){
+        return Collections.singletonList(getRailPos());
     }
 
     public TPos getRailPos(){

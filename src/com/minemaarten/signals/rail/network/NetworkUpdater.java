@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import com.google.common.collect.ImmutableMap;
+import com.minemaarten.signals.lib.Log;
 
 public class NetworkUpdater<TPos extends IPosition<TPos>> {
     private static final int MAX_UPDATES_PER_TICK = 500;
@@ -56,7 +57,7 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
 
         changedObjects.clear();
         allPositions.clear();
-        allPositions.addAll(network.railObjects.getAllNetworkObjects().keySet());
+        allPositions.addAll(network.unfilteredRailObjects.getAllNetworkObjects().keySet());
 
         //Remove all existing objects that were marked dirty.
         for(TPos dirtyPos : dirtyPositions) {
@@ -67,15 +68,30 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
 
         //Re-acquire positions that were marked dirty, and possibly recursively look up other parts.
         Stack<TPos> toEvaluate = new Stack<>();
+        Set<TPos> lazyRails = new HashSet<>();
         dirtyPositions.forEach(pos -> toEvaluate.push(pos));
         int updates = 0;
         while(!toEvaluate.isEmpty()) {
             TPos curPos = toEvaluate.pop();
 
-            if(!allPositions.contains(curPos)) {
+            if(!allPositions.contains(curPos) && !lazyRails.contains(curPos)) {
                 NetworkObject<TPos> networkObject = objectProvider.provide(curPos);
                 if(networkObject != null) {
+
+                    if(networkObject instanceof NetworkRail) {
+                        NetworkRail<TPos> rail = (NetworkRail<TPos>)networkObject;
+                        if(!isNextToNetwork(rail, network, changedObjects.keySet())) {
+                            lazyRails.add(curPos);
+                            continue; //Only include rails when they are adjacent to a rail network.
+                        }
+                    }
+
                     allPositions.add(curPos);
+
+                    for(TPos neighborPos : networkObject.getNetworkNeighbors()) {
+                        toEvaluate.push(neighborPos);
+                        lazyRails.remove(neighborPos); //The rail that was evaluated and was discarded earlier can now be evaluated again.
+                    }
 
                     NetworkObject<TPos> prevObj = network.railObjects.get(curPos);
                     if(!networkObject.equals(prevObj)) { //Only mark stuff changed that actually changed
@@ -85,17 +101,13 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
                         changedObjects.remove(curPos); //Remove any possible removal markers that were inserted.
                     }
 
-                    if(networkObject instanceof NetworkRail) {
-                        for(TPos neighborPos : ((NetworkRail<TPos>)networkObject).getPotentialNeighborRailLocations()) {
-                            toEvaluate.push(neighborPos);
-                        }
-                    }
                 }
                 if(updates >= MAX_UPDATES_PER_TICK) {
                     break;
                 }
             }
         }
+        Log.info("" + allPositions.size() + ", updates: " + changedObjects.size());
 
         dirtyPositions.clear();
         while(!toEvaluate.isEmpty()) {
@@ -112,10 +124,19 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
         return changedObjects.values();
     }
 
+    private boolean isNextToNetwork(NetworkRail<TPos> rail, RailNetwork<TPos> network, Set<TPos> changedPositions){
+        for(TPos neighbor : rail.getPotentialNeighborRailLocations()) {
+            if(network.unfilteredRailObjects.get(neighbor) != null || changedPositions.contains(neighbor)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public RailNetwork<TPos> applyUpdates(RailNetwork<TPos> network, Collection<NetworkObject<TPos>> changedObjects){
         if(changedObjects.isEmpty()) return network;
 
-        Map<TPos, NetworkObject<TPos>> allObjects = new HashMap<>(network.railObjects.getAllNetworkObjects());
+        Map<TPos, NetworkObject<TPos>> allObjects = new HashMap<>(network.unfilteredRailObjects.getAllNetworkObjects());
 
         for(NetworkObject<TPos> changedObject : changedObjects) {
             if(changedObject instanceof IRemovalMarker) {

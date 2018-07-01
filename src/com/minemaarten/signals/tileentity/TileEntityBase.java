@@ -31,6 +31,7 @@ public class TileEntityBase extends TileEntity{
     public void onLoad(){
         super.onLoad();
         if(!world.isRemote) {
+            RailNetworkManager.getInstance().markDirty(new MCPos(world, pos));
             for(EnumFacing f : EnumFacing.VALUES) {
                 RailNetworkManager.getInstance().markDirty(new MCPos(world, pos).offset(f));
             }
