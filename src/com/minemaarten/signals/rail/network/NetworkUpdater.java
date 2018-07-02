@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.Stack;
 
 import com.google.common.collect.ImmutableMap;
-import com.minemaarten.signals.lib.Log;
 
 public class NetworkUpdater<TPos extends IPosition<TPos>> {
     private static final int MAX_UPDATES_PER_TICK = 500;
@@ -107,7 +106,6 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
                 }
             }
         }
-        Log.info("" + allPositions.size() + ", updates: " + changedObjects.size());
 
         dirtyPositions.clear();
         while(!toEvaluate.isEmpty()) {
