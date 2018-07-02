@@ -2,6 +2,7 @@ package com.minemaarten.signals.init;
 
 import net.minecraft.item.Item;
 
+import com.minemaarten.signals.config.SignalsConfig;
 import com.minemaarten.signals.item.ItemRailConfigurator;
 import com.minemaarten.signals.item.ItemRailNetworkController;
 import com.minemaarten.signals.item.ItemSignals;
@@ -18,7 +19,7 @@ public class ModItems{
         RAIL_CONFIGURATOR = new ItemRailConfigurator();
         RAIL_NETWORK_CONTROLLER = new ItemRailNetworkController();
         CART_ENGINE = new ItemSignals("cart_engine");
-        CHUNKLOADER_UPGRADE = new ItemSignals("chunkloader_upgrade");
+        if(!SignalsConfig.disableChunkLoaderUpgrades) CHUNKLOADER_UPGRADE = new ItemSignals("chunkloader_upgrade");
         TICKET = new ItemTicket();
     }
 

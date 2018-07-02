@@ -35,6 +35,7 @@ import com.minemaarten.signals.client.gui.GuiSelectDestinationProvider;
 import com.minemaarten.signals.client.gui.GuiStationMarker;
 import com.minemaarten.signals.client.gui.GuiTicket;
 import com.minemaarten.signals.client.render.tileentity.SignalStatusRenderer;
+import com.minemaarten.signals.config.SignalsConfig;
 import com.minemaarten.signals.init.ModBlocks;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.item.ItemTicket;
@@ -62,7 +63,7 @@ public class ClientProxy extends CommonProxy{
         }
         registerItemModels(ModItems.RAIL_NETWORK_CONTROLLER);
         registerItemModels(ModItems.CART_ENGINE);
-        registerItemModels(ModItems.CHUNKLOADER_UPGRADE);
+        if(!SignalsConfig.disableChunkLoaderUpgrades) registerItemModels(ModItems.CHUNKLOADER_UPGRADE);
         registerItemModels(ModItems.RAIL_CONFIGURATOR);
     }
 

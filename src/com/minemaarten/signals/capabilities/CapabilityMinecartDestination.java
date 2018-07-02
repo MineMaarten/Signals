@@ -34,6 +34,7 @@ import org.apache.commons.lang3.Validate;
 import com.minemaarten.signals.api.access.IDestinationAccessor;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.chunkloading.ChunkLoadManager;
+import com.minemaarten.signals.config.SignalsConfig;
 import com.minemaarten.signals.init.ModItems;
 import com.minemaarten.signals.inventory.EngineItemHandler;
 import com.minemaarten.signals.lib.Log;
@@ -302,7 +303,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
             ChunkLoadManager.INSTANCE.unmarkAsChunkLoader(cart);
             if(!travelingBetweenDimensions) {
                 chunkloading = false;
-                cart.dropItem(ModItems.CHUNKLOADER_UPGRADE, 1);
+                if(!SignalsConfig.disableChunkLoaderUpgrades) cart.dropItem(ModItems.CHUNKLOADER_UPGRADE, 1);
             }
         }
 
@@ -374,6 +375,11 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                 double y = cart.posY + cart.world.rand.nextDouble() - 0.5;
                 double z = cart.posZ + cart.world.rand.nextDouble() - 0.5;
                 NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.PORTAL, x, y, z, 0, 0, 0), cart.world);
+
+                if(!SignalsConfig.disableChunkLoaderUpgrades) {
+                    ChunkLoadManager.INSTANCE.unmarkAsChunkLoader(cart);
+                    chunkloading = false;
+                }
             }
         } else {
             if(motorActive) {

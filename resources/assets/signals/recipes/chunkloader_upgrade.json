@@ -1,4 +1,10 @@
 {
+   "conditions": [
+	{
+		"type": "minecraft:item_exists",
+  		"item": "signals:chunkloader_upgrade"
+	}
+  ],
   "type": "minecraft:crafting_shaped",
   "pattern": [
     " s ", 

@@ -40,6 +40,10 @@ public class SignalsConfig{
     @Comment("Useful to disallow carts from Signals interaction. Cart names are how they would be used in a 'summon' command (<modid>:<entityName>).")
     public static CartBlacklists cartBlacklists = new CartBlacklists();
 
+    @Name("Disable chunk load upgrades")
+    @Comment("When true, disallows chunk load upgrades to be crafted and used.")
+    public static boolean disableChunkLoaderUpgrades;
+
     @SubscribeEvent
     public static void onConfigChangedEvent(OnConfigChangedEvent event){
         if(event.getModID().equals(Constants.MOD_ID)) {
