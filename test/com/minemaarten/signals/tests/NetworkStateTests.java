@@ -153,8 +153,8 @@ public class NetworkStateTests{
         List<String> map = new ArrayList<>();
         map.add("    t  ");
         map.add("    +^ ");
-        map.add("s+++++d");
-        map.add("0    > ");
+        map.add("+s++++d");
+        map.add(" 0   > ");
         NetworkParser.createDefaultParser()
                      .addTrainGroups("t")
                      .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.GREEN)
@@ -188,8 +188,8 @@ public class NetworkStateTests{
         List<String> map = new ArrayList<>();
         map.add("    +   ");
         map.add("    +^  ");
-        map.add("s+++++td");
-        map.add("0    >  ");
+        map.add("+s++++td");
+        map.add(" 0   >  ");
         NetworkParser.createDefaultParser()
                      .addTrainGroups("t")
                      .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.RED)
@@ -205,8 +205,8 @@ public class NetworkStateTests{
         List<String> map = new ArrayList<>();
         map.add("    t  +++++++b");
         map.add("    +^ +2   +> ");
-        map.add("s++++++++a v+  ");
-        map.add("0    1  >   d  ");
+        map.add("+s+++++++a v+  ");
+        map.add(" 0   1  >   d  ");
         NetworkParser.createDefaultParser()
                      .addTrainGroups("abt")
                      .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.GREEN)
@@ -224,8 +224,8 @@ public class NetworkStateTests{
         List<String> map = new ArrayList<>();
         map.add("    +  ++++++++");
         map.add("    +^ +2   t> ");
-        map.add("s+++++++++ v+  ");
-        map.add("0    1  >   d  ");
+        map.add("+s++++++++ v+  ");
+        map.add(" 0   1  >   d  ");
         NetworkParser.createDefaultParser()
                      .addTrainGroups("t")
                      .addExpectedSignal(0, EnumHeading.EAST, EnumSignalType.CHAIN, EnumLampStatus.RED)
