@@ -394,7 +394,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                         }
                     }
                 } else {
-                    int minIndex = Math.max(index - MAX_RAILS_IN_FRONT_SIGNAL + 1, 0);
+                    int minIndex = Math.max(index - MAX_RAILS_IN_FRONT_SIGNAL + 1, 1);
                     for(int i = index; i >= minIndex; i--) {
                         NetworkRail<TPos> rail = edge.get(i);
                         if(blockType.equals(rail.getRailType())) {
