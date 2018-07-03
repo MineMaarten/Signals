@@ -44,7 +44,7 @@ import com.minemaarten.signals.rail.network.NetworkUpdater;
 import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailNetworkClient;
 import com.minemaarten.signals.rail.network.RailPathfinder;
-import com.minemaarten.signals.rail.network.RailRoute;
+import com.minemaarten.signals.rail.network.RailRoute.RailRouteResult;
 import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.tileentity.TileEntityBase;
 
@@ -201,7 +201,7 @@ public class RailNetworkManager{
         return state.getLampStatus(new MCPos(world, pos));
     }
 
-    public RailRoute<MCPos> pathfind(MCPos start, Train<MCPos> train, Pattern destinationRegex, EnumHeading direction){
+    public RailRouteResult<MCPos> pathfind(MCPos start, Train<MCPos> train, Pattern destinationRegex, EnumHeading direction){
         return new RailPathfinder<MCPos>(network, state).pathfindToDestination(start, train, destinationRegex, direction);
     }
 

@@ -62,4 +62,30 @@ public class RailRoute<TPos extends IPosition<TPos>> {
             return dirIn.shortString() + "_(" + pos + ")_" + dirOut.shortString();
         }
     }
+
+    public static class RailRouteResult<TPos extends IPosition<TPos>> {
+        public final RailRoute<TPos> railRoute;
+        public final EnumRouteResult routeResult;
+
+        private RailRouteResult(RailRoute<TPos> railRoute, EnumRouteResult routeResult){
+            this.railRoute = railRoute;
+            this.routeResult = routeResult;
+        }
+
+        public static <TPos extends IPosition<TPos>> RailRouteResult<TPos> success(RailRoute<TPos> railRoute){
+            return new RailRouteResult<TPos>(railRoute, EnumRouteResult.SUCCESS);
+        }
+
+        public static <TPos extends IPosition<TPos>> RailRouteResult<TPos> noStations(){
+            return new RailRouteResult<TPos>(null, EnumRouteResult.NO_STATIONS);
+        }
+
+        public static <TPos extends IPosition<TPos>> RailRouteResult<TPos> noPath(){
+            return new RailRouteResult<TPos>(null, EnumRouteResult.NO_PATH);
+        }
+    }
+
+    public static enum EnumRouteResult{
+        NO_STATIONS, NO_PATH, SUCCESS
+    }
 }

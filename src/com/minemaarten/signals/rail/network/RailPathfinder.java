@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
+import com.minemaarten.signals.rail.network.RailRoute.RailRouteResult;
 
 public class RailPathfinder<TPos extends IPosition<TPos>> {
     private final RailNetwork<TPos> network;
@@ -90,8 +91,11 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
      * @param destination
      * @return Returns the first node starting with a signal (or destination), up to the 'start'.
      */
-    public RailRoute<TPos> pathfindToDestination(TPos start, Train<TPos> train, Pattern destinationRegex, EnumHeading direction){
-        return pathfindToDestination(start, direction, network.getStationRails(train, destinationRegex));
+    public RailRouteResult<TPos> pathfindToDestination(TPos start, Train<TPos> train, Pattern destinationRegex, EnumHeading direction){
+        Set<TPos> stations = network.getStationRails(train, destinationRegex);
+        if(stations.isEmpty()) return RailRouteResult.noStations();
+        RailRoute<TPos> route = pathfindToDestination(start, direction, stations);
+        return route != null ? RailRouteResult.success(route) : RailRouteResult.noPath();
     }
 
     /**

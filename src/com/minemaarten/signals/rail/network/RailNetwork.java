@@ -429,4 +429,24 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         }
         return rails;
     }
+
+    public Set<TPos> getStations(Train<TPos> train, Pattern destinationRegex){
+        Set<TPos> stationPositions = new HashSet<>();
+        Set<String> validNames = new HashSet<>();
+        List<NetworkStation<TPos>> stations = railObjects.getStations();
+        for(NetworkStation<TPos> station : stations) {
+            if(station.isTrainApplicable(train, destinationRegex)) {
+                stationPositions.add(station.pos);
+                validNames.add(station.stationName);
+            }
+        }
+
+        //Make sure to include stations that don't match themselves, but other stations with the same name do.
+        for(NetworkStation<TPos> station : stations) {
+            if(validNames.contains(station.stationName)) {
+                stationPositions.add(station.pos);
+            }
+        }
+        return stationPositions;
+    }
 }

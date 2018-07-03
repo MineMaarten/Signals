@@ -2,6 +2,8 @@ package com.minemaarten.signals.tileentity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.nbt.NBTTagCompound;
@@ -17,7 +19,9 @@ import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
+import com.minemaarten.signals.rail.network.PosAABB;
 import com.minemaarten.signals.rail.network.mc.MCPos;
+import com.minemaarten.signals.rail.network.mc.MCTrain;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class TileEntityStationMarker extends TileEntityBase implements ITickable, IGUITextFieldSensitive,
@@ -25,6 +29,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
     private static int nextId;
     @GuiSynced
     private String stationName = "";
+    private PosAABB<MCPos> neighborAABB;
 
     public TileEntityStationMarker(){
         stationName = "Station" + nextId++;
@@ -78,10 +83,24 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
     }
 
     public void updateNeighborMinecarts(){
-        for(EntityMinecart cart : TileEntitySignalBase.getNeighborMinecarts(getNeighborRails().stream())) {
-            CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-            if(cap.getCurrentDestinationRegex().matcher(getStationName()).matches()) {
-                cap.nextDestination();
+        if(neighborAABB == null) {
+            neighborAABB = new PosAABB<>(getNeighborRails());
+        }
+
+        RailNetworkManager.getInstance().getAllTrains().forEach(this::updateNeighborMinecarts);
+    }
+
+    private void updateNeighborMinecarts(MCTrain train){
+        if(train.isInAABB(neighborAABB)) {
+            for(EntityMinecart cart : train.getCarts()) {
+                CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+                if(cap.getDestinationIndex() >= 0) {
+                    Pattern destinationRegex = cap.getCurrentDestinationRegex();
+                    Set<MCPos> stations = RailNetworkManager.getInstance().getNetwork().getStations(train, destinationRegex);
+                    if(stations.contains(getMCPos())) {
+                        cap.nextDestination();
+                    }
+                }
             }
         }
     }

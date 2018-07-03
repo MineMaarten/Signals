@@ -34,7 +34,9 @@ import com.minemaarten.signals.rail.network.EnumHeading;
 import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailRoute;
+import com.minemaarten.signals.rail.network.RailRoute.EnumRouteResult;
 import com.minemaarten.signals.rail.network.RailRoute.RailRouteNode;
+import com.minemaarten.signals.rail.network.RailRoute.RailRouteResult;
 import com.minemaarten.signals.rail.network.Train;
 
 public class MCTrain extends Train<MCPos>{
@@ -96,33 +98,52 @@ public class MCTrain extends Train<MCPos>{
     public RailRoute<MCPos> pathfind(MCPos start, EnumHeading dir){
         RailRoute<MCPos> path = null;
         for(EntityMinecart cart : getCarts()) {
-            CapabilityMinecartDestination capability = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-            String destination = capability.getCurrentDestination();
-            Pattern destinationRegex = capability.getCurrentDestinationRegex();
-            List<PacketUpdateMessage> messages = new ArrayList<>();
-            if(!destination.isEmpty()) {
-                //TODO messages.add(new PacketUpdateMessage(this, cart, "signals.message.routing_cart", destination));
-
-                path = RailNetworkManager.getInstance().pathfind(start, this, destinationRegex, dir);
-                if(path == null) { //If there's no path
-                    //        messages.add(new PacketUpdateMessage(this, cart, "signals.message.no_path_found"));
-                } else {
-                    //       messages.add(new PacketUpdateMessage(this, cart, "signals.message.path_found"));
-                    break;
-                }
-            } else {
-                //      messages.add(new PacketUpdateMessage(this, cart, "signals.message.no_destination"));
-            }
-
-            /*  if(submitMessages) {
-                  for(PacketUpdateMessage message : messages) {
-                      NetworkHandler.sendToAllAround(message, getWorld());
-                  }
-              }*/
-            // capability.setPath(cart, path);
-
+            path = pathfind(cart, start, dir);
+            if(path != null) break;
         }
         return path;
+    }
+
+    private RailRoute<MCPos> pathfind(EntityMinecart cart, MCPos start, EnumHeading dir){
+        CapabilityMinecartDestination capability = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
+        int startDestinationIndex = capability.getDestinationIndex();
+        boolean firstTry = true;
+        if(startDestinationIndex != -1) {
+            while(true) {
+                String destination = capability.getCurrentDestination();
+                Pattern destinationRegex = capability.getCurrentDestinationRegex();
+                List<PacketUpdateMessage> messages = new ArrayList<>();
+                if(!firstTry && capability.getDestinationIndex() == startDestinationIndex) {
+                    return null; //Prevent stack overflows when encountering only invalid stations
+                }
+                firstTry = false;
+
+                //TODO messages.add(new PacketUpdateMessage(this, cart, "signals.message.routing_cart", destination));
+
+                //Strategy to skip destinations that have no matching station (like ITEM routing without having items)
+                RailRouteResult<MCPos> routeResult = RailNetworkManager.getInstance().pathfind(start, this, destinationRegex, dir);
+                if(routeResult.routeResult == EnumRouteResult.NO_PATH) {
+                    return null; //No path is no route
+                } else if(routeResult.routeResult == EnumRouteResult.SUCCESS) {
+                    return routeResult.railRoute;
+                } else { //EnumRouteResult.NO_STATIONS
+                    capability.nextDestination(); //Skip this destination
+                    if(capability.getDestinationIndex() == startDestinationIndex) {
+                        return null;
+                    }
+                }
+            }
+        } else {
+            //      messages.add(new PacketUpdateMessage(this, cart, "signals.message.no_destination"));
+            return null;
+        }
+
+        /*  if(submitMessages) {
+              for(PacketUpdateMessage message : messages) {
+                  NetworkHandler.sendToAllAround(message, getWorld());
+              }
+          }*/
+        // capability.setPath(cart, path);
     }
 
     @Override

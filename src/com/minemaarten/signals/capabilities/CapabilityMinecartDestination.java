@@ -196,6 +196,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
 
     @Override
     public int getDestinationIndex(){
+        getCurrentDestination(); //Trigger updating destination index.
         return curDestinationIndex;
     }
 
