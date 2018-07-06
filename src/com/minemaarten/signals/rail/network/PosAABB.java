@@ -22,7 +22,7 @@ public class PosAABB<TPos extends IPosition<TPos>> {
             TPos curPos = iterator.next();
             TPos curMin = curPos;
             TPos curMax = curPos;
-            while(iterator.hasNext()) {
+            while(curMin != null && curMax != null && iterator.hasNext()) {
                 curPos = iterator.next();
                 curMin = curMin.min(curPos);
                 curMax = curMax.max(curPos);
