@@ -1,5 +1,6 @@
 package com.minemaarten.signals.client.render.signals;
 
+import gnu.trove.map.hash.TIntObjectHashMap;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -20,24 +21,27 @@ import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class DirectionalityRenderer{
 
-    private BakedRenderer bakedRenderer = new BakedRenderer();
+    private TIntObjectHashMap<BakedRenderer> bakedRenderers = new TIntObjectHashMap<>();
 
-    public void render(BufferBuilder b){
-        b.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION);
-        bakedRenderer.render(b);
-        Tessellator.getInstance().draw();
+    public void render(int dimensionID, BufferBuilder b){
+        BakedRenderer bakedRenderer = bakedRenderers.get(dimensionID);
+        if(bakedRenderer != null) {
+            b.begin(GL11.GL_TRIANGLES, DefaultVertexFormats.POSITION);
+            bakedRenderer.render(b);
+            Tessellator.getInstance().draw();
+        }
     }
 
     public void updateRender(){
-        BakedRenderer bakedRenderer = new BakedRenderer();
+        TIntObjectHashMap<BakedRenderer> bakedRenderers = new TIntObjectHashMap<>();
         for(RailEdge<MCPos> edge : RailNetworkManager.getInstance().getNetwork().getAllEdges()) {
-            if(edge.directionality.canTravelForwards) build(bakedRenderer, edge.edge);
-            if(edge.directionality.canTravelBackwards) build(bakedRenderer, edge.edge.reverse());
+            if(edge.directionality.canTravelForwards) build(bakedRenderers, edge.edge);
+            if(edge.directionality.canTravelBackwards) build(bakedRenderers, edge.edge.reverse());
         }
-        this.bakedRenderer = bakedRenderer;
+        this.bakedRenderers = bakedRenderers;
     }
 
-    private void build(BakedRenderer bakedRenderer, ImmutableList<NetworkRail<MCPos>> edge){
+    private void build(TIntObjectHashMap<BakedRenderer> bakedRenderers, ImmutableList<NetworkRail<MCPos>> edge){
 
         for(int edgeIndex = 1; edgeIndex < edge.size() - 1; edgeIndex++) {
             NetworkRail<MCPos> prevRail = edge.get(edgeIndex - 1);
@@ -46,7 +50,13 @@ public class DirectionalityRenderer{
 
             EnumHeading prevHeading = curRail.pos.getRelativeHeading(prevRail.pos);
             EnumHeading nextHeading = nextRail.pos.getRelativeHeading(curRail.pos);
-            if(prevHeading == null || nextHeading == null || prevHeading != nextHeading) continue;
+            if(prevHeading == null || nextHeading == null || prevHeading != nextHeading || curRail.pos.getDimID() != nextRail.pos.getDimID() || curRail.pos.getDimID() != prevRail.pos.getDimID()) continue;
+
+            BakedRenderer bakedRenderer = bakedRenderers.get(curRail.pos.getDimID());
+            if(bakedRenderer == null) {
+                bakedRenderer = new BakedRenderer();
+                bakedRenderers.put(curRail.pos.getDimID(), bakedRenderer);
+            }
 
             MCPos pos = curRail.pos;
             EnumFacing facing = HeadingUtils.toFacing(nextHeading).getOpposite();

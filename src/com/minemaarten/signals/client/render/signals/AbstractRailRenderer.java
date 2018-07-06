@@ -1,5 +1,7 @@
 package com.minemaarten.signals.client.render.signals;
 
+import gnu.trove.map.hash.TIntObjectHashMap;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -80,9 +82,9 @@ public abstract class AbstractRailRenderer<TSection> {
 
     protected abstract boolean shouldTraverse(TSection section, NetworkRail<MCPos> rail);
 
-    public void render(BufferBuilder b){
+    public void render(int dimensionID, BufferBuilder b){
         for(SectionRenderer edgeRenderer : sectionsToRenderer.values()) {
-            edgeRenderer.rectRenderer.render(b);
+            edgeRenderer.render(dimensionID, b);
         }
     }
 
@@ -112,22 +114,23 @@ public abstract class AbstractRailRenderer<TSection> {
     private class SectionRenderer{
 
         public int colorIndex;
-        public RectRenderer rectRenderer;
+        private TIntObjectHashMap<RectRenderer> rectRenderers = new TIntObjectHashMap<RectRenderer>();
         private final TSection section;
 
         public SectionRenderer(TSection section){
             this.section = section;
         }
 
-        public void compileRender(){
-            rectRenderer = new RectRenderer();
-            rectRenderer.width = getLineWidth();
+        public void render(int dimensionID, BufferBuilder b){
+            RectRenderer rectRenderer = rectRenderers.get(dimensionID);
+            if(rectRenderer != null) rectRenderer.render(b);
+        }
 
+        public void compileRender(){
             int color = ItemDye.DYE_COLORS[colorIndex];
             float r = (color >> 16) / 256F;
             float g = (color >> 8 & 255) / 256F;
             float b = (color & 255) / 256F;
-            rectRenderer.setColor(r, g, b);
 
             NetworkRail<MCPos> rootNode = getRootNode(section);
             Set<NetworkRail<MCPos>> traversed = new HashSet<>();
@@ -145,16 +148,26 @@ public abstract class AbstractRailRenderer<TSection> {
 
                 List<NetworkRail<MCPos>> neighbors = node.getSectionNeighborRails(neighborProvider).collect(Collectors.toList());
                 for(NetworkRail<MCPos> neighbor : neighbors) {
+                    if(shouldTraverse(section, neighbor) && traversed.add(neighbor)) {
+                        toTraverse.push(neighbor);
+                    }
+
+                    if(neighbor.pos.getDimID() != node.pos.getDimID()) continue;
+
+                    RectRenderer rectRenderer = rectRenderers.get(neighbor.pos.getDimID());
+                    if(rectRenderer == null) {
+                        rectRenderer = new RectRenderer();
+                        rectRenderer.width = getLineWidth();
+                        rectRenderer.setColor(r, g, b);
+                        rectRenderers.put(neighbor.pos.getDimID(), rectRenderer);
+                    }
+
                     rectRenderer.pos(node.pos.getX() + 0.5, node.pos.getY() + (railDir.isAscending() ? 0.6 : 0.1) + getHeightOffset(), node.pos.getZ() + 0.5);
 
                     EnumFacing dir = HeadingUtils.toFacing(neighbor.pos.getRelativeHeading(node.pos));
                     int offset = getRailHeightOffset(node, dir);
                     Vec3d interpolated = Vec3iUtils.interpolate(node.pos.getPos(), neighbor.pos.getPos());
                     rectRenderer.pos(interpolated.x + 0.5, node.pos.getY() + (offset == 1 ? 1.1 : 0.1) + getHeightOffset(), interpolated.z + 0.5);
-
-                    if(shouldTraverse(section, neighbor) && traversed.add(neighbor)) {
-                        toTraverse.push(neighbor);
-                    }
                 }
             }
         }

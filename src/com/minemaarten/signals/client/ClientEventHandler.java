@@ -52,6 +52,7 @@ public class ClientEventHandler{
         double playerX = player.prevPosX + (player.posX - player.prevPosX) * event.getPartialTicks();
         double playerY = player.prevPosY + (player.posY - player.prevPosY) * event.getPartialTicks();
         double playerZ = player.prevPosZ + (player.posZ - player.prevPosZ) * event.getPartialTicks();
+        int dimensionID = player.world.provider.getDimension();
         GL11.glPushMatrix();
         GL11.glTranslated(-playerX, -playerY, -playerZ);
 
@@ -64,18 +65,18 @@ public class ClientEventHandler{
         NetworkVisualizationSettings visualizationSettings = player.isSneaking() ? SignalsConfig.client.networkVisualization.sneaking : SignalsConfig.client.networkVisualization.notSneaking;
         switch(visualizationSettings.renderType){
             case EDGES:
-                edgeRenderer.render(b);
+                edgeRenderer.render(dimensionID, b);
                 break;
             case PATHS:
-                pathRenderer.render(b);
+                pathRenderer.render(dimensionID, b);
                 break;
             case SECTION:
-                blockSectionRenderer.render(b);
+                blockSectionRenderer.render(dimensionID, b);
                 break;
         }
         //claimRenderer.render(b);
         if(visualizationSettings.renderDirectionality) {
-            directionalityRenderer.render(b);
+            directionalityRenderer.render(dimensionID, b);
         }
 
         b.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
@@ -83,8 +84,11 @@ public class ClientEventHandler{
         List<NetworkStation<MCPos>> stations = RailNetworkManager.getInstance().getNetwork().railObjects.getStations();
         for(int i = 0; i < stations.size(); i++) {
             NetworkStation<MCPos> station1 = stations.get(i);
+            if(station1.pos.getDimID() != dimensionID) continue;
             for(int j = 0; j < i; j++) {
                 NetworkStation<MCPos> station2 = stations.get(j);
+                if(station2.pos.getDimID() != dimensionID) continue;
+
                 if(station1.stationName.equals(station2.stationName) && station1.pos.getDimID() == station2.pos.getDimID()) {
                     drawBetween(b, station1.pos.getPos(), station2.pos.getPos(), 1, 0, 1, 0, 1);
                 }
