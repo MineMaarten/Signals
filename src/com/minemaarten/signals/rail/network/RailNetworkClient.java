@@ -28,7 +28,7 @@ public class RailNetworkClient<TPos extends IPosition<TPos>> extends RailNetwork
 
     private <T extends IAdjacentCheckable<T>> IdentityHashMap<T, IdentityHashSet<T>> calculateAdjacentSections(Collection<T> allSections){
         IdentityHashMap<T, IdentityHashSet<T>> map = new IdentityHashMap<>();
-        allSections.parallelStream().forEach(s1 -> {
+        allSections/*.parallelStream()*/.forEach(s1 -> { //Don't do in parallel to prevent draining all CPU resources.
             IdentityHashSet<T> adjacentSections = new IdentityHashSet<>();
             for(T s2 : allSections) {
                 if(s1 != s2 && s1.isAdjacent(s2)) {
