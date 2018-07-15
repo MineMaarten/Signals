@@ -14,6 +14,7 @@ import com.minemaarten.signals.rail.network.NetworkSignal;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.RailNetwork;
+import com.minemaarten.signals.rail.network.RailNetworkClient;
 import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.util.Pos2D;
 import com.minemaarten.signals.util.TestTrain;
@@ -42,7 +43,7 @@ public class NetworkBenchmarks{
                 fullGrid.add(new DefaultRailNode(new Pos2D(x, y)));
             }
         }
-        fullGridNetwork = new RailNetwork<>(fullGrid);
+        fullGridNetwork = new RailNetworkClient<>(fullGrid);
         fullGridState = new NetworkState<>();
 
         List<Train<Pos2D>> trains = new ArrayList<>();
@@ -63,7 +64,7 @@ public class NetworkBenchmarks{
                 }
             }
         }
-        largeNetworkNetwork = new RailNetwork<>(largeNetwork);
+        largeNetworkNetwork = new RailNetworkClient<>(largeNetwork);
         largeNetworkState = new NetworkState<>();
 
         trains = new ArrayList<>();

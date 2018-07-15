@@ -102,4 +102,12 @@ public class Pos2D implements IPosition<Pos2D>{
     public boolean isInAABB(Pos2D min, Pos2D max){
         return min.x <= x && x <= max.x && min.y <= y && y <= max.y;
     }
+
+    //@formatter:off
+    @Override
+    public boolean intersects(Pos2D pos1Min, Pos2D pos1Max, Pos2D pos2Min, Pos2D pos2Max){
+        return pos1Min.x <= pos2Max.x && pos1Max.x >= pos2Min.x && 
+               pos1Min.y <= pos2Max.y && pos1Max.y >= pos2Min.y;
+    } 
+    //@formatter:on
 }

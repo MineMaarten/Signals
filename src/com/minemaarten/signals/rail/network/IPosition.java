@@ -33,4 +33,6 @@ public interface IPosition<TPos> extends Comparable<TPos>{
     public TPos max(TPos other);
 
     public boolean isInAABB(TPos min, TPos max);
+
+    public boolean intersects(TPos pos1Min, TPos pos1Max, TPos pos2Min, TPos pos2Max);
 }

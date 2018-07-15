@@ -35,4 +35,13 @@ public class PosAABB<TPos extends IPosition<TPos>> {
     public boolean isInAABB(TPos pos){
         return min != null && pos.isInAABB(min, max) && positions.contains(pos);
     }
+
+    public boolean intersects(PosAABB<TPos> aabb){
+        if(min != null && aabb.min != null && !min.intersects(min, max, aabb.min, aabb.max)) return false;
+
+        for(TPos pos : aabb.positions) {
+            if(isInAABB(pos)) return true;
+        }
+        return false;
+    }
 }

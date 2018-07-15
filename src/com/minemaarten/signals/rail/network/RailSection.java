@@ -24,13 +24,14 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
     private final ImmutableMap<TPos, NetworkRail<TPos>> rails;
     public final RailObjectHolder<TPos> railObjects;
     private final PosAABB<TPos> aabb;
-    private final Set<TPos> allRailNeighbors;
+    private final PosAABB<TPos> neighborAABB;
 
     public RailSection(RailObjectHolder<TPos> railObjects, Collection<NetworkRail<TPos>> rails){
         this.rails = ImmutableMap.<TPos, NetworkRail<TPos>> copyOf(rails.stream().collect(Collectors.toMap(n -> n.pos, n -> n)));
         this.railObjects = railObjects.subSelection(rails);
         this.aabb = new PosAABB<>(rails.stream().map(r -> r.pos).collect(Collectors.toList()));
-        allRailNeighbors = calculateRailNeighbors();
+        Set<TPos> allRailNeighbors = calculateRailNeighbors();
+        neighborAABB = new PosAABB<>(allRailNeighbors);
     }
 
     private ImmutableSet<TPos> calculateRailNeighbors(){
@@ -73,10 +74,7 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
 
     @Override
     public boolean isAdjacent(RailSection<TPos> section){
-        for(TPos railPos : section.rails.keySet()) {
-            if(allRailNeighbors.contains(railPos)) return true;
-        }
-        return false;
+        return section.aabb.intersects(neighborAABB);
     }
 
     @Override

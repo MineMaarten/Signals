@@ -11,6 +11,10 @@ public class RailNetworkClient<TPos extends IPosition<TPos>> extends RailNetwork
     private IdentityHashMap<RailSection<TPos>, IdentityHashSet<RailSection<TPos>>> adjacentSectionCache;
     private IdentityHashMap<RailEdge<TPos>, IdentityHashSet<RailEdge<TPos>>> adjacentEdgeCache;
 
+    public RailNetworkClient(Collection<NetworkObject<TPos>> allNetworkObjects){
+        super(allNetworkObjects);
+    }
+
     public RailNetworkClient(ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects){
         super(allNetworkObjects);
     }
@@ -28,18 +32,22 @@ public class RailNetworkClient<TPos extends IPosition<TPos>> extends RailNetwork
 
     private <T extends IAdjacentCheckable<T>> IdentityHashMap<T, IdentityHashSet<T>> calculateAdjacentSections(Collection<T> allSections){
         IdentityHashMap<T, IdentityHashSet<T>> map = new IdentityHashMap<>();
-        allSections/*.parallelStream()*/.forEach(s1 -> { //Don't do in parallel to prevent draining all CPU resources.
+        for(T s1 : allSections) {
             IdentityHashSet<T> adjacentSections = new IdentityHashSet<>();
+            boolean startChecking = false;
             for(T s2 : allSections) {
+                if(!startChecking) {
+                    if(s1 == s2) startChecking = true;
+                    continue;
+                }
+
                 if(s1 != s2 && s1.isAdjacent(s2)) {
                     adjacentSections.add(s2);
                 }
             }
 
-            synchronized(map) {
-                map.put(s1, adjacentSections);
-            }
-        });
+            map.put(s1, adjacentSections);
+        }
         return map;
     }
 

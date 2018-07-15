@@ -75,6 +75,8 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
      */
     public final EnumDirectionalityResult directionality;
 
+    private final PosAABB<TPos> aabb;
+
     public static enum EnumDirectionalityResult{
         /**
          * Trains can be routed both ways
@@ -148,6 +150,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
         this.edge = edge;
         startPos = firstPos;
         endPos = lastPos;
+        aabb = new PosAABB<>(edge.stream().map(x -> x.pos).collect(Collectors.toSet()));
         startHeading = startPos.getRelativeHeading(edge.get(1).pos);
         endHeading = endPos.getRelativeHeading(edge.get(edge.size() - 2).pos);
 
@@ -256,7 +259,7 @@ public class RailEdge<TPos extends IPosition<TPos>> implements Iterable<NetworkR
     }
 
     public boolean contains(TPos pos){
-        return railObjects.get(pos) != null;
+        return aabb.isInAABB(pos);
     }
 
     public boolean isAtStartOrEnd(TPos pos){

@@ -179,4 +179,13 @@ public class MCPos implements IPosition<MCPos>{
         boolean zOk = min.getZ() <= getZ() && getZ() <= max.getZ();
         return xOk && yOk && zOk;
     }
+
+    //@formatter:off
+    @Override
+    public boolean intersects(MCPos pos1Min, MCPos pos1Max, MCPos pos2Min, MCPos pos2Max){
+        return pos1Min.getX() <= pos2Max.getX() && pos1Max.getX() >= pos2Min.getX() && 
+               pos1Min.getY() <= pos2Max.getY() && pos1Max.getY() >= pos2Min.getY() && 
+               pos1Min.getZ() <= pos2Max.getZ() && pos1Max.getZ() >= pos2Min.getZ();
+    } 
+    //@formatter:on
 }
