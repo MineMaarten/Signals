@@ -96,7 +96,12 @@ public class MCTrain extends Train<MCPos>{
     @Override
     public boolean updatePositions(NetworkState<MCPos> state){
         super.updatePositions(state);
-        ImmutableSet<MCPos> positions = ImmutableSet.copyOf(getCarts().stream().map(c -> new MCPos(c.world, c.getPosition())).collect(Collectors.toSet()));
+
+        ImmutableSet.Builder<MCPos> positionBuilder = ImmutableSet.builder();
+        for(EntityMinecart cart : getCarts()) {
+            positionBuilder.add(new MCPos(cart.world, cart.getPosition()));
+        }
+        ImmutableSet<MCPos> positions = positionBuilder.build();
         if(!positions.isEmpty()) { //Update if any cart is loaded, currently.
             return setPositions(RailNetworkManager.getInstance().getNetwork(), state, positions);
         } else {
