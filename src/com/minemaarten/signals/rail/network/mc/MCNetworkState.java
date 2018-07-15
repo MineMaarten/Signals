@@ -118,13 +118,17 @@ public class MCNetworkState extends NetworkState<MCPos>{
     }
 
     public void onMinecartJoinedWorld(EntityMinecart cart){
+        MCTrain train = findTrainForCartID(cart.getUniqueID());
+
         //Override any previous records, automatically resolving dimension changes of entities, where the entity in the next dimension
         //is added, before the entity in the previous dimension is noticed to be removed.
-        trackingMinecarts.put(cart.getUniqueID(), cart);
+        EntityMinecart oldCart = trackingMinecarts.put(cart.getUniqueID(), cart);
+        if(oldCart != null && train != null) train.onCartRemoved(oldCart);
 
-        MCTrain train = findTrainForCartID(cart.getUniqueID());
         if(train == null) { //If the added cart does not belong to a train yet
             addTrain(ImmutableSet.of(cart.getUniqueID()));
+        } else {
+            train.onCartAdded(cart);
         }
     }
 
@@ -156,6 +160,9 @@ public class MCNetworkState extends NetworkState<MCPos>{
         for(ClassInheritanceMultiMap<Entity> entities : chunk.getEntityLists()) {
             for(EntityMinecart cart : entities.getByClass(EntityMinecart.class)) {
                 trackingMinecarts.remove(cart.getUniqueID()); //Remove without changing the Trains, as unloaded != removed.
+                getTrains().forEach(t -> ((MCTrain)t).onCartRemoved(cart));
+                //MCTrain train = findTrainForCartID(cart.getUniqueID());
+                //if(train != null) train.onCartRemoved(cart);
             }
         }
     }
@@ -254,6 +261,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
             if(train.cartIDs.size() == 1) { //When it's the last cart
                 removeTrain(train);
             } else { //When it's a train consisting of multiple carts, remove the cart from the (still existing) train.
+                train.onCartRemoved(cart);
                 train.cartIDs = train.cartIDs.stream().filter(uuid -> !uuid.equals(cart.getUniqueID())).collect(ImmutableSet.toImmutableSet());
                 NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
             }

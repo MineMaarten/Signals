@@ -6,6 +6,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -53,6 +54,7 @@ public class MCTrain extends Train<MCPos>{
     }
 
     public ImmutableSet<UUID> cartIDs;
+    private Set<EntityMinecart> carts;
 
     protected MCTrain(int id, ImmutableSet<UUID> cartIDs){
         super(id);
@@ -68,8 +70,23 @@ public class MCTrain extends Train<MCPos>{
         this(carts.stream().map(c -> c.getUniqueID()).collect(ImmutableSet.toImmutableSet()));
     }
 
-    public List<EntityMinecart> getCarts(){
-        return cartIDs.stream().map(id -> RailNetworkManager.getInstance().getState().getCart(id)).filter(Predicates.notNull()).collect(Collectors.toList());
+    public Set<EntityMinecart> getCarts(){
+        if(carts == null) {
+            carts = cartIDs.stream().map(id -> RailNetworkManager.getInstance().getState().getCart(id)).filter(Predicates.notNull()).collect(Collectors.toSet());
+        }
+        return carts;
+    }
+
+    public void onCartAdded(EntityMinecart cart){
+        if(getCarts().size() < cartIDs.size() && cartIDs.contains(cart.getUniqueID())) { //Prevent set.contains if we can
+            getCarts().add(cart);
+        }
+    }
+
+    public void onCartRemoved(EntityMinecart cart){
+        if(!getCarts().isEmpty()) { //Prevent set.remove if we can
+            getCarts().remove(cart);
+        }
     }
 
     public void addCartIDs(Collection<UUID> ids){
