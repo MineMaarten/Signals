@@ -4,7 +4,11 @@ import net.minecraft.block.Block;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -78,5 +82,20 @@ public class BlockStationMarker extends BlockBase{
             }
         }
         world.setBlockState(pos, state.withProperty(VALID, neighborRail), 2);
+    }
+
+    @Override
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing face, float par7, float par8, float par9){
+        if(player.isSneaking()) return false;
+        else {
+            ItemStack stack = player.getHeldItem(hand);
+            if(!world.isRemote && stack.getItem() == Items.NAME_TAG && stack.hasDisplayName()) {
+                TileEntityStationMarker stationMarker = (TileEntityStationMarker)world.getTileEntity(pos);
+                stationMarker.setStationName(stack.getDisplayName());
+                return true;
+            } else {
+                return super.onBlockActivated(world, pos, state, player, hand, face, par7, par8, par9);
+            }
+        }
     }
 }
