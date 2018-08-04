@@ -280,6 +280,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
     public void onCartKilled(EntityMinecart cart){
         MCTrain train = findTrainForCartID(cart.getUniqueID());
         if(train != null) {
+            cartIDsToTrains = null;
             if(train.cartIDs.size() == 1) { //When it's the last cart
                 removeTrain(train);
             } else { //When it's a train consisting of multiple carts, remove the cart from the (still existing) train.

@@ -55,8 +55,13 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
         if(dirtyPositions.isEmpty()) return Collections.emptyList(); //Nothing to update.
 
         changedObjects.clear();
-        allPositions.clear();
-        allPositions.addAll(network.unfilteredRailObjects.getAllNetworkObjects().keySet());
+
+        Set<TPos> curAllPositions = network.unfilteredRailObjects.getAllNetworkObjects().keySet();
+        //Peformance: only reinit the mutable positions map if it was different from last time
+        if(allPositions.hashCode() != curAllPositions.hashCode() || !allPositions.equals(curAllPositions)) {
+            allPositions.clear();
+            allPositions.addAll(curAllPositions);
+        }
 
         //Remove all existing objects that were marked dirty.
         for(TPos dirtyPos : dirtyPositions) {
