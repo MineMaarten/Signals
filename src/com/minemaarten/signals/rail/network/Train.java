@@ -36,6 +36,7 @@ public abstract class Train<TPos extends IPosition<TPos>> {
     private TPos lastPathfindLocation;
     private int pathfindTimeout; //Limit the pathfind interval
     private static final int PATHFIND_TIMEOUT = 20;
+    private boolean firstUpdate = true;
 
     public Train(){
         this(curID++);
@@ -94,7 +95,8 @@ public abstract class Train<TPos extends IPosition<TPos>> {
     }
 
     public final boolean setPositions(RailNetwork<TPos> network, NetworkState<TPos> state, ImmutableSet<TPos> positions){
-        if(!this.positions.equals(positions)) { //When the train has moved
+        if(!this.positions.equals(positions) || firstUpdate) { //When the train has moved
+            firstUpdate = false;
             this.positions = positions;
             updateIntersections();
             updateClaimedSections(network);
