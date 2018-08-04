@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,6 +42,7 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
 public class MCNetworkState extends NetworkState<MCPos>{
     private Map<UUID, EntityMinecart> trackingMinecarts = new HashMap<>();
+    private Map<UUID, MCTrain> cartIDsToTrains;
 
     public void onPlayerJoin(EntityPlayerMP player){
         for(Train<MCPos> train : getTrains()) {
@@ -111,6 +113,19 @@ public class MCNetworkState extends NetworkState<MCPos>{
         return trackingMinecarts.get(uniqueID);
     }
 
+    private MCTrain getTrain(UUID cartID){
+        if(cartIDsToTrains == null) {
+            cartIDsToTrains = new HashMap<>();
+            for(Train<MCPos> train : getTrains()) {
+                MCTrain mcTrain = (MCTrain)train;
+                for(UUID c : mcTrain.cartIDs) {
+                    cartIDsToTrains.put(c, mcTrain);
+                }
+            }
+        }
+        return cartIDsToTrains.get(cartID);
+    }
+
     public void getTrackingCartsFrom(MCNetworkState state){
         for(EntityMinecart cart : state.trackingMinecarts.values()) {
             onMinecartJoinedWorld(cart);
@@ -139,6 +154,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
     private MCTrain addTrain(ImmutableSet<UUID> uuids){
         MCTrain train = new MCTrain(uuids);
         addTrain(train);
+        cartIDsToTrains = null;
         NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
         return train;
     }
@@ -147,7 +163,14 @@ public class MCNetworkState extends NetworkState<MCPos>{
         Train<MCPos> train = getTrain(id);
         if(train != null) {
             removeTrain(train);
+            cartIDsToTrains = null;
         }
+    }
+
+    @Override
+    public void setTrains(Collection<? extends Train<MCPos>> trains){
+        super.setTrains(trains);
+        cartIDsToTrains = null;
     }
 
     @Override
@@ -223,16 +246,15 @@ public class MCNetworkState extends NetworkState<MCPos>{
 
     private void mergeGroupedCarts(){
         List<MCTrain> traversedTrains = new ArrayList<>();
-        Iterator<Train<MCPos>> iterator = getTrains().iterator();
-        while(iterator.hasNext()) {
-            MCTrain train = (MCTrain)iterator.next();
-            EntityMinecart cart = getLoadedMinecarts(train.cartIDs).findFirst().orElse(null);
-            if(cart != null) {
-                MCTrain matching = getMatchingTrain(traversedTrains, cart);
+        for(Entry<UUID, EntityMinecart> entry : trackingMinecarts.entrySet()) {
+            MCTrain train = getTrain(entry.getKey());
+            if(train != null) {
+                MCTrain matching = getMatchingTrain(traversedTrains, entry.getValue());
                 if(matching != null) {
                     //Merge
                     removeTrain(train);
                     matching.addCartIDs(train.cartIDs);
+                    cartIDsToTrains = null;
                     NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(matching));
                 } else {
                     traversedTrains.add(train);

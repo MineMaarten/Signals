@@ -91,6 +91,7 @@ public class MCTrain extends Train<MCPos>{
 
     public void addCartIDs(Collection<UUID> ids){
         cartIDs = Streams.concat(cartIDs.stream(), ids.stream()).collect(ImmutableSet.toImmutableSet());
+        carts = null;
     }
 
     @Override
