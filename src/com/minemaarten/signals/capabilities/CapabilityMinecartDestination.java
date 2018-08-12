@@ -377,7 +377,7 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                 double z = cart.posZ + cart.world.rand.nextDouble() - 0.5;
                 NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.PORTAL, x, y, z, 0, 0, 0), cart.world);
 
-                if(!SignalsConfig.disableChunkLoaderUpgrades) {
+                if(SignalsConfig.disableChunkLoaderUpgrades) {
                     ChunkLoadManager.INSTANCE.unmarkAsChunkLoader(cart);
                     chunkloading = false;
                 }
