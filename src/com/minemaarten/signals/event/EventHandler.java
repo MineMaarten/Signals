@@ -133,10 +133,10 @@ public class EventHandler implements IWorldEventListener{
     @SubscribeEvent
     public void onJoinWorld(EntityJoinWorldEvent event){
         if(!event.getWorld().isRemote && event.getEntity() instanceof EntityPlayer) {
-            RailNetworkManager.getInstance().onPlayerJoin((EntityPlayerMP)event.getEntity());
+            RailNetworkManager.getInstance(event.getWorld().isRemote).onPlayerJoin((EntityPlayerMP)event.getEntity());
         }
         if(!event.getWorld().isRemote && event.getEntity() instanceof EntityMinecart) {
-            RailNetworkManager.getInstance().onMinecartJoinedWorld((EntityMinecart)event.getEntity());
+            RailNetworkManager.getInstance(event.getWorld().isRemote).onMinecartJoinedWorld((EntityMinecart)event.getEntity());
             CapabilityMinecartDestination cap = event.getEntity().getCapability(CapabilityMinecartDestination.INSTANCE, null);
             if(cap != null) cap.onCartJoinWorld((EntityMinecart)event.getEntity());
         }
@@ -145,28 +145,28 @@ public class EventHandler implements IWorldEventListener{
     @SubscribeEvent
     public void onChunkUnload(ChunkEvent.Unload event){
         if(!event.getWorld().isRemote) {
-            RailNetworkManager.getInstance().onChunkUnload(event.getChunk());
+            RailNetworkManager.getInstance(event.getWorld().isRemote).onChunkUnload(event.getChunk());
         }
     }
 
     @SubscribeEvent
     public void onNeighborChange(NeighborNotifyEvent event){
         if(!event.getWorld().isRemote) {
-            RailNetworkManager.getInstance().markDirty(new MCPos(event.getWorld(), event.getPos()));
+            RailNetworkManager.getInstance(event.getWorld().isRemote).markDirty(new MCPos(event.getWorld(), event.getPos()));
         }
     }
 
     @SubscribeEvent
     public void onPreServerTick(ServerTickEvent event){
         if(event.phase == Phase.START) {
-            RailNetworkManager.getInstance().onPreServerTick();
+            RailNetworkManager.getServerInstance().onPreServerTick();
         }
     }
 
     @SubscribeEvent
     public void onPostServerTick(ServerTickEvent event){
         if(event.phase == Phase.END) {
-            RailNetworkManager.getInstance().onPostServerTick();
+            RailNetworkManager.getServerInstance().onPostServerTick();
             ChunkLoadManager.INSTANCE.update();
         }
     }
@@ -174,7 +174,7 @@ public class EventHandler implements IWorldEventListener{
     @SubscribeEvent
     public void onPreClientTick(ClientTickEvent event){
         if(event.phase == Phase.START) {
-            RailNetworkManager.getInstance().onPreClientTick();
+            RailNetworkManager.getClientInstance().onPreClientTick();
         }
     }
 

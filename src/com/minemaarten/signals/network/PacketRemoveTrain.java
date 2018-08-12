@@ -27,7 +27,7 @@ public class PacketRemoveTrain extends AbstractPacket<PacketRemoveTrain>{
 
     @Override
     public void handleClientSide(EntityPlayer player){
-        RailNetworkManager.getInstance().removeTrain(trainID);
+        RailNetworkManager.getClientInstance().removeTrain(trainID);
     }
 
     @Override

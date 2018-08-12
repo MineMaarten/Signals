@@ -72,14 +72,14 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     private NetworkSignal<MCPos> getSignal(){
-        NetworkObject<MCPos> obj = RailNetworkManager.getInstance().getNetwork().railObjects.get(getMCPos());
+        NetworkObject<MCPos> obj = RailNetworkManager.getInstance(world.isRemote).getNetwork().railObjects.get(getMCPos());
         return obj instanceof NetworkSignal ? (NetworkSignal<MCPos>)obj : null;
     }
 
     protected List<EntityMinecart> getNeighborMinecarts(){
         NetworkSignal<MCPos> signal = getSignal();
         if(signal == null) return Collections.emptyList();
-        return getNeighborMinecarts(RailNetworkManager.getInstance().getNetwork().getPositionsInFront(signal).stream());
+        return getNeighborMinecarts(RailNetworkManager.getInstance(world.isRemote).getNetwork().getPositionsInFront(signal).stream());
     }
 
     public static List<EntityMinecart> getNeighborMinecarts(Stream<MCPos> positions){
@@ -97,8 +97,8 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
             if(firstTick) {
                 firstTick = false;
 
-                setLampStatus(RailNetworkManager.getInstance().getLampStatus(world, pos));
-                setForceMode(RailNetworkManager.getInstance().getState().getForceMode(getMCPos()));
+                setLampStatus(RailNetworkManager.getInstance(world.isRemote).getLampStatus(world, pos));
+                setForceMode(RailNetworkManager.getInstance(world.isRemote).getState().getForceMode(getMCPos()));
             }
         }
     }

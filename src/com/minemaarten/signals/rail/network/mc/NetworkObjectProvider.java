@@ -1,6 +1,7 @@
 package com.minemaarten.signals.rail.network.mc;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,7 +68,10 @@ public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
             cartGroup.add(cart);
         }
 
-        return cartGroups.stream().map(MCTrain::new).collect(Collectors.toSet());
+        if(cartGroups.isEmpty()) return new HashSet<>();
+
+        RailNetworkManager railNetworkManager = RailNetworkManager.getInstance(carts.get(0).world.isRemote);
+        return cartGroups.stream().map(cartGroup -> new MCTrain(railNetworkManager, cartGroup)).collect(Collectors.toSet());
     }
 
     @Override

@@ -29,7 +29,7 @@ public class CommandSignals extends CommandBase{
         if(args.length == 0) throw new WrongUsageException("command.signals.noArgs");
         String subCommand = args[0];
         if(subCommand.equals("rebuildNetwork")) {
-            RailNetworkManager.getInstance().rebuildNetwork();
+            RailNetworkManager.getServerInstance().rebuildNetwork();
             sender.sendMessage(new TextComponentTranslation("command.signals.networkCleared"));
         } else {
             throw new WrongUsageException("command.signals.invalidSubCommand", subCommand);

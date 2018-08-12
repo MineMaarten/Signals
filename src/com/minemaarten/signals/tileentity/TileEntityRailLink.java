@@ -24,13 +24,13 @@ public class TileEntityRailLink extends TileEntityBase implements IGUIButtonSens
     public void setLinkedPos(MCPos railPos){
         if(!Objects.equals(railPos, linkedPos)) {
             linkedPos = railPos;
-            RailNetworkManager.getInstance().markDirty(getMCPos());
+            RailNetworkManager.getInstance(world.isRemote).markDirty(getMCPos());
             updateLinkState();
         }
     }
 
     private void updateLinkState(){
-        NetworkRail<MCPos> linkedRail = linkedPos == null ? null : RailNetworkManager.getInstance().getRail(linkedPos);
+        NetworkRail<MCPos> linkedRail = linkedPos == null ? null : RailNetworkManager.getInstance(world.isRemote).getRail(linkedPos);
         world.setBlockState(getPos(), world.getBlockState(getPos()).withProperty(BlockRailLink.CONNECTED, linkedRail != null), 2);
     }
 
@@ -38,7 +38,7 @@ public class TileEntityRailLink extends TileEntityBase implements IGUIButtonSens
     public void handleGUIButtonPress(EntityPlayer player, int... data){
         if(data[0] != holdDelay) {
             holdDelay = data[0];
-            RailNetworkManager.getInstance().markDirty(getMCPos());
+            RailNetworkManager.getInstance(world.isRemote).markDirty(getMCPos());
         }
     }
 

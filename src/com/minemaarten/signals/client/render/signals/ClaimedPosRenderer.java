@@ -24,18 +24,18 @@ public class ClaimedPosRenderer extends AbstractRailRenderer<MCTrainClient>{
 
     @Override
     protected Iterable<MCTrainClient> getRenderableSections(){
-        Stream<MCTrain> allTrains = RailNetworkManager.getInstance().getAllTrains();
+        Stream<MCTrain> allTrains = RailNetworkManager.getClientInstance().getAllTrains();
         return allTrains.map(t -> (MCTrainClient)t).filter(this::canRender).collect(Collectors.toList());
     }
 
     @Override
     protected NetworkRail<MCPos> getRootNode(MCTrainClient section){
-        return (NetworkRail<MCPos>)RailNetworkManager.getInstance().getNetwork().railObjects.get(section.clientClaimedPositions.iterator().next());
+        return (NetworkRail<MCPos>)RailNetworkManager.getClientInstance().getNetwork().railObjects.get(section.clientClaimedPositions.iterator().next());
     }
 
     @Override
     protected RailObjectHolder<MCPos> getNeighborProvider(MCTrainClient section){
-        return RailNetworkManager.getInstance().getNetwork().railObjects.subSelectionForPos(section.clientClaimedPositions);
+        return RailNetworkManager.getClientInstance().getNetwork().railObjects.subSelectionForPos(section.clientClaimedPositions);
     }
 
     @Override

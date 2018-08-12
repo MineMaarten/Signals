@@ -33,7 +33,7 @@ public abstract class GuiDestinations<DestinationAccessor extends IDestinationAc
         stationNameFields = new WidgetComboBox[destinationAccessor.getTotalDestinations() + 1];
         for(int i = 0; i < stationNameFields.length; i++) {
             stationNameFields[i] = new WidgetComboBox(fontRenderer, guiLeft + 10, height / 2 - 5 - stationNameFields.length * 7 + i * 14, 100, fontRenderer.FONT_HEIGHT);
-            stationNameFields[i].setElements(RailNetworkManager.getInstance().getNetwork().getStationNames());
+            stationNameFields[i].setElements(RailNetworkManager.getClientInstance().getNetwork().getStationNames());
             addWidget(stationNameFields[i]);
         }
         if(oldFields != null) {

@@ -10,12 +10,12 @@ public class RailEdgeRenderer extends AbstractRailRenderer<RailEdge<MCPos>>{
 
     @Override
     protected boolean isAdjacent(RailEdge<MCPos> s1, RailEdge<MCPos> s2){
-        return RailNetworkManager.getInstance().getClientNetwork().areAdjacent(s1, s2);
+        return RailNetworkManager.getClientInstance().getClientNetwork().areAdjacent(s1, s2);
     }
 
     @Override
     protected Iterable<RailEdge<MCPos>> getRenderableSections(){
-        return RailNetworkManager.getInstance().getNetwork().getAllEdges();
+        return RailNetworkManager.getClientInstance().getNetwork().getAllEdges();
     }
 
     @Override

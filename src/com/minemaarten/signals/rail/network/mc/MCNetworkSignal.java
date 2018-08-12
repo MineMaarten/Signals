@@ -50,7 +50,7 @@ public class MCNetworkSignal extends NetworkSignal<MCPos> implements ISerializab
 
     @Override
     public int getColor(){
-        return RailNetworkManager.getInstance().getState().getLampStatus(pos).color;
+        return RailNetworkManager.getClientInstance().getState().getLampStatus(pos).color;
     }
 
     @Override

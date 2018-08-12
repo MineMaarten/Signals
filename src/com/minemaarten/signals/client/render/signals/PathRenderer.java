@@ -23,18 +23,18 @@ public class PathRenderer extends AbstractRailRenderer<MCTrain>{
 
     @Override
     protected Iterable<MCTrain> getRenderableSections(){
-        Stream<MCTrain> allTrains = RailNetworkManager.getInstance().getAllTrains();
+        Stream<MCTrain> allTrains = RailNetworkManager.getClientInstance().getAllTrains();
         return allTrains.filter(this::canRender).collect(Collectors.toList());
     }
 
     @Override
     protected NetworkRail<MCPos> getRootNode(MCTrain section){
-        return (NetworkRail<MCPos>)RailNetworkManager.getInstance().getNetwork().railObjects.get(section.getCurRoute().routeRails.get(0));
+        return (NetworkRail<MCPos>)RailNetworkManager.getClientInstance().getNetwork().railObjects.get(section.getCurRoute().routeRails.get(0));
     }
 
     @Override
     protected RailObjectHolder<MCPos> getNeighborProvider(MCTrain section){
-        return RailNetworkManager.getInstance().getNetwork().railObjects.subSelectionForPos(section.getCurRoute().routeRails);
+        return RailNetworkManager.getClientInstance().getNetwork().railObjects.subSelectionForPos(section.getCurRoute().routeRails);
     }
 
     @Override

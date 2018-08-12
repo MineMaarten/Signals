@@ -59,7 +59,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
 
         this.stationName = stationName;
         if(!world.isRemote) {
-            RailNetworkManager.getInstance().markDirty(getMCPos());
+            RailNetworkManager.getInstance(world.isRemote).markDirty(getMCPos());
             markDirty();
             sendUpdatePacket();
         }
@@ -69,7 +69,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
         List<MCPos> neighbors = new ArrayList<>(1);
         for(EnumFacing d : EnumFacing.VALUES) {
             MCPos neighborPos = getMCPos().offset(d);
-            NetworkObject<MCPos> rail = RailNetworkManager.getInstance().getNetwork().railObjects.get(neighborPos);
+            NetworkObject<MCPos> rail = RailNetworkManager.getInstance(world.isRemote).getNetwork().railObjects.get(neighborPos);
             if(rail instanceof NetworkRail) neighbors.add(rail.pos);
         }
         return neighbors;
@@ -87,7 +87,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
             neighborAABB = new PosAABB<>(getNeighborRails());
         }
 
-        RailNetworkManager.getInstance().getAllTrains().forEach(this::updateNeighborMinecarts);
+        RailNetworkManager.getInstance(world.isRemote).getAllTrains().forEach(this::updateNeighborMinecarts);
     }
 
     private void updateNeighborMinecarts(MCTrain train){
@@ -96,7 +96,7 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
                 CapabilityMinecartDestination cap = cart.getCapability(CapabilityMinecartDestination.INSTANCE, null);
                 if(cap.getDestinationIndex() >= 0) {
                     Pattern destinationRegex = cap.getCurrentDestinationRegex();
-                    Set<MCPos> stations = RailNetworkManager.getInstance().getNetwork().getStations(train, destinationRegex);
+                    Set<MCPos> stations = RailNetworkManager.getInstance(world.isRemote).getNetwork().getStations(train, destinationRegex);
                     if(stations.contains(getMCPos())) {
                         cap.nextDestination();
                     }

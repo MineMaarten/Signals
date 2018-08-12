@@ -34,7 +34,7 @@ public class DirectionalityRenderer{
 
     public void updateRender(){
         TIntObjectHashMap<BakedRenderer> bakedRenderers = new TIntObjectHashMap<>();
-        for(RailEdge<MCPos> edge : RailNetworkManager.getInstance().getNetwork().getAllEdges()) {
+        for(RailEdge<MCPos> edge : RailNetworkManager.getServerInstance().getNetwork().getAllEdges()) {
             if(edge.directionality.canTravelForwards) build(bakedRenderers, edge.edge);
             if(edge.directionality.canTravelBackwards) build(bakedRenderers, edge.edge.reverse());
         }

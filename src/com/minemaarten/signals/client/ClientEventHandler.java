@@ -81,7 +81,7 @@ public class ClientEventHandler{
 
         b.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
-        List<NetworkStation<MCPos>> stations = RailNetworkManager.getInstance().getNetwork().railObjects.getStations();
+        List<NetworkStation<MCPos>> stations = RailNetworkManager.getClientInstance().getNetwork().railObjects.getStations();
         for(int i = 0; i < stations.size(); i++) {
             NetworkStation<MCPos> station1 = stations.get(i);
             if(station1.pos.getDimID() != dimensionID) continue;

@@ -66,7 +66,7 @@ public class PacketAddOrUpdateTrain extends AbstractPacket<PacketAddOrUpdateTrai
     public void handleClientSide(EntityPlayer player){
         MCTrain train = new MCTrainClient(trainID, cartIDs);
         train.setPositions(null, null, positions);
-        RailNetworkManager.getInstance().addTrain(train);
+        RailNetworkManager.getClientInstance().addTrain(train);
     }
 
     @Override

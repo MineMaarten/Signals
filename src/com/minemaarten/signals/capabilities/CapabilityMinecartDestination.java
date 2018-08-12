@@ -340,14 +340,14 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                 } else {
                     hopperTimer = 0;
 
-                    NetworkRail<MCPos> rail = RailNetworkManager.getInstance().getRail(cart.world, event.getPos());
+                    NetworkRail<MCPos> rail = RailNetworkManager.getInstance(cart.world.isRemote).getRail(cart.world, event.getPos());
                     if(rail == null) {
                         shouldRun = false;
                     } else {
-                        RailNetwork<MCPos> network = RailNetworkManager.getInstance().getNetwork();
+                        RailNetwork<MCPos> network = RailNetworkManager.getInstance(cart.world.isRemote).getNetwork();
                         NetworkSignal<MCPos> signal = network.railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.getRailPos().equals(rail.pos)).findFirst().orElse(null);
 
-                        NetworkState<MCPos> state = RailNetworkManager.getInstance().getState();
+                        NetworkState<MCPos> state = RailNetworkManager.getInstance(cart.world.isRemote).getState();
                         shouldRun = signal == null || state.getLampStatus(signal.pos) == EnumLampStatus.GREEN;
                         if(!shouldRun) {
                             cart.motionX = 0;

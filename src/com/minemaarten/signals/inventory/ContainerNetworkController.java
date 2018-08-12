@@ -25,10 +25,10 @@ public class ContainerNetworkController extends ContainerBase<TileEntity>{
         int x = data[0];
         int z = data[1];
         int dimID = player.world.provider.getDimension();
-        RailNetwork<MCPos> network = RailNetworkManager.getInstance().getNetwork();
+        RailNetwork<MCPos> network = RailNetworkManager.getInstance(player.world.isRemote).getNetwork();
         EnumForceMode forceMode = EnumForceMode.values()[data[2]];
 
-        if(RailNetworkManager.getInstance().getState().setForceMode(network, dimID, x, z, forceMode)) {
+        if(RailNetworkManager.getInstance(player.world.isRemote).getState().setForceMode(network, dimID, x, z, forceMode)) {
             player.sendMessage(new TextComponentString("Forced " + (forceMode == EnumForceMode.FORCED_RED ? "red" : "green")));
         }
     }

@@ -76,7 +76,7 @@ public class BlockStationMarker extends BlockBase{
     public void updateStationState(World world, BlockPos pos, IBlockState state){
         boolean neighborRail = false;
         for(EnumFacing d : EnumFacing.VALUES) {
-            if(RailNetworkManager.getInstance().getRail(world, pos.offset(d)) != null) {
+            if(RailNetworkManager.getInstance(world.isRemote).getRail(world, pos.offset(d)) != null) {
                 neighborRail = true;
                 break;
             }

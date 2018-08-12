@@ -14,7 +14,7 @@ public class MCTrainClient extends MCTrain{
     public Set<MCPos> clientClaimedPositions = Collections.emptySet();
 
     public MCTrainClient(int id, ImmutableSet<UUID> cartIDs){
-        super(id, cartIDs);
+        super(RailNetworkManager.getClientInstance(), id, cartIDs);
     }
 
     @Override

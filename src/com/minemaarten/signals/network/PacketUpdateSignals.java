@@ -43,7 +43,7 @@ public class PacketUpdateSignals extends AbstractPacket<PacketUpdateSignals>{
 
     @Override
     public void handleClientSide(EntityPlayer player){
-        RailNetworkManager.getInstance().getState().setSignalStatusses(changedSignals);
+        RailNetworkManager.getClientInstance().getState().setSignalStatusses(changedSignals);
         for(Map.Entry<MCPos, EnumLampStatus> entry : changedSignals.entrySet()) {
             NetworkController.getInstance(entry.getKey().getDimID()).updateColor(entry.getValue().color, entry.getKey().getPos());
         }

@@ -10,12 +10,12 @@ public class BlockSectionRenderer extends AbstractRailRenderer<RailSection<MCPos
 
     @Override
     protected boolean isAdjacent(RailSection<MCPos> s1, RailSection<MCPos> s2){
-        return RailNetworkManager.getInstance().getClientNetwork().areAdjacent(s1, s2);
+        return RailNetworkManager.getClientInstance().getClientNetwork().areAdjacent(s1, s2);
     }
 
     @Override
     protected Iterable<RailSection<MCPos>> getRenderableSections(){
-        return RailNetworkManager.getInstance().getNetwork().getAllSections();
+        return RailNetworkManager.getClientInstance().getNetwork().getAllSections();
     }
 
     @Override
@@ -25,7 +25,7 @@ public class BlockSectionRenderer extends AbstractRailRenderer<RailSection<MCPos
 
     @Override
     protected RailObjectHolder<MCPos> getNeighborProvider(RailSection<MCPos> section){
-        return RailNetworkManager.getInstance().getNetwork().railObjects;
+        return RailNetworkManager.getClientInstance().getNetwork().railObjects;
     }
 
     @Override

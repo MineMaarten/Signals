@@ -20,7 +20,7 @@ public class PacketClearNetwork extends AbstractPacket<PacketClearNetwork>{
 
     @Override
     public void handleClientSide(EntityPlayer player){
-        RailNetworkManager.getInstance().clearNetwork();
+        RailNetworkManager.getClientInstance().clearNetwork();
     }
 
     @Override

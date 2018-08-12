@@ -72,7 +72,7 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
                 managingCartId = null;
             }
 
-            boolean extract = RailNetworkManager.getInstance().getRail(getWorld(), getPos().up()) != null;
+            boolean extract = RailNetworkManager.getInstance(world.isRemote).getRail(getWorld(), getPos().up()) != null;
             updateManagingCart(new AxisAlignedBB(extract ? getPos().up() : getPos().down()));
 
             boolean shouldPush;

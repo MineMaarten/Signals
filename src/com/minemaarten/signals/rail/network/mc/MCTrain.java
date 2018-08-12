@@ -53,26 +53,29 @@ public class MCTrain extends Train<MCPos>{
         DIRS_TO_RAIL_DIR.put(EnumSet.of(EnumHeading.WEST, EnumHeading.NORTH), EnumRailDirection.NORTH_WEST);
     }
 
+    private final RailNetworkManager railNetworkManager;
     public ImmutableSet<UUID> cartIDs;
     private Set<EntityMinecart> carts;
 
-    protected MCTrain(int id, ImmutableSet<UUID> cartIDs){
+    protected MCTrain(RailNetworkManager railNetworkManager, int id, ImmutableSet<UUID> cartIDs){
         super(id);
+        this.railNetworkManager = railNetworkManager;
         this.cartIDs = cartIDs;
     }
 
-    public MCTrain(ImmutableSet<UUID> cartIDs){
+    public MCTrain(RailNetworkManager railNetworkManager, ImmutableSet<UUID> cartIDs){
         super();
+        this.railNetworkManager = railNetworkManager;
         this.cartIDs = cartIDs;
     }
 
-    public MCTrain(List<EntityMinecart> carts){
-        this(carts.stream().map(c -> c.getUniqueID()).collect(ImmutableSet.toImmutableSet()));
+    public MCTrain(RailNetworkManager railNetworkManager, List<EntityMinecart> carts){
+        this(railNetworkManager, carts.stream().map(c -> c.getUniqueID()).collect(ImmutableSet.toImmutableSet()));
     }
 
     public Set<EntityMinecart> getCarts(){
         if(carts == null) {
-            carts = cartIDs.stream().map(id -> RailNetworkManager.getInstance().getState().getCart(id)).filter(Predicates.notNull()).collect(Collectors.toSet());
+            carts = cartIDs.stream().map(id -> railNetworkManager.getState().getCart(id)).filter(Predicates.notNull()).collect(Collectors.toSet());
         }
         return carts;
     }
@@ -104,7 +107,7 @@ public class MCTrain extends Train<MCPos>{
         }
         ImmutableSet<MCPos> positions = positionBuilder.build();
         if(!positions.isEmpty()) { //Update if any cart is loaded, currently.
-            return setPositions(RailNetworkManager.getInstance().getNetwork(), state, positions);
+            return setPositions(railNetworkManager.getNetwork(), state, positions);
         } else {
             return false;
         }
@@ -114,7 +117,7 @@ public class MCTrain extends Train<MCPos>{
     protected void onPositionChanged(RailNetwork<MCPos> network, NetworkState<MCPos> state){
         super.onPositionChanged(network, state);
         NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(this));
-        NetworkStorage.getInstance().markDirty();
+        NetworkStorage.getInstance(railNetworkManager.isClientInstance()).markDirty();
     }
 
     @Override
@@ -144,7 +147,7 @@ public class MCTrain extends Train<MCPos>{
                 //TODO messages.add(new PacketUpdateMessage(this, cart, "signals.message.routing_cart", destination));
 
                 //Strategy to skip destinations that have no matching station (like ITEM routing without having items)
-                RailRouteResult<MCPos> routeResult = RailNetworkManager.getInstance().pathfind(start, this, destinationRegex, dir);
+                RailRouteResult<MCPos> routeResult = railNetworkManager.pathfind(start, this, destinationRegex, dir);
                 if(routeResult.routeResult == EnumRouteResult.NO_PATH) {
                     return null; //No path is no route
                 } else if(routeResult.routeResult == EnumRouteResult.SUCCESS) {
@@ -226,7 +229,7 @@ public class MCTrain extends Train<MCPos>{
         tag.setTag("positions", posList);
     }
 
-    public static MCTrain fromNBT(NBTTagCompound tag){
+    public static MCTrain fromNBT(RailNetworkManager railNetworkManager, NBTTagCompound tag){
         ImmutableSet.Builder<UUID> idBuilder = ImmutableSet.builder();
         NBTTagList idList = tag.getTagList("cartIDs", Constants.NBT.TAG_LONG);
         for(int i = 0; i < idList.tagCount(); i += 2) {
@@ -241,7 +244,7 @@ public class MCTrain extends Train<MCPos>{
             posBuilder.add(new MCPos(posList.getCompoundTagAt(i)));
         }
 
-        MCTrain train = new MCTrain(idBuilder.build());
+        MCTrain train = new MCTrain(railNetworkManager, idBuilder.build());
         train.positions = posBuilder.build();
         return train;
     }

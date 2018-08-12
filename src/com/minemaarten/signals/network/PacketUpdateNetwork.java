@@ -32,7 +32,7 @@ public class PacketUpdateNetwork extends AbstractPacket<PacketUpdateNetwork>{
 
     @Override
     public void handleClientSide(EntityPlayer player){
-        RailNetworkManager.getInstance().applyUpdates(changedObjects);
+        RailNetworkManager.getClientInstance().applyUpdates(changedObjects);
     }
 
     @Override

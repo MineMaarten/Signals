@@ -41,8 +41,13 @@ import com.minemaarten.signals.rail.network.Train;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 
 public class MCNetworkState extends NetworkState<MCPos>{
+    private final RailNetworkManager railNetworkManager;
     private Map<UUID, EntityMinecart> trackingMinecarts = new HashMap<>();
     private Map<UUID, MCTrain> cartIDsToTrains;
+
+    public MCNetworkState(RailNetworkManager railNetworkManager){
+        this.railNetworkManager = railNetworkManager;
+    }
 
     public void onPlayerJoin(EntityPlayerMP player){
         for(Train<MCPos> train : getTrains()) {
@@ -72,7 +77,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
                 if(te instanceof TileEntitySignalBase) {
                     ((TileEntitySignalBase)te).setLampStatus(entry.getValue());
                 } else { //If there's no signal block, something's wrong
-                    RailNetworkManager.getInstance().markDirty(mcPos);
+                    RailNetworkManager.getInstance(world.isRemote).markDirty(mcPos);
                 }
             }
         }
@@ -152,7 +157,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
     }
 
     private MCTrain addTrain(ImmutableSet<UUID> uuids){
-        MCTrain train = new MCTrain(uuids);
+        MCTrain train = new MCTrain(railNetworkManager, uuids);
         addTrain(train);
         cartIDsToTrains = null;
         NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
@@ -314,12 +319,12 @@ public class MCNetworkState extends NetworkState<MCPos>{
         tag.setTag("forcedSignals", forcedSignals);
     }
 
-    public static MCNetworkState fromNBT(NBTTagCompound tag){
+    public static MCNetworkState fromNBT(RailNetworkManager railNetworkManager, NBTTagCompound tag){
         NBTTagList trainList = tag.getTagList("trains", Constants.NBT.TAG_COMPOUND);
         List<MCTrain> trains = new ArrayList<>();
 
         for(int i = 0; i < trainList.tagCount(); i++) {
-            trains.add(MCTrain.fromNBT(trainList.getCompoundTagAt(i)));
+            trains.add(MCTrain.fromNBT(railNetworkManager, trainList.getCompoundTagAt(i)));
         }
 
         Map<MCPos, EnumForceMode> forcedSignalMap = new HashMap<>();
@@ -329,7 +334,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
             forcedSignalMap.put(new MCPos(t), EnumForceMode.values()[t.getByte("f")]);
         }
 
-        MCNetworkState state = new MCNetworkState();
+        MCNetworkState state = new MCNetworkState(railNetworkManager);
         state.signalForces = forcedSignalMap;
         state.setTrains(trains);
         return state;

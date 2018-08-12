@@ -50,8 +50,8 @@ public class NetworkController{
     }
 
     public static NetworkController getInstance(int dimension){
-        if(network != RailNetworkManager.getInstance().getClientNetwork()) {
-            network = RailNetworkManager.getInstance().getClientNetwork();
+        if(network != RailNetworkManager.getClientInstance().getClientNetwork()) {
+            network = RailNetworkManager.getClientInstance().getClientNetwork();
             cache = rebuildAll();
         }
 
@@ -108,7 +108,7 @@ public class NetworkController{
     }
 
     private List<RailRoute<MCPos>> getAllRoutes(){
-        return RailNetworkManager.getInstance().getAllTrains().map(t -> t.getCurRoute()).filter(Predicates.notNull()).collect(Collectors.toList());
+        return RailNetworkManager.getClientInstance().getAllTrains().map(t -> t.getCurRoute()).filter(Predicates.notNull()).collect(Collectors.toList());
     }
 
     @SideOnly(Side.CLIENT)
@@ -137,7 +137,7 @@ public class NetworkController{
         GlStateManager.color(0, 0, 1);
         GlStateManager.disableTexture2D();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
-        for(Train<MCPos> train : RailNetworkManager.getInstance().getAllTrains().collect(Collectors.toList())) {
+        for(Train<MCPos> train : RailNetworkManager.getClientInstance().getAllTrains().collect(Collectors.toList())) {
             for(MCPos pos : train.getPositions()) {
                 if(pos.getDimID() != dimensionId) continue;
 
@@ -171,7 +171,7 @@ public class NetworkController{
         }
 
         //Draw the station names next to the stations
-        RailNetwork<MCPos> network = RailNetworkManager.getInstance().getNetwork();
+        RailNetwork<MCPos> network = RailNetworkManager.getClientInstance().getNetwork();
         for(NetworkStation<MCPos> station : network.railObjects.getStations()) {
             double x = station.pos.getX() - startX - 0.5;
             double y = station.pos.getZ() - startZ - 0.5;
@@ -221,7 +221,7 @@ public class NetworkController{
     public static Map<Integer, NetworkController> rebuildAll(){
         Map<Integer, NetworkController> cache = new HashMap<>();
 
-        Collection<NetworkObject<MCPos>> allObjects = RailNetworkManager.getInstance().getNetwork().railObjects.getAllNetworkObjects().values();
+        Collection<NetworkObject<MCPos>> allObjects = RailNetworkManager.getClientInstance().getNetwork().railObjects.getAllNetworkObjects().values();
         Map<Integer, List<NetworkObject<MCPos>>> objsByDim = allObjects.stream().collect(Collectors.groupingBy(o -> o.pos.getDimID()));
 
         for(Map.Entry<Integer, List<NetworkObject<MCPos>>> entry : objsByDim.entrySet()) {

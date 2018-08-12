@@ -22,7 +22,7 @@ public class GuiStationMarker extends GuiContainerBase<TileEntityStationMarker>{
     public void initGui(){
         super.initGui();
         stationNameField = new WidgetComboBox(fontRenderer, width / 2 - 50, height / 2 - 5, 100, fontRenderer.FONT_HEIGHT);
-        stationNameField.setElements(RailNetworkManager.getInstance().getNetwork().getStationNames());
+        stationNameField.setElements(RailNetworkManager.getClientInstance().getNetwork().getStationNames());
         addWidget(stationNameField);
     }
 

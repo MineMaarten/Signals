@@ -27,7 +27,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.minemaarten.signals.Signals;
@@ -53,18 +52,18 @@ public class RailNetworkManager{
     private static RailNetworkManager CLIENT_INSTANCE;
     private static RailNetworkManager SERVER_INSTANCE;
 
-    public static RailNetworkManager getInstance(){
-        return FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT ? getClientInstance() : getServerInstance();
+    public static RailNetworkManager getInstance(boolean clientInstance){
+        return clientInstance ? getClientInstance() : getServerInstance();
     }
 
-    private static RailNetworkManager getClientInstance(){
+    public static RailNetworkManager getClientInstance(){
         if(CLIENT_INSTANCE == null) {
             CLIENT_INSTANCE = new RailNetworkManager(true);
         }
         return CLIENT_INSTANCE;
     }
 
-    private static RailNetworkManager getServerInstance(){
+    public static RailNetworkManager getServerInstance(){
         if(SERVER_INSTANCE == null) {
             SERVER_INSTANCE = new RailNetworkManager(false);
         }
@@ -74,7 +73,7 @@ public class RailNetworkManager{
     private final ExecutorService railNetworkExecutor = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("signals-network-thread-%d").build());
     private Future<RailNetwork<MCPos>> networkUpdateTask;
     private RailNetwork<MCPos> network;
-    private MCNetworkState state = new MCNetworkState();
+    private MCNetworkState state = new MCNetworkState(this);
     private final NetworkUpdater<MCPos> networkUpdater = new NetworkUpdater<>(new NetworkObjectProvider());
 
     private RailNetworkManager(boolean client){
@@ -91,6 +90,10 @@ public class RailNetworkManager{
 
     private void validateOnClient(){
         if(this == SERVER_INSTANCE) throw new IllegalStateException();
+    }
+
+    public boolean isClientInstance(){
+        return this == CLIENT_INSTANCE;
     }
 
     /**
@@ -227,7 +230,7 @@ public class RailNetworkManager{
             try {
                 network = networkUpdateTask.get();
                 networkUpdateTask = null;
-                NetworkStorage.getInstance().setNetwork(network);
+                NetworkStorage.getInstance(isClientInstance()).setNetwork(network);
 
                 if(this == CLIENT_INSTANCE) {
                     //Asynchronously update the renderers

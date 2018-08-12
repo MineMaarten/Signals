@@ -61,7 +61,7 @@ public class PacketUpdateTrainPath extends AbstractPacket<PacketUpdateTrainPath>
 
     @Override
     public void handleClientSide(EntityPlayer player){
-        MCTrain train = RailNetworkManager.getInstance().getTrainByID(trainID);
+        MCTrain train = RailNetworkManager.getClientInstance().getTrainByID(trainID);
         if(train != null) {
             //((MCTrainClient)train).clientClaimedPositions = claimedPositions;
             train.setPath(path);

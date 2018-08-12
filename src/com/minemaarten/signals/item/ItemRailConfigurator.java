@@ -58,7 +58,7 @@ public class ItemRailConfigurator extends ItemSignals{
     public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
         ItemStack stack = playerIn.getHeldItem(hand);
         if(!worldIn.isRemote) {
-            NetworkRail<MCPos> rail = RailNetworkManager.getInstance().getRail(worldIn, pos);
+            NetworkRail<MCPos> rail = RailNetworkManager.getInstance(worldIn.isRemote).getRail(worldIn, pos);
             if(rail != null) {
                 setLinkedRail(stack, rail.pos);
                 playerIn.sendMessage(new TextComponentString("Pos: " + pos));
