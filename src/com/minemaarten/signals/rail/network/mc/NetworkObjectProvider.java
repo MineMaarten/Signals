@@ -31,6 +31,10 @@ public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
 
     public NetworkObject<MCPos> provide(World world, BlockPos pos){
         MCPos mcPos = new MCPos(world.provider.getDimension(), pos);
+        if (!world.isChunkGeneratedAt(pos.getX() >> 4, pos.getZ() >> 4)) {
+            return null;
+        }
+    
         IBlockState state = world.getBlockState(pos);
         IRail rail = RailManager.getInstance().getRail(world, pos, state);
         if(rail != null) {
