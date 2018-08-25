@@ -48,12 +48,17 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
         if(state.getPropertyKeys().contains(BlockSignalBase.LAMP_STATUS) && state.getValue(BlockSignalBase.LAMP_STATUS) != lampStatus) {
             getWorld().setBlockState(getPos(), state.withProperty(BlockSignalBase.LAMP_STATUS, lampStatus));
             if(lampStatus == EnumLampStatus.GREEN) {
-                //Push carts when they're standing still.
+                //Push carts when they're standing still or going backwards.
                 List<EntityMinecart> neighborMinecarts = getNeighborMinecarts();
                 for(EntityMinecart cart : neighborMinecarts) {
                     if(new Vec3d(cart.motionX, cart.motionY, cart.motionZ).lengthVector() < 0.01 || EnumFacing.getFacingFromVector((float)cart.motionX, 0, (float)cart.motionZ) == getFacing()) {
                         cart.motionX += getFacing().getFrontOffsetX() * 0.1;
                         cart.motionZ += getFacing().getFrontOffsetZ() * 0.1;
+                    } else if(EnumFacing.getFacingFromVector((float)cart.motionX, 0, (float)cart.motionZ) == getFacing().getOpposite()) {
+                        //Reverse the cart if going backwards into a signal.
+                        cart.motionX *= -1;
+                        cart.motionY *= -1;
+                        cart.motionZ *= -1;
                     }
                 }
             }
