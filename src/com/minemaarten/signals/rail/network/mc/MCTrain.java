@@ -103,7 +103,11 @@ public class MCTrain extends Train<MCPos>{
 
         ImmutableSet.Builder<MCPos> positionBuilder = ImmutableSet.builder();
         for(EntityMinecart cart : getCarts()) {
-            positionBuilder.add(new MCPos(cart.world, cart.getPosition()));
+            MCPos cartPos = new MCPos(cart.world, cart.getPosition().down());
+            if(railNetworkManager.getNetwork().railObjects.get(cartPos) == null) {
+                cartPos = new MCPos(cart.world, cart.getPosition());
+            }
+            positionBuilder.add(cartPos);
         }
         ImmutableSet<MCPos> positions = positionBuilder.build();
         if(!positions.isEmpty()) { //Update if any cart is loaded, currently.
