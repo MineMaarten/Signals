@@ -68,7 +68,7 @@ public class Signals{
     @EventHandler
     public void load(FMLInitializationEvent event){
         NetworkHandler.init();
-
+        //GameRegistry.registerWorldGenerator(new WorldGeneratorSignals(), 0);
         proxy.init();
     }
 
