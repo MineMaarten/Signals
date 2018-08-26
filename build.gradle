@@ -24,7 +24,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 project.ext {
 	massive = "1"
     major = "3"
-    minor = "11"
+    minor = "12"
     mcVersion = "1.12.2"
 }
 
