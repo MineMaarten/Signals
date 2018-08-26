@@ -1,0 +1,16 @@
+{
+    "variants": {
+        "forward=false,shape=north_south":  { "model": "signals:teleport_rail_flat", "y": 180 },
+        "forward=true,shape=north_south":  { "model": "signals:teleport_rail_flat" },
+        "forward=false,shape=east_west":  { "model": "signals:teleport_rail_flat", "y": -90 },
+        "forward=true,shape=east_west":  { "model": "signals:teleport_rail_flat", "y": 90 },
+        "forward=false,shape=ascending_east": { "model": "signals:teleport_rail_raised_ne_mirrored", "y": 90 },
+        "forward=true,shape=ascending_east": { "model": "signals:teleport_rail_raised_ne", "y": 90 },
+        "forward=false,shape=ascending_west": { "model": "signals:teleport_rail_raised_sw", "y": 90 },
+        "forward=true,shape=ascending_west": { "model": "signals:teleport_rail_raised_sw_mirrored", "y": 90 },
+        "forward=false,shape=ascending_north": { "model": "signals:teleport_rail_raised_ne_mirrored" },
+        "forward=true,shape=ascending_north": { "model": "signals:teleport_rail_raised_ne" },
+        "forward=false,shape=ascending_south": { "model": "signals:teleport_rail_raised_sw" },
+        "forward=true,shape=ascending_south": { "model": "signals:teleport_rail_raised_sw_mirrored"  }
+    }
+}

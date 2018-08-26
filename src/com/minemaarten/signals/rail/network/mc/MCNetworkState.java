@@ -118,7 +118,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
         return trackingMinecarts.get(uniqueID);
     }
 
-    private MCTrain getTrain(UUID cartID){
+    public MCTrain getTrain(UUID cartID){
         if(cartIDsToTrains == null) {
             cartIDsToTrains = new HashMap<>();
             for(Train<MCPos> train : getTrains()) {

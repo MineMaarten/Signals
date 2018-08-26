@@ -21,7 +21,7 @@ import com.minemaarten.signals.proxy.CommonProxy.EnumGuiId;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.mc.MCPos;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
-import com.minemaarten.signals.tileentity.TileEntityRailLink;
+import com.minemaarten.signals.tileentity.TileEntityRailLinkBase;
 
 public class ItemRailConfigurator extends ItemSignals{
 
@@ -58,18 +58,19 @@ public class ItemRailConfigurator extends ItemSignals{
     public EnumActionResult onItemUse(EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
         ItemStack stack = playerIn.getHeldItem(hand);
         if(!worldIn.isRemote) {
-            NetworkRail<MCPos> rail = RailNetworkManager.getInstance(worldIn.isRemote).getRail(worldIn, pos);
-            if(rail != null) {
-                setLinkedRail(stack, rail.pos);
-                playerIn.sendMessage(new TextComponentString("Pos: " + pos));
+            TileEntity te = worldIn.getTileEntity(pos);
+            if(te instanceof TileEntityRailLinkBase) {
+                TileEntityRailLinkBase railLinkBase = (TileEntityRailLinkBase)te;
+                MCPos railPos = getLinkedRail(stack);
+                if(railPos != null) {
+                    railLinkBase.setLinkedPos(railPos);
+                    playerIn.sendMessage(new TextComponentString("Linked to " + railPos));
+                }
             } else {
-                TileEntity te = worldIn.getTileEntity(pos);
-                if(te instanceof TileEntityRailLink) {
-                    MCPos railPos = getLinkedRail(stack);
-                    if(railPos != null) {
-                        ((TileEntityRailLink)te).setLinkedPos(railPos);
-                        playerIn.sendMessage(new TextComponentString("Linked to " + railPos));
-                    }
+                NetworkRail<MCPos> rail = RailNetworkManager.getInstance(worldIn.isRemote).getRail(worldIn, pos);
+                if(rail != null) {
+                    setLinkedRail(stack, rail.pos);
+                    playerIn.sendMessage(new TextComponentString("Pos: " + pos));
                 }
             }
         }

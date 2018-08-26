@@ -14,6 +14,7 @@ import com.minemaarten.signals.block.BlockLimiterRail;
 import com.minemaarten.signals.block.BlockRailLink;
 import com.minemaarten.signals.block.BlockSignalBase;
 import com.minemaarten.signals.block.BlockStationMarker;
+import com.minemaarten.signals.block.BlockTeleportRail;
 import com.minemaarten.signals.lib.Constants;
 import com.minemaarten.signals.tileentity.TileEntityBlockSignal;
 import com.minemaarten.signals.tileentity.TileEntityChainSignal;
@@ -27,6 +28,7 @@ public class ModBlocks{
     public static Block STATION_MARKER;
     public static Block RAIL_LINK;
     public static Block LIMITER_RAIL;
+    public static Block TELEPORT_RAIL;
     public static Block CART_HOPPER;
 
     public static void init(){
@@ -36,6 +38,7 @@ public class ModBlocks{
         STATION_MARKER = new BlockStationMarker();
         RAIL_LINK = new BlockRailLink();
         LIMITER_RAIL = new BlockLimiterRail();
+        TELEPORT_RAIL = new BlockTeleportRail();
         CART_HOPPER = new BlockCartHopper();
     }
 
