@@ -17,7 +17,7 @@ import org.apache.commons.lang3.Validate;
 import com.minemaarten.signals.api.access.IStationMarker;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.network.GuiSynced;
-import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.INetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.PosAABB;
 import com.minemaarten.signals.rail.network.mc.MCPos;
@@ -69,8 +69,8 @@ public class TileEntityStationMarker extends TileEntityBase implements ITickable
         List<MCPos> neighbors = new ArrayList<>(1);
         for(EnumFacing d : EnumFacing.VALUES) {
             MCPos neighborPos = getMCPos().offset(d);
-            NetworkObject<MCPos> rail = RailNetworkManager.getInstance(world.isRemote).getNetwork().railObjects.get(neighborPos);
-            if(rail instanceof NetworkRail) neighbors.add(rail.pos);
+            INetworkObject<MCPos> rail = RailNetworkManager.getInstance(world.isRemote).getNetwork().railObjects.get(neighborPos);
+            if(rail instanceof NetworkRail) neighbors.add(rail.getPos());
         }
         return neighbors;
     }

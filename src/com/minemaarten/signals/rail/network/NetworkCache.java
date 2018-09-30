@@ -3,10 +3,10 @@ package com.minemaarten.signals.rail.network;
 import java.util.List;
 
 public class NetworkCache<TPos extends IPosition<TPos>> {
-    private final NetworkObject<TPos> thisObj;
+    private final INetworkObject<TPos> thisObj;
     private RailObjectHolder<TPos> objectNeighbors;
 
-    public NetworkCache(NetworkObject<TPos> thisObj){
+    public NetworkCache(INetworkObject<TPos> thisObj){
         this.thisObj = thisObj;
     }
 

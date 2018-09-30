@@ -33,12 +33,12 @@ public class NetworkRemovalMarker extends NetworkObject<MCPos> implements ISeria
 
     @Override
     public void writeToNBT(NBTTagCompound tag){
-        pos.writeToNBT(tag);
+        getPos().writeToNBT(tag);
     }
 
     @Override
     public void writeToBuf(ByteBuf b){
-        pos.writeToBuf(b);
+        getPos().writeToBuf(b);
     }
 
     @Override

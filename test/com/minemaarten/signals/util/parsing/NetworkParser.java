@@ -12,6 +12,7 @@ import org.junit.Assert;
 
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.rail.network.EnumHeading;
+import com.minemaarten.signals.rail.network.INetworkObject;
 import com.minemaarten.signals.rail.network.INetworkObjectProvider;
 import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
@@ -118,12 +119,12 @@ public class NetworkParser implements INetworkObjectProvider<Pos2D>{
         setMap(map);
         int xSize = map.get(0).length();
 
-        List<NetworkObject<Pos2D>> networkObjects = new ArrayList<>();
+        List<INetworkObject<Pos2D>> networkObjects = new ArrayList<>();
 
         for(int y = 0; y < map.size(); y++) {
             for(int x = 0; x < xSize; x++) {
                 Pos2D pos = new Pos2D(x, y);
-                NetworkObject<Pos2D> networkObject = provide(pos);
+                INetworkObject<Pos2D> networkObject = provide(pos);
                 if(networkObject != null) {
                     networkObjects.add(networkObject);
                 }
@@ -155,7 +156,7 @@ public class NetworkParser implements INetworkObjectProvider<Pos2D>{
     }
 
     @Override
-    public NetworkObject<Pos2D> provide(Pos2D pos){
+    public INetworkObject<Pos2D> provide(Pos2D pos){
         if(pos.y >= getMapHeight() || pos.y < 0 || pos.x >= getMapWidth() || pos.x < 0) return null;
 
         char c = map.get(pos.y).charAt(pos.x);
@@ -172,7 +173,7 @@ public class NetworkParser implements INetworkObjectProvider<Pos2D>{
     }
 
     @Override
-    public NetworkObject<Pos2D> provideRemovalMarker(Pos2D pos){
+    public INetworkObject<Pos2D> provideRemovalMarker(Pos2D pos){
         return new TestRemovalNode(pos);
     }
 }

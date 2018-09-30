@@ -30,6 +30,6 @@ public class BlockSectionRenderer extends AbstractRailRenderer<RailSection<MCPos
 
     @Override
     protected boolean shouldTraverse(RailSection<MCPos> section, NetworkRail<MCPos> rail){
-        return section.containsRail(rail.pos);
+        return section.containsRail(rail.getPos());
     }
 }

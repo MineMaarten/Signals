@@ -24,6 +24,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeHooks;
@@ -53,6 +54,11 @@ public class BlockTeleportRail extends BlockRailBase implements ITileEntityProvi
         setCreativeTab(CreativeTabSignals.getInstance());
         ModBlocks.registerBlock(this);
         GameRegistry.registerTileEntity(TileEntityTeleportRail.class, "signals:teleport_rail");
+    }
+
+    @Override
+    public boolean isFlexibleRail(IBlockAccess world, BlockPos pos){
+        return false;
     }
 
     @Override
@@ -118,7 +124,7 @@ public class BlockTeleportRail extends BlockRailBase implements ITileEntityProvi
         double d1 = MathHelper.clamp(this.posZ * moveFactor, worldserver1.getWorldBorder().minZ() + 16.0D, worldserver1.getWorldBorder().maxZ() - 16.0D);
         double d2 = 8.0D;*/
 
-        cart.moveToBlockPosAndAngles(destPos, 90.0F, 0.0F); //TODO rotation
+        cart.moveToBlockPosAndAngles(destPos, 90.0F, 0.0F);
         /*Teleporter teleporter = worldserver1.getDefaultTeleporter();
         teleporter.placeInExistingPortal(this, f);
         blockpos = new BlockPos(this);*/
@@ -130,6 +136,17 @@ public class BlockTeleportRail extends BlockRailBase implements ITileEntityProvi
             copyDataFromOld(entity, cart);
 
             entity.moveToBlockPosAndAngles(blockpos, entity.rotationYaw, entity.rotationPitch);
+
+            IBlockState state = destination.getLoadedBlockState();
+            if(state.getBlock() == ModBlocks.TELEPORT_RAIL) { //If the destination is a teleport track, use its rail direction to push the cart the right direction
+                EnumFacing teleportDir = getTeleportDirection(state);
+                double speed = 0.2;
+                entity.motionX = teleportDir.getFrontOffsetX() * speed;
+                entity.motionY = teleportDir.getFrontOffsetY() * speed;
+                entity.motionZ = teleportDir.getFrontOffsetZ() * speed;
+            } else {
+                entity.motionX = entity.motionY = entity.motionZ = 0;
+            }
 
             boolean flag = entity.forceSpawn;
             entity.forceSpawn = true;
@@ -163,8 +180,8 @@ public class BlockTeleportRail extends BlockRailBase implements ITileEntityProvi
         int curIndex = startIndex;
         while(curIndex >= 0) {
             NetworkRail<MCPos> neighborRail = edge.get(curIndex);
-            if(!neighborRail.getRailType().equals(thisRailType) || neighborRail.pos.getDimID() != world.provider.getDimension()) break;
-            ret.add(neighborRail.pos);
+            if(!neighborRail.getRailType().equals(thisRailType) || neighborRail.getPos().getDimID() != world.provider.getDimension()) break;
+            ret.add(neighborRail.getPos());
             curIndex--;
         }
 
@@ -172,8 +189,8 @@ public class BlockTeleportRail extends BlockRailBase implements ITileEntityProvi
         curIndex = startIndex + 1;
         while(curIndex < edge.length) {
             NetworkRail<MCPos> neighborRail = edge.get(curIndex);
-            if(!neighborRail.getRailType().equals(thisRailType) || neighborRail.pos.getDimID() != world.provider.getDimension()) break;
-            ret.add(neighborRail.pos);
+            if(!neighborRail.getRailType().equals(thisRailType) || neighborRail.getPos().getDimID() != world.provider.getDimension()) break;
+            ret.add(neighborRail.getPos());
             curIndex++;
         }
 
@@ -227,6 +244,27 @@ public class BlockTeleportRail extends BlockRailBase implements ITileEntityProvi
     public void breakBlock(World worldIn, BlockPos pos, IBlockState state){
         super.breakBlock(worldIn, pos, state);
         worldIn.removeTileEntity(pos);
+    }
+
+    private EnumFacing getTeleportDirection(IBlockState state){
+        EnumRailDirection railDir = state.getValue(getShapeProperty());
+        boolean forward = state.getValue(FORWARD);
+        switch(railDir){
+            case EAST_WEST:
+                return forward ? EnumFacing.EAST : EnumFacing.WEST;
+            case ASCENDING_EAST:
+                return forward ? EnumFacing.EAST : EnumFacing.WEST;
+            case ASCENDING_WEST:
+                return forward ? EnumFacing.WEST : EnumFacing.EAST;
+            case NORTH_SOUTH:
+                return forward ? EnumFacing.NORTH : EnumFacing.SOUTH;
+            case ASCENDING_NORTH:
+                return forward ? EnumFacing.NORTH : EnumFacing.SOUTH;
+            case ASCENDING_SOUTH:
+                return forward ? EnumFacing.SOUTH : EnumFacing.NORTH;
+            default:
+                throw new IllegalStateException("Invalid rail dir for teleport track: " + railDir);
+        }
     }
 
     @Override

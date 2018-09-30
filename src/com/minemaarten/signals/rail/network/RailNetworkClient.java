@@ -11,16 +11,16 @@ public class RailNetworkClient<TPos extends IPosition<TPos>> extends RailNetwork
     private IdentityHashMap<RailSection<TPos>, IdentityHashSet<RailSection<TPos>>> adjacentSectionCache;
     private IdentityHashMap<RailEdge<TPos>, IdentityHashSet<RailEdge<TPos>>> adjacentEdgeCache;
 
-    public RailNetworkClient(Collection<NetworkObject<TPos>> allNetworkObjects){
+    public RailNetworkClient(Collection<INetworkObject<TPos>> allNetworkObjects){
         super(allNetworkObjects);
     }
 
-    public RailNetworkClient(ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects){
+    public RailNetworkClient(ImmutableMap<TPos, INetworkObject<TPos>> allNetworkObjects){
         super(allNetworkObjects);
     }
 
     public static <TPos extends IPosition<TPos>> RailNetworkClient<TPos> empty(){
-        return new RailNetworkClient<>(ImmutableMap.<TPos, NetworkObject<TPos>> of());
+        return new RailNetworkClient<>(ImmutableMap.<TPos, INetworkObject<TPos>> of());
     }
 
     @Override

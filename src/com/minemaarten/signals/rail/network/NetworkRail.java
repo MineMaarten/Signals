@@ -49,13 +49,13 @@ public abstract class NetworkRail<TPos extends IPosition<TPos>> extends NetworkO
     //@formatter:off
     public Stream<NetworkRail<TPos>> getRailLinkConnectedRails(RailObjectHolder<TPos> railObjects){
         Stream<NetworkRail<TPos>> linkedToNeighbors = railObjects.getNeighborRailLinks(getPotentialNeighborObjectLocations())
-                .filter(l -> l.getDestinationPos() != null)
+                .filter(l -> l.getDestinationPos() != null && l.canRailConnect(getPos()))
                 .map(l -> railObjects.get(l.getDestinationPos()))
                 .filter(r -> r instanceof NetworkRail)
                 .map(r -> ((NetworkRail<TPos>)r));
 
         //The actual neighbors, the connecting rail links connecting elsewhere, and the rail links that connect to this rail.
-        return Streams.concat(linkedToNeighbors, railObjects.findRailsLinkingTo(pos));
+        return Streams.concat(linkedToNeighbors, railObjects.findRailsLinkingTo(getPos()));
     }
     //@formatter:on
 

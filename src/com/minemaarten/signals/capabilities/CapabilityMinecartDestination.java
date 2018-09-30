@@ -345,10 +345,10 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                         shouldRun = false;
                     } else {
                         RailNetwork<MCPos> network = RailNetworkManager.getInstance(cart.world.isRemote).getNetwork();
-                        NetworkSignal<MCPos> signal = network.railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.getRailPos().equals(rail.pos)).findFirst().orElse(null);
+                        NetworkSignal<MCPos> signal = network.railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.getRailPos().equals(rail.getPos())).findFirst().orElse(null);
 
                         NetworkState<MCPos> state = RailNetworkManager.getInstance(cart.world.isRemote).getState();
-                        shouldRun = signal == null || state.getLampStatus(signal.pos) == EnumLampStatus.GREEN;
+                        shouldRun = signal == null || state.getLampStatus(signal.getPos()) == EnumLampStatus.GREEN;
                         if(!shouldRun) {
                             cart.motionX = 0;
                             cart.motionZ = 0;

@@ -215,7 +215,7 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
         LinkedHashSet<TPos> routeRails = new LinkedHashSet<>();
         List<NetworkSignal<TPos>> routeSignals = new ArrayList<>();
 
-        routeRails.addAll(node.edge.traverseWithFirst(node.pos).stream().map(r -> r.pos).collect(Collectors.toList()));
+        routeRails.addAll(node.edge.traverseWithFirst(node.pos).stream().map(NetworkObject::getPos).collect(Collectors.toList()));
         routeEdges.add(node.edge);
         routeNodes.addAll(node.edge.getIntersectionsWithFirst(node.pos));
         routeSignals.addAll(node.edge.traverseSignalsWithFirst(node.pos));
@@ -224,7 +224,7 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
         node = node.getNextNode();
 
         while(node != null && node.edge != null) {
-            routeRails.addAll(node.edge.traverseWithFirst(node.pos).stream().map(r -> r.pos).collect(Collectors.toList()));
+            routeRails.addAll(node.edge.traverseWithFirst(node.pos).stream().map(NetworkObject::getPos).collect(Collectors.toList()));
             routeEdges.add(node.edge);
 
             EnumHeading dirIn = EnumHeading.getOpposite(prevNode.edge.headingForEndpoint(node.pos));

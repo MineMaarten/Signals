@@ -2,6 +2,7 @@ package com.minemaarten.signals.tileentity;
 
 import java.util.Objects;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 
@@ -14,9 +15,9 @@ public abstract class TileEntityRailLinkBase extends TileEntityBase{
         return linkedPos;
     }
 
-    public boolean setLinkedPos(MCPos railPos){
+    public boolean setLinkedPos(MCPos railPos, EntityPlayer player){
         if(!Objects.equals(railPos, linkedPos)) {
-            if(isDestinationValid(railPos)) {
+            if(isDestinationValid(railPos, player)) {
                 linkedPos = railPos;
                 onDestinationChanged(railPos);
                 return true;
@@ -29,7 +30,7 @@ public abstract class TileEntityRailLinkBase extends TileEntityBase{
         }
     }
 
-    protected boolean isDestinationValid(MCPos destination){
+    protected boolean isDestinationValid(MCPos destination, EntityPlayer player){
         return true;
     }
 

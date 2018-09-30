@@ -31,7 +31,7 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
     private static final EnumRailDirection[] ALL_RAIL_DIRECTIONS_ARRAY = EnumRailDirection.values();
     private static final EnumSet<EnumRailDirection> ALL_RAIL_DIRECTIONS = EnumSet.allOf(EnumRailDirection.class);
 
-    private final String railType; //The type of rail, usually the block registry name, but null for Blocks.RAIL to save memory for serialization
+    private final String railType; //The type of rail, usually the block registry name, but NORMAL_RAIL_TYPE for Blocks.RAIL to save memory for serialization
     private final EnumRailDirection curDir; //Used client-side for rendering rail sections.
     private final ImmutableList<MCPos> potentialRailNeighbors, potentialObjectNeighbors;
     private final EnumSet<EnumRailDirection> validRailDirs;
@@ -69,13 +69,21 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
     }
 
     public static MCNetworkRail fromTag(NBTTagCompound tag){
+        return fromTag(tag, MCNetworkRail::new);
+    }
+
+    protected static <T> T fromTag(NBTTagCompound tag, IRailCreator<T> factory){
         EnumRailDirection curDir = ALL_RAIL_DIRECTIONS_ARRAY[tag.getByte("c")];
         if(tag.hasKey("t")) {
             EnumSet<EnumRailDirection> validRailDirs = EnumSetUtils.toEnumSet(EnumRailDirection.class, ALL_RAIL_DIRECTIONS_ARRAY, tag.getShort("r"));
-            return new MCNetworkRail(new MCPos(tag), tag.getString("t"), curDir, validRailDirs);
+            return factory.create(new MCPos(tag), tag.getString("t"), curDir, validRailDirs);
         } else {
-            return new MCNetworkRail(new MCPos(tag), (String)null, curDir, ALL_RAIL_DIRECTIONS);
+            return factory.create(new MCPos(tag), (String)null, curDir, ALL_RAIL_DIRECTIONS);
         }
+    }
+
+    public static interface IRailCreator<T> {
+        public T create(MCPos pos, String railType, EnumRailDirection curDir, EnumSet<EnumRailDirection> validRailDirs);
     }
 
     public static MCNetworkRail fromByteBuf(ByteBuf b){
@@ -90,9 +98,21 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
         }
     }
 
+    public static <T> T fromByteBuf(ByteBuf b, IRailCreator<T> factory){
+        MCPos pos = new MCPos(b);
+        EnumRailDirection curDir = ALL_RAIL_DIRECTIONS_ARRAY[b.readByte()];
+        String type = ByteBufUtils.readUTF8String(b);
+        if(type.equals(NORMAL_RAIL_STRING)) {
+            return factory.create(pos, (String)null, curDir, ALL_RAIL_DIRECTIONS);
+        } else {
+            EnumSet<EnumRailDirection> validRailDirs = EnumSetUtils.toEnumSet(EnumRailDirection.class, ALL_RAIL_DIRECTIONS_ARRAY, b.readShort());
+            return factory.create(pos, type, curDir, validRailDirs);
+        }
+    }
+
     @Override
     public void writeToNBT(NBTTagCompound tag){
-        pos.writeToNBT(tag);
+        getPos().writeToNBT(tag);
         tag.setByte("c", (byte)curDir.ordinal());
         if(railType != null) {
             tag.setString("t", railType);
@@ -102,7 +122,7 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
 
     @Override
     public void writeToBuf(ByteBuf b){
-        pos.writeToBuf(b);
+        getPos().writeToBuf(b);
         b.writeByte(curDir.ordinal());
         ByteBufUtils.writeUTF8String(b, railType == null ? NORMAL_RAIL_STRING : railType);
         if(railType != null) {
@@ -114,8 +134,12 @@ public class MCNetworkRail extends NetworkRail<MCPos> implements ISerializableNe
         return Stream.of(pos.offset(EnumFacing.UP), pos, pos.offset(EnumFacing.DOWN));
     }
 
-    private ImmutableList<MCPos> computePotentialObjectNeighbors(){
-        return ImmutableList.copyOf(validNeighborHeadings.stream().map(pos::offset).collect(Collectors.toList()));
+    protected ImmutableList<MCPos> computePotentialObjectNeighbors(){
+        return ImmutableList.copyOf(potentialObjectNeighborsStream().collect(Collectors.toList()));
+    }
+
+    protected Stream<MCPos> potentialObjectNeighborsStream(){
+        return validNeighborHeadings.stream().map(getPos()::offset);
     }
 
     @Override

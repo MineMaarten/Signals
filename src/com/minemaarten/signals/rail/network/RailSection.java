@@ -27,9 +27,9 @@ public class RailSection<TPos extends IPosition<TPos>> implements Iterable<Netwo
     private final PosAABB<TPos> neighborAABB;
 
     public RailSection(RailObjectHolder<TPos> railObjects, Collection<NetworkRail<TPos>> rails){
-        this.rails = ImmutableMap.<TPos, NetworkRail<TPos>> copyOf(rails.stream().collect(Collectors.toMap(n -> n.pos, n -> n)));
+        this.rails = ImmutableMap.<TPos, NetworkRail<TPos>> copyOf(rails.stream().collect(Collectors.toMap(NetworkObject::getPos, n -> n)));
         this.railObjects = railObjects.subSelection(rails);
-        this.aabb = new PosAABB<>(rails.stream().map(r -> r.pos).collect(Collectors.toList()));
+        this.aabb = new PosAABB<>(rails.stream().map(NetworkObject::getPos).collect(Collectors.toList()));
         Set<TPos> allRailNeighbors = calculateRailNeighbors();
         neighborAABB = new PosAABB<>(allRailNeighbors);
     }

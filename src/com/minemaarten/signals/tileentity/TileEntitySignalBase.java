@@ -19,7 +19,7 @@ import net.minecraft.world.World;
 
 import com.minemaarten.signals.api.access.ISignal;
 import com.minemaarten.signals.block.BlockSignalBase;
-import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.INetworkObject;
 import com.minemaarten.signals.rail.network.NetworkSignal;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 import com.minemaarten.signals.rail.network.mc.MCPos;
@@ -77,7 +77,7 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     }
 
     private NetworkSignal<MCPos> getSignal(){
-        NetworkObject<MCPos> obj = RailNetworkManager.getInstance(world.isRemote).getNetwork().railObjects.get(getMCPos());
+        INetworkObject<MCPos> obj = RailNetworkManager.getInstance(world.isRemote).getNetwork().railObjects.get(getMCPos());
         return obj instanceof NetworkSignal ? (NetworkSignal<MCPos>)obj : null;
     }
 

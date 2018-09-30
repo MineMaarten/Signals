@@ -11,11 +11,16 @@ import com.minemaarten.signals.rail.NetworkController;
  *
  * @param <TPos>
  */
-public abstract class NetworkObject<TPos> {
-    public final TPos pos;
+public abstract class NetworkObject<TPos> implements INetworkObject<TPos>{
+    private final TPos pos;
 
     public NetworkObject(TPos pos){
         this.pos = pos;
+    }
+
+    @Override
+    public TPos getPos(){
+        return pos;
     }
 
     public int getColor(){

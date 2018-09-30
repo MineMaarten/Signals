@@ -20,19 +20,19 @@ public class RailNodeExpectedEdge extends DefaultRailNode implements IValidating
     @Override
     public void validate(TestRailNetwork network, NetworkState<Pos2D> state){
 
-        RailEdge<Pos2D> expectedEdge = network.findEdge(pos);
-        Assert.assertNotNull("Not on an edge at pos " + pos, expectedEdge);
+        RailEdge<Pos2D> expectedEdge = network.findEdge(getPos());
+        Assert.assertNotNull("Not on an edge at pos " + getPos(), expectedEdge);
 
         //Assert right groupings (333  (somewhere else) 333 = AssertionError)
         network.railObjects.networkObjectsOfType(RailNodeExpectedEdge.class).filter(node -> node.group == group).forEach(node -> {
-            Assert.assertEquals("Edge in group '" + group + "' for pos " + pos + " has an unexpected edge.", expectedEdge, network.findEdge(node.pos));
+            Assert.assertEquals("Edge in group '" + group + "' for pos " + getPos() + " has an unexpected edge.", expectedEdge, network.findEdge(node.getPos()));
         });
 
         //Assert every edge (33343 = AssertionError)
         for(NetworkRail<Pos2D> railOnEdge : expectedEdge) {
             if(railOnEdge instanceof RailNodeExpectedEdge) {
                 RailNodeExpectedEdge edgeValidator = (RailNodeExpectedEdge)railOnEdge;
-                Assert.assertEquals("Edge belonging to pos '" + pos + "' has a different group at " + edgeValidator.pos + ".", "" + group, "" + edgeValidator.group);
+                Assert.assertEquals("Edge belonging to pos '" + getPos() + "' has a different group at " + edgeValidator.getPos() + ".", "" + group, "" + edgeValidator.group);
             }
         }
     }

@@ -105,9 +105,9 @@ public class MCNetworkState extends NetworkState<MCPos>{
     }
 
     public boolean setForceMode(RailNetwork<MCPos> network, int dimID, int x, int z, EnumForceMode forceMode){
-        NetworkSignal<MCPos> signal = network.railObjects.getSignals().stream().filter(s -> s.pos.getDimID() == dimID && s.pos.getX() == x && s.pos.getZ() == z).findFirst().orElse(null);
+        NetworkSignal<MCPos> signal = network.railObjects.getSignals().stream().filter(s -> s.getPos().getDimID() == dimID && s.getPos().getX() == x && s.getPos().getZ() == z).findFirst().orElse(null);
         if(signal != null) {
-            setForceMode(network, signal.pos, forceMode);
+            setForceMode(network, signal.getPos(), forceMode);
             return true;
         } else {
             return false;

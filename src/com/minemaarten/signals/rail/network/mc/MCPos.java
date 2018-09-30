@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -84,6 +85,11 @@ public class MCPos implements IPosition<MCPos>{
     public TileEntity getLoadedTileEntity(){
         World world = getWorld();
         return world != null && world.isBlockLoaded(getPos()) ? world.getTileEntity(getPos()) : null;
+    }
+
+    public IBlockState getLoadedBlockState(){
+        World world = getWorld();
+        return world != null ? world.getBlockState(getPos()) : null;
     }
 
     @Override

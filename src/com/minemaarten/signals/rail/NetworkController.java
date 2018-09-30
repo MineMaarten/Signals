@@ -26,7 +26,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.google.common.base.Predicates;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
-import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.INetworkObject;
 import com.minemaarten.signals.rail.network.NetworkStation;
 import com.minemaarten.signals.rail.network.RailNetwork;
 import com.minemaarten.signals.rail.network.RailNetworkClient;
@@ -173,8 +173,8 @@ public class NetworkController{
         //Draw the station names next to the stations
         RailNetwork<MCPos> network = RailNetworkManager.getClientInstance().getNetwork();
         for(NetworkStation<MCPos> station : network.railObjects.getStations()) {
-            double x = station.pos.getX() - startX - 0.5;
-            double y = station.pos.getZ() - startZ - 0.5;
+            double x = station.getPos().getX() - startX - 0.5;
+            double y = station.getPos().getZ() - startZ - 0.5;
 
             GlStateManager.pushMatrix();
             double scale = 1 / 4D;
@@ -221,10 +221,10 @@ public class NetworkController{
     public static Map<Integer, NetworkController> rebuildAll(){
         Map<Integer, NetworkController> cache = new HashMap<>();
 
-        Collection<NetworkObject<MCPos>> allObjects = RailNetworkManager.getClientInstance().getNetwork().railObjects.getAllNetworkObjects().values();
-        Map<Integer, List<NetworkObject<MCPos>>> objsByDim = allObjects.stream().collect(Collectors.groupingBy(o -> o.pos.getDimID()));
+        Collection<INetworkObject<MCPos>> allObjects = RailNetworkManager.getClientInstance().getNetwork().railObjects.getAllNetworkObjects().values();
+        Map<Integer, List<INetworkObject<MCPos>>> objsByDim = allObjects.stream().collect(Collectors.groupingBy(o -> o.getPos().getDimID()));
 
-        for(Map.Entry<Integer, List<NetworkObject<MCPos>>> entry : objsByDim.entrySet()) {
+        for(Map.Entry<Integer, List<INetworkObject<MCPos>>> entry : objsByDim.entrySet()) {
             NetworkController controller = new NetworkController(entry.getKey());
             controller.rebuild(entry.getValue());
             controller.setColors(controller.colors, controller.width, controller.height, controller.startX, controller.startZ);
@@ -235,13 +235,13 @@ public class NetworkController{
         return cache;
     }
 
-    private void rebuild(Collection<NetworkObject<MCPos>> objects){
+    private void rebuild(Collection<INetworkObject<MCPos>> objects){
         startX = Integer.MAX_VALUE;
         startZ = Integer.MAX_VALUE;
         int endX = Integer.MIN_VALUE;
         int endZ = Integer.MIN_VALUE;
-        for(NetworkObject<MCPos> obj : objects) {
-            MCPos pos = obj.pos;
+        for(INetworkObject<MCPos> obj : objects) {
+            MCPos pos = obj.getPos();
             startX = Math.min(startX, pos.getX());
             startZ = Math.min(startZ, pos.getZ());
             endX = Math.max(endX, pos.getX());
@@ -253,8 +253,8 @@ public class NetworkController{
         colors = new int[width * height];
         Arrays.fill(colors, NOTHING_COLOR);
 
-        for(NetworkObject<MCPos> obj : objects) {
-            setColor(obj.pos.getX(), obj.pos.getZ(), obj.getColor(), false);
+        for(INetworkObject<MCPos> obj : objects) {
+            setColor(obj.getPos().getX(), obj.getPos().getZ(), obj.getColor(), false);
         }
     }
 }

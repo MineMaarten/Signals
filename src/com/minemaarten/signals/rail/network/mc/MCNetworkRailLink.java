@@ -31,25 +31,25 @@ public class MCNetworkRailLink extends NetworkRailLink<MCPos> implements ISerial
 
     @Override
     public void writeToNBT(NBTTagCompound tag){
-        pos.writeToNBT(tag);
+        getPos().writeToNBT(tag);
         if(getDestinationPos() != null) {
             NBTTagCompound destTag = new NBTTagCompound();
             getDestinationPos().writeToNBT(destTag);
             tag.setTag("dest", destTag);
         }
-        tag.setInteger("holdDelay", holdDelay);
+        tag.setInteger("holdDelay", getHoldDelay());
     }
 
     @Override
     public void writeToBuf(ByteBuf b){
-        pos.writeToBuf(b);
+        getPos().writeToBuf(b);
         if(getDestinationPos() != null) {
             b.writeBoolean(true);
             getDestinationPos().writeToBuf(b);
         } else {
             b.writeBoolean(false);
         }
-        b.writeInt(holdDelay);
+        b.writeInt(getHoldDelay());
     }
 
     @Override

@@ -37,7 +37,7 @@ import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketClearNetwork;
 import com.minemaarten.signals.network.PacketUpdateNetwork;
 import com.minemaarten.signals.rail.network.EnumHeading;
-import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.INetworkObject;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.NetworkUpdater;
 import com.minemaarten.signals.rail.network.RailNetwork;
@@ -215,7 +215,7 @@ public class RailNetworkManager{
 
     public void onPreServerTick(){
         if(!SignalsConfig.enableRailNetwork) return;
-        Collection<NetworkObject<MCPos>> updates = networkUpdater.getNetworkUpdates(network);
+        Collection<INetworkObject<MCPos>> updates = networkUpdater.getNetworkUpdates(network);
         if(!updates.isEmpty()) {
             applyUpdates(updates);
 
@@ -254,7 +254,7 @@ public class RailNetworkManager{
      * This is possible because no MC interaction, and immutable objects.
      * @param changedObjects
      */
-    public void applyUpdates(Collection<NetworkObject<MCPos>> changedObjects){
+    public void applyUpdates(Collection<INetworkObject<MCPos>> changedObjects){
         if(this == SERVER_INSTANCE || networkUpdateTask == null) {
 
             checkForNewNetwork(true);
@@ -319,12 +319,12 @@ public class RailNetworkManager{
 
     private static final int MAX_CHANGES_PER_PACKET = 1000;
 
-    private List<PacketUpdateNetwork> getSplitNetworkUpdatePackets(Collection<NetworkObject<MCPos>> allChangedObjects){
+    private List<PacketUpdateNetwork> getSplitNetworkUpdatePackets(Collection<INetworkObject<MCPos>> allChangedObjects){
         if(allChangedObjects.size() <= MAX_CHANGES_PER_PACKET) return Collections.singletonList(new PacketUpdateNetwork(allChangedObjects));
 
         List<PacketUpdateNetwork> packets = new ArrayList<>();
-        Iterator<NetworkObject<MCPos>> iterator = allChangedObjects.iterator();
-        List<NetworkObject<MCPos>> changedObjects = new ArrayList<>(MAX_CHANGES_PER_PACKET);
+        Iterator<INetworkObject<MCPos>> iterator = allChangedObjects.iterator();
+        List<INetworkObject<MCPos>> changedObjects = new ArrayList<>(MAX_CHANGES_PER_PACKET);
 
         while(iterator.hasNext()) {
             changedObjects.add(iterator.next());

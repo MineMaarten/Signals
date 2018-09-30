@@ -16,7 +16,7 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
     private final Set<TPos> dirtyPositions = new HashSet<>(); //Positions that have possibly changed
     private boolean wasVeryBusy, isVeryBusy;
 
-    private Map<TPos, NetworkObject<TPos>> changedObjects = new HashMap<>(); //Global var to prevent putting pressure on GC
+    private Map<TPos, INetworkObject<TPos>> changedObjects = new HashMap<>(); //Global var to prevent putting pressure on GC
     private Set<TPos> allPositions = new HashSet<>(); //Global var to prevent putting pressure on GC
 
     public NetworkUpdater(INetworkObjectProvider<TPos> objectProvider){
@@ -51,7 +51,7 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
      * 2. Neighbors of the positions marked dirty get re-acquired, and possibly cause a recursive look-up. For example, a rail section that wasn't part of the network before now may, because of a gap being filled in with a new rail
      * @return Returns the changed objects, where removals are indicated with NetworkObject instanceof IRemovalMarker
      */
-    public Collection<NetworkObject<TPos>> getNetworkUpdates(RailNetwork<TPos> network){
+    public Collection<INetworkObject<TPos>> getNetworkUpdates(RailNetwork<TPos> network){
         if(dirtyPositions.isEmpty()) return Collections.emptyList(); //Nothing to update.
 
         changedObjects.clear();
@@ -79,7 +79,7 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
             TPos curPos = toEvaluate.pop();
 
             if(!allPositions.contains(curPos) && !lazyRails.contains(curPos)) {
-                NetworkObject<TPos> networkObject = objectProvider.provide(curPos);
+                INetworkObject<TPos> networkObject = objectProvider.provide(curPos);
                 if(networkObject != null) {
 
                     if(networkObject instanceof NetworkRail) {
@@ -97,7 +97,7 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
                         lazyRails.remove(neighborPos); //The rail that was evaluated and was discarded earlier can now be evaluated again.
                     }
 
-                    NetworkObject<TPos> prevObj = network.railObjects.get(curPos);
+                    INetworkObject<TPos> prevObj = network.railObjects.get(curPos);
                     if(!networkObject.equals(prevObj)) { //Only mark stuff changed that actually changed
                         changedObjects.put(curPos, networkObject);
                         updates++;
@@ -136,16 +136,16 @@ public class NetworkUpdater<TPos extends IPosition<TPos>> {
         return false;
     }
 
-    public RailNetwork<TPos> applyUpdates(RailNetwork<TPos> network, Collection<NetworkObject<TPos>> changedObjects){
+    public RailNetwork<TPos> applyUpdates(RailNetwork<TPos> network, Collection<INetworkObject<TPos>> changedObjects){
         if(changedObjects.isEmpty()) return network;
 
-        Map<TPos, NetworkObject<TPos>> allObjects = new HashMap<>(network.unfilteredRailObjects.getAllNetworkObjects());
+        Map<TPos, INetworkObject<TPos>> allObjects = new HashMap<>(network.unfilteredRailObjects.getAllNetworkObjects());
 
-        for(NetworkObject<TPos> changedObject : changedObjects) {
+        for(INetworkObject<TPos> changedObject : changedObjects) {
             if(changedObject instanceof IRemovalMarker) {
-                allObjects.remove(changedObject.pos);
+                allObjects.remove(changedObject.getPos());
             } else {
-                allObjects.put(changedObject.pos, changedObject);
+                allObjects.put(changedObject.getPos(), changedObject);
             }
         }
 

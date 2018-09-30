@@ -13,6 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import com.minemaarten.signals.api.IRail;
+import com.minemaarten.signals.init.ModBlocks;
 import com.minemaarten.signals.lib.HeadingUtils;
 import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.network.INetworkObjectProvider;
@@ -20,6 +21,7 @@ import com.minemaarten.signals.rail.network.NetworkObject;
 import com.minemaarten.signals.tileentity.TileEntityRailLink;
 import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 import com.minemaarten.signals.tileentity.TileEntityStationMarker;
+import com.minemaarten.signals.tileentity.TileEntityTeleportRail;
 
 public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
 
@@ -31,13 +33,19 @@ public class NetworkObjectProvider implements INetworkObjectProvider<MCPos>{
 
     public NetworkObject<MCPos> provide(World world, BlockPos pos){
         MCPos mcPos = new MCPos(world.provider.getDimension(), pos);
-        if (!world.isChunkGeneratedAt(pos.getX() >> 4, pos.getZ() >> 4)) {
+        if(!world.isChunkGeneratedAt(pos.getX() >> 4, pos.getZ() >> 4)) {
             return null;
         }
-    
+
         IBlockState state = world.getBlockState(pos);
         IRail rail = RailManager.getInstance().getRail(world, pos, state);
         if(rail != null) {
+            if(state.getBlock() == ModBlocks.TELEPORT_RAIL) {
+                TileEntityTeleportRail teleportRail = (TileEntityTeleportRail)world.getTileEntity(pos);
+                MCPos linkedPos = teleportRail.getLinkedPosition();
+                if(linkedPos != null) return new MCNetworkTeleportRail(mcPos, state.getBlock(), rail.getDirection(world, pos, state), rail.getValidDirections(world, pos, state), linkedPos);
+            }
+
             return new MCNetworkRail(mcPos, state.getBlock(), rail.getDirection(world, pos, state), rail.getValidDirections(world, pos, state));
         }
 

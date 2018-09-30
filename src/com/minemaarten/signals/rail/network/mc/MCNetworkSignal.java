@@ -26,13 +26,13 @@ public class MCNetworkSignal extends NetworkSignal<MCPos> implements ISerializab
 
     @Override
     public void writeToNBT(NBTTagCompound tag){
-        pos.writeToNBT(tag);
+        getPos().writeToNBT(tag);
         tag.setByte("t", encodeToByte());
     }
 
     @Override
     public void writeToBuf(ByteBuf b){
-        pos.writeToBuf(b);
+        getPos().writeToBuf(b);
         b.writeByte(encodeToByte());
     }
 
@@ -50,7 +50,7 @@ public class MCNetworkSignal extends NetworkSignal<MCPos> implements ISerializab
 
     @Override
     public int getColor(){
-        return RailNetworkManager.getClientInstance().getState().getLampStatus(pos).color;
+        return RailNetworkManager.getClientInstance().getState().getLampStatus(getPos()).color;
     }
 
     @Override

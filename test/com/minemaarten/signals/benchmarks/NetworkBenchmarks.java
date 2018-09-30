@@ -9,7 +9,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 import com.minemaarten.signals.rail.network.EnumHeading;
-import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.INetworkObject;
 import com.minemaarten.signals.rail.network.NetworkSignal;
 import com.minemaarten.signals.rail.network.NetworkSignal.EnumSignalType;
 import com.minemaarten.signals.rail.network.NetworkState;
@@ -29,7 +29,7 @@ public class NetworkBenchmarks{
     private static final int FULL_GRID_SIZE = 100;
     private static final int LARGE_NETWORK_SIZE = 1000;
     private static final int LARGE_NETWORK_SPACING = 50;
-    private static List<NetworkObject<Pos2D>> fullGrid, largeNetwork;
+    private static List<INetworkObject<Pos2D>> fullGrid, largeNetwork;
     private static RailNetwork<Pos2D> fullGridNetwork, largeNetworkNetwork;
     private static NetworkState<Pos2D> fullGridState, largeNetworkState;
 
@@ -48,7 +48,7 @@ public class NetworkBenchmarks{
 
         List<Train<Pos2D>> trains = new ArrayList<>();
         for(int i = 0; i < 100; i++) {
-            Pos2D pos = fullGrid.get(rand.nextInt(fullGrid.size())).pos;
+            Pos2D pos = fullGrid.get(rand.nextInt(fullGrid.size())).getPos();
             trains.add(new TestTrain(fullGridNetwork, fullGridState, ImmutableSet.of(pos), 'a'));
         }
         fullGridState.setTrains(trains);
@@ -69,7 +69,7 @@ public class NetworkBenchmarks{
 
         trains = new ArrayList<>();
         for(int i = 0; i < 100; i++) {
-            Pos2D pos = largeNetwork.get(rand.nextInt(largeNetwork.size())).pos;
+            Pos2D pos = largeNetwork.get(rand.nextInt(largeNetwork.size())).getPos();
             trains.add(new TestTrain(largeNetworkNetwork, largeNetworkState, ImmutableSet.of(pos), 'a'));
         }
         largeNetworkState.setTrains(trains);

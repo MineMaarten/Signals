@@ -32,7 +32,7 @@ public class NetworkSignal<TPos extends IPosition<TPos>> extends NetworkObject<T
     }
 
     public TPos getRailPos(){
-        return pos.offset(heading.rotateCCW());
+        return getPos().offset(heading.rotateCCW());
     }
 
     //@formatter:off
@@ -40,10 +40,10 @@ public class NetworkSignal<TPos extends IPosition<TPos>> extends NetworkObject<T
     public RailSection<TPos> getNextRailSection(RailNetwork<TPos> network){
         NetworkRail<TPos> rail = (NetworkRail<TPos>)network.railObjects.get(getRailPos()); //Safe to cast, as invalid signals have been filtered
         NetworkRail<TPos> nextSectionRail = network.railObjects.getNeighborRails(rail.getPotentialNeighborRailLocations())
-                                                               .filter(r -> r.pos.getRelativeHeading(rail.pos) == heading)
+                                                               .filter(r -> r.getPos().getRelativeHeading(rail.getPos()) == heading)
                                                                .findFirst()
                                                                .orElse(null);
-        return nextSectionRail != null ? network.findSection(nextSectionRail.pos) : null;
+        return nextSectionRail != null ? network.findSection(nextSectionRail.getPos()) : null;
     }
     //@formatter:on
 

@@ -45,13 +45,13 @@ public class MCNetworkStation extends NetworkStation<MCPos> implements ISerializ
 
     @Override
     public void writeToNBT(NBTTagCompound tag){
-        pos.writeToNBT(tag);
+        getPos().writeToNBT(tag);
         tag.setString("station", stationName);
     }
 
     @Override
     public void writeToBuf(ByteBuf b){
-        pos.writeToBuf(b);
+        getPos().writeToBuf(b);
         ByteBufUtils.writeUTF8String(b, stationName);
     }
 
@@ -75,7 +75,7 @@ public class MCNetworkStation extends NetworkStation<MCPos> implements ISerializ
     public boolean isTrainApplicable(Train<MCPos> train, Pattern destinationRegex){
         if(super.isTrainApplicable(train, destinationRegex)) return true;
 
-        World world = pos.getWorld();
+        World world = getPos().getWorld();
         if(world != null) {
             MCTrain mcTrain = (MCTrain)train;
             for(EntityMinecart cart : mcTrain.getCarts()) {
@@ -87,16 +87,16 @@ public class MCNetworkStation extends NetworkStation<MCPos> implements ISerializ
 
     public boolean isCartApplicable(World world, EntityMinecart cart, Pattern destinationRegex){
         for(EnumFacing dir : EnumFacing.VALUES) {
-            BlockPos neighborPos = pos.getPos().offset(dir);
+            BlockPos neighborPos = getPos().getPos().offset(dir);
             if(world.isBlockLoaded(neighborPos)) {
                 TileEntity te = world.getTileEntity(neighborPos);
                 if(te != null) {
                     CapabilityDestinationProvider cap = te.getCapability(CapabilityDestinationProvider.INSTANCE, null);
                     if(cap != null && cap.isCartApplicable(te, cart, destinationRegex)) {
                         for(int i = 0; i < 10; i++) {
-                            double x = pos.getPos().getX() + world.rand.nextDouble();
-                            double z = pos.getPos().getZ() + world.rand.nextDouble();
-                            NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.ENCHANTMENT_TABLE, x, pos.getPos().getY() + 1, z, dir.getFrontOffsetX(), dir.getFrontOffsetY(), dir.getFrontOffsetZ()), world);
+                            double x = getPos().getPos().getX() + world.rand.nextDouble();
+                            double z = getPos().getPos().getZ() + world.rand.nextDouble();
+                            NetworkHandler.sendToAllAround(new PacketSpawnParticle(EnumParticleTypes.ENCHANTMENT_TABLE, x, getPos().getPos().getY() + 1, z, dir.getFrontOffsetX(), dir.getFrontOffsetY(), dir.getFrontOffsetZ()), world);
                         }
                         return true;
                     }

@@ -5,11 +5,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class NetworkRailLink<TPos extends IPosition<TPos>> extends NetworkObject<TPos>{
+public class NetworkRailLink<TPos extends IPosition<TPos>> extends NetworkObject<TPos> implements IRailLink<TPos>{
 
     private final TPos destination;
     private final List<TPos> potentialNeighbors;
-    public final int holdDelay;
+    private final int holdDelay;
 
     public NetworkRailLink(TPos pos, TPos destination, int holdDelay){
         super(pos);
@@ -18,8 +18,14 @@ public class NetworkRailLink<TPos extends IPosition<TPos>> extends NetworkObject
         this.holdDelay = holdDelay;
     }
 
+    @Override
     public TPos getDestinationPos(){
         return destination;
+    }
+
+    @Override
+    public int getHoldDelay(){
+        return holdDelay;
     }
 
     @Override

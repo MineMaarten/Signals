@@ -152,22 +152,22 @@ public abstract class AbstractRailRenderer<TSection> {
                         toTraverse.push(neighbor);
                     }
 
-                    if(neighbor.pos.getDimID() != node.pos.getDimID()) continue;
+                    if(neighbor.getPos().getDimID() != node.getPos().getDimID()) continue;
 
-                    RectRenderer rectRenderer = rectRenderers.get(neighbor.pos.getDimID());
+                    RectRenderer rectRenderer = rectRenderers.get(neighbor.getPos().getDimID());
                     if(rectRenderer == null) {
                         rectRenderer = new RectRenderer();
                         rectRenderer.width = getLineWidth();
                         rectRenderer.setColor(r, g, b);
-                        rectRenderers.put(neighbor.pos.getDimID(), rectRenderer);
+                        rectRenderers.put(neighbor.getPos().getDimID(), rectRenderer);
                     }
 
-                    rectRenderer.pos(node.pos.getX() + 0.5, node.pos.getY() + (railDir.isAscending() ? 0.6 : 0.1) + getHeightOffset(), node.pos.getZ() + 0.5);
+                    rectRenderer.pos(node.getPos().getX() + 0.5, node.getPos().getY() + (railDir.isAscending() ? 0.6 : 0.1) + getHeightOffset(), node.getPos().getZ() + 0.5);
 
-                    EnumFacing dir = HeadingUtils.toFacing(neighbor.pos.getRelativeHeading(node.pos));
+                    EnumFacing dir = HeadingUtils.toFacing(neighbor.getPos().getRelativeHeading(node.getPos()));
                     int offset = getRailHeightOffset(node, dir);
-                    Vec3d interpolated = Vec3iUtils.interpolate(node.pos.getPos(), neighbor.pos.getPos());
-                    rectRenderer.pos(interpolated.x + 0.5, node.pos.getY() + (offset == 1 ? 1.1 : 0.1) + getHeightOffset(), interpolated.z + 0.5);
+                    Vec3d interpolated = Vec3iUtils.interpolate(node.getPos().getPos(), neighbor.getPos().getPos());
+                    rectRenderer.pos(interpolated.x + 0.5, node.getPos().getY() + (offset == 1 ? 1.1 : 0.1) + getHeightOffset(), interpolated.z + 0.5);
                 }
             }
         }

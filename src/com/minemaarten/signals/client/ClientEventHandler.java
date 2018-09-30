@@ -84,13 +84,13 @@ public class ClientEventHandler{
         List<NetworkStation<MCPos>> stations = RailNetworkManager.getClientInstance().getNetwork().railObjects.getStations();
         for(int i = 0; i < stations.size(); i++) {
             NetworkStation<MCPos> station1 = stations.get(i);
-            if(station1.pos.getDimID() != dimensionID) continue;
+            if(station1.getPos().getDimID() != dimensionID) continue;
             for(int j = 0; j < i; j++) {
                 NetworkStation<MCPos> station2 = stations.get(j);
-                if(station2.pos.getDimID() != dimensionID) continue;
+                if(station2.getPos().getDimID() != dimensionID) continue;
 
-                if(station1.stationName.equals(station2.stationName) && station1.pos.getDimID() == station2.pos.getDimID()) {
-                    drawBetween(b, station1.pos.getPos(), station2.pos.getPos(), 1, 0, 1, 0, 1);
+                if(station1.stationName.equals(station2.stationName) && station1.getPos().getDimID() == station2.getPos().getDimID()) {
+                    drawBetween(b, station1.getPos().getPos(), station2.getPos().getPos(), 1, 0, 1, 0, 1);
                 }
             }
         }

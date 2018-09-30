@@ -26,7 +26,7 @@ public class RailNodeExpectedIntersection extends DefaultRailNode implements IVa
         RailRoute<Pos2D> route = network.pathfind();
         Assert.assertNotNull(route);
         RailRouteNode<Pos2D> node = route.routeNodes.get(index);
-        Assert.assertEquals("Intersection positions do not match at index " + index + ".", pos, node.pos);
+        Assert.assertEquals("Intersection positions do not match at index " + index + ".", getPos(), node.pos);
         Assert.assertEquals("Input dir does not match at index " + index + ".", dirIn, node.dirIn);
         Assert.assertEquals("Output dir does not match at index " + index + ".", dirOut, node.dirOut);
     }

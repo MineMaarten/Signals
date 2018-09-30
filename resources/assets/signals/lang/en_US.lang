@@ -38,6 +38,8 @@ signals.message.destinations_set=Applied the following destinations to the cart:
 signals.message.destinations_saved=Saved the following destinations to the ticket: %1$s.
 signals.message.signals_busy=Signals is busy computing the Rail Network. Some lag is expected. You will be notified when this is done.
 signals.message.signals_idle=Signals has finished computing the Rail Network.
+signals.message.teleport_rail_failed_invalid_location=Cannot link to (%1$s, %2$s, %3$s) because it is not aligned. Allowed X: Between %4$s and %5$s. Allowed Z: Between %6$s and %7$s.
+signals.message.teleport_rail_failed_unloaded_destination_dimension=Cannot link to (%1$s, %2$s, %3$s) because the linked dimension is currently not loaded.
 
 signals.signal_message.cart_without_destination=Block signal behaviour: Cart routed without destination.
 signals.signal_message.cart_on_track_without_destination=Red signal: Cart on track without destination.  Cart position: (%1$s, %2$s, %3$s).

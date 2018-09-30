@@ -18,7 +18,7 @@ public class RailNodeTrainProvider extends DefaultRailNode{
     }
 
     public TestTrain provideTrain(TestRailNetwork network, NetworkState<Pos2D> state){
-        final ImmutableSet<Pos2D> positions = ImmutableSet.copyOf(network.railObjects.networkObjectsOfType(RailNodeTrainProvider.class).filter(r -> r.trainID == trainID).map(r -> r.pos).collect(Collectors.toSet()));
+        final ImmutableSet<Pos2D> positions = ImmutableSet.copyOf(network.railObjects.networkObjectsOfType(RailNodeTrainProvider.class).filter(r -> r.trainID == trainID).map(r -> r.getPos()).collect(Collectors.toSet()));
 
         return new TestTrain(network, state, positions, trainID);
     }

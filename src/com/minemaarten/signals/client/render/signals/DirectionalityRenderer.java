@@ -48,17 +48,17 @@ public class DirectionalityRenderer{
             MCNetworkRail curRail = (MCNetworkRail)edge.get(edgeIndex);
             NetworkRail<MCPos> nextRail = edge.get(edgeIndex + 1);
 
-            EnumHeading prevHeading = curRail.pos.getRelativeHeading(prevRail.pos);
-            EnumHeading nextHeading = nextRail.pos.getRelativeHeading(curRail.pos);
-            if(prevHeading == null || nextHeading == null || prevHeading != nextHeading || curRail.pos.getDimID() != nextRail.pos.getDimID() || curRail.pos.getDimID() != prevRail.pos.getDimID()) continue;
+            EnumHeading prevHeading = curRail.getPos().getRelativeHeading(prevRail.getPos());
+            EnumHeading nextHeading = nextRail.getPos().getRelativeHeading(curRail.getPos());
+            if(prevHeading == null || nextHeading == null || prevHeading != nextHeading || curRail.getPos().getDimID() != nextRail.getPos().getDimID() || curRail.getPos().getDimID() != prevRail.getPos().getDimID()) continue;
 
-            BakedRenderer bakedRenderer = bakedRenderers.get(curRail.pos.getDimID());
+            BakedRenderer bakedRenderer = bakedRenderers.get(curRail.getPos().getDimID());
             if(bakedRenderer == null) {
                 bakedRenderer = new BakedRenderer();
-                bakedRenderers.put(curRail.pos.getDimID(), bakedRenderer);
+                bakedRenderers.put(curRail.getPos().getDimID(), bakedRenderer);
             }
 
-            MCPos pos = curRail.pos;
+            MCPos pos = curRail.getPos();
             EnumFacing facing = HeadingUtils.toFacing(nextHeading).getOpposite();
             EnumFacing rotatedFacing = facing.rotateY();
             EnumFacing rotatedFacing2 = facing.rotateYCCW();

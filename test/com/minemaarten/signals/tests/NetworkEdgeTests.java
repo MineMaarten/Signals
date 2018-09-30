@@ -77,10 +77,10 @@ public class NetworkEdgeTests{
         map.add(" ++3+++    ");
         NetworkParser.createDefaultParser()
                      .addValidator('3', (rail, network) -> {
-                         Assert.assertEquals("Unexpected intersection result at " + rail.pos + ".", 3, network.findConnectedEdgesBackwards(rail.pos).size());
+                         Assert.assertEquals("Unexpected intersection result at " + rail.getPos() + ".", 3, network.findConnectedEdgesBackwards(rail.getPos()).size());
                      })
                      .addValidator('4', (rail, network) -> {
-                         Assert.assertEquals("Unexpected intersection result at " + rail.pos + ".", 4, network.findConnectedEdgesBackwards(rail.pos).size());
+                         Assert.assertEquals("Unexpected intersection result at " + rail.getPos() + ".", 4, network.findConnectedEdgesBackwards(rail.getPos()).size());
                      })
                      .parse(map)
                      .validate();
@@ -101,10 +101,10 @@ public class NetworkEdgeTests{
         map.add(" bb+uuu    ");
         NetworkParser.createDefaultParser()
                      .addValidator('u', (rail, network) -> {
-                       Assert.assertEquals("Expected unidirectional edge at " + rail.pos + ".", EnumDirectionalityResult.UNIDIRECTIONAL_NO_CHANGE, network.findEdge(rail.pos).directionality);  
+                       Assert.assertEquals("Expected unidirectional edge at " + rail.getPos() + ".", EnumDirectionalityResult.UNIDIRECTIONAL_NO_CHANGE, network.findEdge(rail.getPos()).directionality);  
                      })
                      .addValidator('b', (rail, network) -> {
-                       Assert.assertEquals("Expected bidirectional edge at " + rail.pos + ".", EnumDirectionalityResult.BIDIRECTIONAL, network.findEdge(rail.pos).directionality);  
+                       Assert.assertEquals("Expected bidirectional edge at " + rail.getPos() + ".", EnumDirectionalityResult.BIDIRECTIONAL, network.findEdge(rail.getPos()).directionality);  
                      })
                      .parse(map)
                      .validate();

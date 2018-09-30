@@ -10,7 +10,7 @@ import org.junit.Assert;
 import com.google.common.collect.ImmutableList;
 import com.minemaarten.signals.lib.StreamUtils;
 import com.minemaarten.signals.rail.network.EnumHeading;
-import com.minemaarten.signals.rail.network.NetworkObject;
+import com.minemaarten.signals.rail.network.INetworkObject;
 import com.minemaarten.signals.rail.network.NetworkState;
 import com.minemaarten.signals.rail.network.NetworkUpdater;
 import com.minemaarten.signals.rail.network.RailNetwork;
@@ -31,17 +31,17 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
     private final NetworkUpdater<Pos2D> networkUpdater;
     private final NetworkParser parser;
 
-    public TestRailNetwork(NetworkParser parser, List<NetworkObject<Pos2D>> allNetworkObjects, EnumHeading pathfindDir){
+    public TestRailNetwork(NetworkParser parser, List<INetworkObject<Pos2D>> allNetworkObjects, EnumHeading pathfindDir){
         super(allNetworkObjects);
 
         this.parser = parser;
         this.networkUpdater = new NetworkUpdater<>(parser);
         List<DefaultRailNode> startNodes = railObjects.networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isStart).collect(Collectors.toList());
         if(startNodes.size() > 1) throw new IllegalStateException("Multiple start nodes defined: " + startNodes.size());
-        start = startNodes.isEmpty() ? null : startNodes.get(0).pos;
+        start = startNodes.isEmpty() ? null : startNodes.get(0).getPos();
         this.pathfindDir = pathfindDir;
 
-        destinations = railObjects.networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isDestination).map(r -> r.pos).collect(Collectors.toSet());
+        destinations = railObjects.networkObjectsOfType(DefaultRailNode.class).filter(r -> r.isDestination).map(r -> r.getPos()).collect(Collectors.toSet());
 
         state = new NetworkState<Pos2D>();
         Set<Train<Pos2D>> trains = railObjects.networkObjectsOfType(RailNodeTrainProvider.class).map(r -> r.provideTrain(this, state)).collect(Collectors.toSet());
@@ -82,15 +82,15 @@ public class TestRailNetwork extends RailNetwork<Pos2D>{
         TestRailNetwork expected = parser.parse(newMap);
         RailNetwork<Pos2D> actual = networkUpdater.applyUpdates(this, networkUpdater.getNetworkUpdates(this));
 
-        Collection<NetworkObject<Pos2D>> expectedObjects = expected.railObjects.getAllNetworkObjects().values();
-        Collection<NetworkObject<Pos2D>> actualObjects = actual.railObjects.getAllNetworkObjects().values();
+        Collection<INetworkObject<Pos2D>> expectedObjects = expected.railObjects.getAllNetworkObjects().values();
+        Collection<INetworkObject<Pos2D>> actualObjects = actual.railObjects.getAllNetworkObjects().values();
 
-        List<NetworkObject<Pos2D>> missingObjs = expectedObjects.stream().filter(o -> !actualObjects.contains(o)).collect(Collectors.toList());
-        List<NetworkObject<Pos2D>> extraObjs = actualObjects.stream().filter(o -> !expectedObjects.contains(o)).collect(Collectors.toList());
+        List<INetworkObject<Pos2D>> missingObjs = expectedObjects.stream().filter(o -> !actualObjects.contains(o)).collect(Collectors.toList());
+        List<INetworkObject<Pos2D>> extraObjs = actualObjects.stream().filter(o -> !expectedObjects.contains(o)).collect(Collectors.toList());
 
         if(expectedDiffs != null) {
-            List<NetworkObject<Pos2D>> unexpectedMissing = missingObjs.stream().filter(m -> expectedDiffs.get(m.pos.y).charAt(m.pos.x) != 'm').collect(Collectors.toList());
-            List<NetworkObject<Pos2D>> unexpectedExtra = extraObjs.stream().filter(m -> expectedDiffs.get(m.pos.y).charAt(m.pos.x) != 'e').collect(Collectors.toList());
+            List<INetworkObject<Pos2D>> unexpectedMissing = missingObjs.stream().filter(m -> expectedDiffs.get(m.getPos().y).charAt(m.getPos().x) != 'm').collect(Collectors.toList());
+            List<INetworkObject<Pos2D>> unexpectedExtra = extraObjs.stream().filter(m -> expectedDiffs.get(m.getPos().y).charAt(m.getPos().x) != 'e').collect(Collectors.toList());
             Assert.assertTrue("Unexpected missing: " + unexpectedMissing + ", unexpected extra: " + unexpectedExtra, unexpectedMissing.isEmpty() && unexpectedExtra.isEmpty());
         } else {
             Assert.assertTrue("Missing: " + missingObjs + ", Extra: " + extraObjs, missingObjs.isEmpty() && extraObjs.isEmpty());

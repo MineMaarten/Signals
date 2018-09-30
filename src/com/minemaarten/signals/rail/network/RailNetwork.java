@@ -54,20 +54,20 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      */
     private Map<TPos, RailEdge<TPos>> railPosToRailEdges;
 
-    public RailNetwork(Collection<NetworkObject<TPos>> allNetworkObjects){
+    public RailNetwork(Collection<INetworkObject<TPos>> allNetworkObjects){
         this.unfilteredRailObjects = new RailObjectHolder<>(allNetworkObjects);
         this.railObjects = unfilteredRailObjects.filterInvalidSignals();
-        cache = allNetworkObjects.stream().collect(ImmutableMap.toImmutableMap(o -> o.pos, NetworkCache<TPos>::new));
+        cache = allNetworkObjects.stream().collect(ImmutableMap.toImmutableMap(INetworkObject::getPos, NetworkCache<TPos>::new));
     }
 
-    public RailNetwork(ImmutableMap<TPos, NetworkObject<TPos>> allNetworkObjects){
+    public RailNetwork(ImmutableMap<TPos, INetworkObject<TPos>> allNetworkObjects){
         this.unfilteredRailObjects = new RailObjectHolder<>(allNetworkObjects);
         this.railObjects = unfilteredRailObjects.filterInvalidSignals();
-        cache = allNetworkObjects.values().stream().collect(ImmutableMap.toImmutableMap(o -> o.pos, NetworkCache<TPos>::new));
+        cache = allNetworkObjects.values().stream().collect(ImmutableMap.toImmutableMap(INetworkObject::getPos, NetworkCache<TPos>::new));
     }
 
     public static <TPos extends IPosition<TPos>> RailNetwork<TPos> empty(){
-        return new RailNetwork<>(ImmutableMap.<TPos, NetworkObject<TPos>> of());
+        return new RailNetwork<>(ImmutableMap.<TPos, INetworkObject<TPos>> of());
     }
 
     /**
@@ -133,7 +133,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                 List<NetworkRail<TPos>> neighbors = curRail.getSectionNeighborRails(railObjects).collect(Collectors.toList());
 
                 for(NetworkRail<TPos> neighbor : neighbors) {
-                    EnumHeading dir = neighbor.pos.getRelativeHeading(curRail.pos);
+                    EnumHeading dir = neighbor.getPos().getRelativeHeading(curRail.getPos());
                     if(dir == null || getSignalInDir(curRail, dir) == null) { //Only when the neighbor is not on a next section, continue
                         if(dir == null || getSignalInDir(neighbor, dir.getOpposite()) == null) {
                             if(toTraverse.remove(neighbor)) {
@@ -151,12 +151,12 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     }
 
     private void buildRailLinkToDelayMap(){
-        for(NetworkRailLink<TPos> railLink : railObjects.getRailLinks()) {
-            if(railLink.holdDelay > 0) {
+        for(IRailLink<TPos> railLink : railObjects.getRailLinks()) {
+            if(railLink.getHoldDelay() > 0) {
                 for(EnumHeading heading : EnumHeading.VALUES) {
-                    TPos neighbor = railLink.pos.offset(heading);
+                    TPos neighbor = railLink.getPos().offset(heading);
                     if(railObjects.getRail(neighbor) != null) {
-                        railLinkPosToDelays.put(neighbor, railLink.holdDelay);
+                        railLinkPosToDelays.put(neighbor, railLink.getHoldDelay());
                     }
                 }
             }
@@ -169,7 +169,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
     }
 
     private NetworkSignal<TPos> getSignalInDir(NetworkRail<TPos> rail, EnumHeading dir){
-        return cache.get(rail.pos).getObjectNeighbors(this).getSignals().stream().filter(s -> s.heading == dir && s.getRailPos().equals(rail.pos)).findFirst().orElse(null);
+        return cache.get(rail.getPos()).getObjectNeighbors(this).getSignals().stream().filter(s -> s.heading == dir && s.getRailPos().equals(rail.getPos())).findFirst().orElse(null);
     }
 
     public Collection<RailSection<TPos>> getAllSections(){
@@ -230,9 +230,9 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
 
                             //Add to the current edge, make sure the list is in sequence, so that index 0 is a neighbor of index 1, which is
                             //a neighbor of index 2, etc.
-                            if(edge.get(edge.size() - 1).pos.equals(curEntry.pos)) {
+                            if(edge.get(edge.size() - 1).getPos().equals(curEntry.getPos())) {
                                 edge.add(neighbor);
-                            } else if(edge.get(0).pos.equals(curEntry.pos)) {
+                            } else if(edge.get(0).getPos().equals(curEntry.getPos())) {
                                 edge.add(0, neighbor);
                             } else {
                                 throw new IllegalStateException("Currently evaluated pos is not at the start or end of an edge!");
@@ -302,21 +302,21 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         do {
             hasCombined = false;
             //@formatter:off
-            EnumSet<EnumHeading> validHeadings = curRail.getPathfindHeading(prevEdge.headingForEndpoint(curRail.pos));
+            EnumSet<EnumHeading> validHeadings = curRail.getPathfindHeading(prevEdge.headingForEndpoint(curRail.getPos()));
             final RailEdge<TPos> fPrevEdge = prevEdge;
             final NetworkRail<TPos> fCurRail = curRail;
-            List<RailEdge<TPos>> actualConnected = connectedEdges.get(curRail.pos)
+            List<RailEdge<TPos>> actualConnected = connectedEdges.get(curRail.getPos())
                                                                  .stream()
                                                                  .filter(e -> e != fPrevEdge && 
-                                                                         (validHeadings.contains(e.headingForEndpoint(fCurRail.pos)) ||
-                                                                          e.headingForEndpoint(fCurRail.pos) == null))
+                                                                         (validHeadings.contains(e.headingForEndpoint(fCurRail.getPos())) ||
+                                                                          e.headingForEndpoint(fCurRail.getPos()) == null))
                                                                  .collect(Collectors.toList());
             //@formatter:on
             if(actualConnected.size() == 1) { //When not actually on an intersection, in terms of pathfinding
                 RailEdge<TPos> nextEdge = actualConnected.get(0);
                 if(curMergedEdges.add(nextEdge)) {
-                    combinedEdge = combinedEdge.combine(nextEdge, curRail.pos);
-                    curRail = nextEdge.get(nextEdge.getIndex(nextEdge.other(curRail.pos)));
+                    combinedEdge = combinedEdge.combine(nextEdge, curRail.getPos());
+                    curRail = nextEdge.get(nextEdge.getIndex(nextEdge.other(curRail.getPos())));
                     prevEdge = nextEdge;
                     hasCombined = true;
                 }
@@ -332,7 +332,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
             if(railEdge.directionality.canTravelBackwards) positionsToEdgesBackward.put(railEdge.startPos, railEdge);
             if(railEdge.directionality.canTravelForwards) positionsToEdgesBackward.put(railEdge.endPos, railEdge);
             for(int i = 0; i < railEdge.length; i++) {
-                railPosToRailEdges.put(railEdge.get(i).pos, railEdge);
+                railPosToRailEdges.put(railEdge.get(i).getPos(), railEdge);
             }
         }
     }
@@ -370,7 +370,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
      */
     public List<TPos> getPositionsInFront(NetworkSignal<TPos> signal){
         build();
-        List<TPos> positions = signalToPositionsInFrontCache.get(signal.pos);
+        List<TPos> positions = signalToPositionsInFrontCache.get(signal.getPos());
         if(positions == null) {
 
             RailEdge<TPos> edge = findEdge(signal.getRailPos());
@@ -388,7 +388,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                     for(int i = index; i < maxIndex; i++) {
                         NetworkRail<TPos> rail = edge.get(i);
                         if(blockType.equals(rail.getRailType())) {
-                            positions.add(rail.pos);
+                            positions.add(rail.getPos());
                         } else {
                             break;
                         }
@@ -398,14 +398,14 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
                     for(int i = index; i >= minIndex; i--) {
                         NetworkRail<TPos> rail = edge.get(i);
                         if(blockType.equals(rail.getRailType())) {
-                            positions.add(rail.pos);
+                            positions.add(rail.getPos());
                         } else {
                             break;
                         }
                     }
                 }
             }
-            signalToPositionsInFrontCache.put(signal.pos, positions);
+            signalToPositionsInFrontCache.put(signal.getPos(), positions);
         }
         return positions;
     }
@@ -436,7 +436,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         List<NetworkStation<TPos>> stations = railObjects.getStations();
         for(NetworkStation<TPos> station : stations) {
             if(station.isTrainApplicable(train, destinationRegex)) {
-                stationPositions.add(station.pos);
+                stationPositions.add(station.getPos());
                 validNames.add(station.stationName);
             }
         }
@@ -444,7 +444,7 @@ public class RailNetwork<TPos extends IPosition<TPos>> {
         //Make sure to include stations that don't match themselves, but other stations with the same name do.
         for(NetworkStation<TPos> station : stations) {
             if(validNames.contains(station.stationName)) {
-                stationPositions.add(station.pos);
+                stationPositions.add(station.getPos());
             }
         }
         return stationPositions;

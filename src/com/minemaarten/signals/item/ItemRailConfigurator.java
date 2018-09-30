@@ -63,13 +63,14 @@ public class ItemRailConfigurator extends ItemSignals{
                 TileEntityRailLinkBase railLinkBase = (TileEntityRailLinkBase)te;
                 MCPos railPos = getLinkedRail(stack);
                 if(railPos != null) {
-                    railLinkBase.setLinkedPos(railPos);
-                    playerIn.sendMessage(new TextComponentString("Linked to " + railPos));
+                    if(railLinkBase.setLinkedPos(railPos, playerIn)) {
+                        playerIn.sendMessage(new TextComponentString("Linked to " + railPos));
+                    }
                 }
             } else {
                 NetworkRail<MCPos> rail = RailNetworkManager.getInstance(worldIn.isRemote).getRail(worldIn, pos);
                 if(rail != null) {
-                    setLinkedRail(stack, rail.pos);
+                    setLinkedRail(stack, rail.getPos());
                     playerIn.sendMessage(new TextComponentString("Pos: " + pos));
                 }
             }
