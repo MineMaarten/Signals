@@ -101,16 +101,17 @@ public class MCTrain extends Train<MCPos>{
     public boolean updatePositions(NetworkState<MCPos> state){
         super.updatePositions(state);
 
-        ImmutableSet.Builder<MCPos> positionBuilder = ImmutableSet.builder();
-        for(EntityMinecart cart : getCarts()) {
-            MCPos cartPos = new MCPos(cart.world, cart.getPosition().down());
-            if(railNetworkManager.getNetwork().railObjects.get(cartPos) == null) {
-                cartPos = new MCPos(cart.world, cart.getPosition());
+        Set<EntityMinecart> carts = getCarts();
+        if(!carts.isEmpty()) { //Update if any cart is loaded, currently.
+            ImmutableSet.Builder<MCPos> positionBuilder = ImmutableSet.builder();
+            for(EntityMinecart cart : getCarts()) {
+                MCPos cartPos = new MCPos(cart.world, cart.getPosition().down());
+                if(railNetworkManager.getNetwork().railObjects.get(cartPos) == null) {
+                    cartPos = new MCPos(cart.world, cart.getPosition());
+                }
+                positionBuilder.add(cartPos);
             }
-            positionBuilder.add(cartPos);
-        }
-        ImmutableSet<MCPos> positions = positionBuilder.build();
-        if(!positions.isEmpty()) { //Update if any cart is loaded, currently.
+            ImmutableSet<MCPos> positions = positionBuilder.build();
             return setPositions(railNetworkManager.getNetwork(), state, positions);
         } else {
             return false;
@@ -204,6 +205,11 @@ public class MCTrain extends Train<MCPos>{
                 }
             }
         }
+    }
+
+    @Override
+    protected boolean isActive(){
+        return !getCarts().isEmpty();
     }
 
     @Override

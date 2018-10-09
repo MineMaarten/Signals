@@ -317,6 +317,10 @@ public class RailNetworkManager{
         state.onMinecartJoinedWorld(cart);
     }
 
+    public void onCartRemoved(EntityMinecart cart){
+        state.removeCart(cart);
+    }
+
     private static final int MAX_CHANGES_PER_PACKET = 1000;
 
     private List<PacketUpdateNetwork> getSplitNetworkUpdatePackets(Collection<NetworkObject<MCPos>> allChangedObjects){

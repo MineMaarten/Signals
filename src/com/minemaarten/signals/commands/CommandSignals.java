@@ -6,9 +6,12 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
+import net.minecraft.entity.item.EntityMinecartEmpty;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.world.World;
 
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
@@ -31,9 +34,28 @@ public class CommandSignals extends CommandBase{
         if(subCommand.equals("rebuildNetwork")) {
             RailNetworkManager.getServerInstance().rebuildNetwork();
             sender.sendMessage(new TextComponentTranslation("command.signals.networkCleared"));
+        } else if(subCommand.equals("debug") && sender.getName().startsWith("Player" /* Playerx */)) {
+            if(debug(server, sender, args)) {
+                sender.sendMessage(new TextComponentString("DEBUG EXECUTED"));
+            } else {
+                sender.sendMessage(new TextComponentString("Could not execute debug!"));
+            }
         } else {
             throw new WrongUsageException("command.signals.invalidSubCommand", subCommand);
         }
+    }
+
+    private boolean debug(MinecraftServer server, ICommandSender sender, String[] args){
+        World overworld = server.getWorld(0);
+        for(int i = 0; i < 10000; i++) {
+            EntityMinecartEmpty cart = new EntityMinecartEmpty(overworld, i, 64, Integer.parseInt(args[1]));
+            cart.forceSpawn = true;
+            boolean success = overworld.spawnEntity(cart);
+            if(i % 1000 == 0) {
+                sender.sendMessage(new TextComponentString("Spawned " + i + " / 100.000"));
+            }
+        }
+        return true;
     }
 
     @Override

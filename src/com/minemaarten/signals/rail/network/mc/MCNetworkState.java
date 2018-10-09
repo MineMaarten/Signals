@@ -7,9 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
@@ -25,7 +24,6 @@ import net.minecraftforge.common.util.Constants;
 import com.google.common.collect.ImmutableSet;
 import com.minemaarten.signals.api.access.ISignal.EnumForceMode;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
-import com.minemaarten.signals.lib.StreamUtils;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketAddOrUpdateTrain;
 import com.minemaarten.signals.network.PacketRemoveTrain;
@@ -43,7 +41,7 @@ import com.minemaarten.signals.tileentity.TileEntitySignalBase;
 public class MCNetworkState extends NetworkState<MCPos>{
     private final RailNetworkManager railNetworkManager;
     private Map<UUID, EntityMinecart> trackingMinecarts = new HashMap<>();
-    private Map<UUID, MCTrain> cartIDsToTrains;
+    private final Map<UUID, MCTrain> cartIDsToTrains = new HashMap<>();
 
     public MCNetworkState(RailNetworkManager railNetworkManager){
         this.railNetworkManager = railNetworkManager;
@@ -119,15 +117,6 @@ public class MCNetworkState extends NetworkState<MCPos>{
     }
 
     private MCTrain getTrain(UUID cartID){
-        if(cartIDsToTrains == null) {
-            cartIDsToTrains = new HashMap<>();
-            for(Train<MCPos> train : getTrains()) {
-                MCTrain mcTrain = (MCTrain)train;
-                for(UUID c : mcTrain.cartIDs) {
-                    cartIDsToTrains.put(c, mcTrain);
-                }
-            }
-        }
         return cartIDsToTrains.get(cartID);
     }
 
@@ -138,7 +127,7 @@ public class MCNetworkState extends NetworkState<MCPos>{
     }
 
     public void onMinecartJoinedWorld(EntityMinecart cart){
-        MCTrain train = findTrainForCartID(cart.getUniqueID());
+        MCTrain train = getTrain(cart.getUniqueID());
 
         //Override any previous records, automatically resolving dimension changes of entities, where the entity in the next dimension
         //is added, before the entity in the previous dimension is noticed to be removed.
@@ -156,10 +145,18 @@ public class MCNetworkState extends NetworkState<MCPos>{
         return addTrain(carts.stream().map(c -> c.getUniqueID()).collect(ImmutableSet.toImmutableSet()));
     }
 
+    @Override
+    public void addTrain(Train<MCPos> train){
+        super.addTrain(train);
+        MCTrain mcTrain = (MCTrain)train;
+        for(UUID uuid : mcTrain.cartIDs) {
+            cartIDsToTrains.put(uuid, mcTrain);
+        }
+    }
+
     private MCTrain addTrain(ImmutableSet<UUID> uuids){
         MCTrain train = new MCTrain(railNetworkManager, uuids);
         addTrain(train);
-        cartIDsToTrains = null;
         NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
         return train;
     }
@@ -168,31 +165,31 @@ public class MCNetworkState extends NetworkState<MCPos>{
         Train<MCPos> train = getTrain(id);
         if(train != null) {
             removeTrain(train);
-            cartIDsToTrains = null;
         }
-    }
-
-    @Override
-    public void setTrains(Collection<? extends Train<MCPos>> trains){
-        super.setTrains(trains);
-        cartIDsToTrains = null;
     }
 
     @Override
     public void removeTrain(Train<MCPos> train){
         super.removeTrain(train);
+        for(UUID uuid : ((MCTrain)train).cartIDs) {
+            cartIDsToTrains.remove(uuid);
+        }
         NetworkHandler.sendToAll(new PacketRemoveTrain((MCTrain)train));
     }
 
     public void onChunkUnload(Chunk chunk){
         for(ClassInheritanceMultiMap<Entity> entities : chunk.getEntityLists()) {
             for(EntityMinecart cart : entities.getByClass(EntityMinecart.class)) {
-                trackingMinecarts.remove(cart.getUniqueID()); //Remove without changing the Trains, as unloaded != removed.
-                getTrains().forEach(t -> ((MCTrain)t).onCartRemoved(cart));
-                //MCTrain train = findTrainForCartID(cart.getUniqueID());
-                //if(train != null) train.onCartRemoved(cart);
+                removeCart(cart);
             }
         }
+    }
+
+    public void removeCart(EntityMinecart cart){
+        trackingMinecarts.remove(cart.getUniqueID()); //Remove without changing the Trains, as unloaded != removed.
+        getTrains().forEach(t -> ((MCTrain)t).onCartRemoved(cart));
+        //MCTrain train = findTrainForCartID(cart.getUniqueID());
+        //if(train != null) train.onCartRemoved(cart);
     }
 
     @Override
@@ -215,21 +212,23 @@ public class MCNetworkState extends NetworkState<MCPos>{
     }
 
     private void splitUngroupedCarts(){
-        List<MCTrain> trainsWithMultipleCarts = getTrainStream().map(t -> (MCTrain)t).filter(t -> t.cartIDs.size() > 1).collect(Collectors.toList());
-        for(MCTrain train : trainsWithMultipleCarts) {
-            List<EntityMinecart> carts = getLoadedMinecarts(train.cartIDs).collect(Collectors.toList());
-            if(!carts.isEmpty()) {
-                List<List<EntityMinecart>> cartGroups = new ArrayList<>(1);
-                for(EntityMinecart cart : carts) {
-                    addToGroup(cartGroups, cart);
-                }
+        for(Train<MCPos> t : getTrains()) {
+            MCTrain train = (MCTrain)t;
+            if(train.cartIDs.size() > 1) {
+                Set<EntityMinecart> carts = train.getCarts();
+                if(!carts.isEmpty()) {
+                    List<List<EntityMinecart>> cartGroups = new ArrayList<>(1);
+                    for(EntityMinecart cart : carts) {
+                        addToGroup(cartGroups, cart);
+                    }
 
-                //If we need to split
-                if(cartGroups.size() > 1) {
-                    removeTrain(train); //Remove the original train, including any unloaded minecart references.
-                    for(List<EntityMinecart> cartsInGroup : cartGroups) {
-                        MCTrain newTrain = addTrain(cartsInGroup);
-                        //TODO copy destination capability from old train
+                    //If we need to split
+                    if(cartGroups.size() > 1) {
+                        removeTrain(train); //Remove the original train, including any unloaded minecart references.
+                        for(List<EntityMinecart> cartsInGroup : cartGroups) {
+                            MCTrain newTrain = addTrain(cartsInGroup);
+                            //TODO copy destination capability from old train
+                        }
                     }
                 }
             }
@@ -249,55 +248,69 @@ public class MCNetworkState extends NetworkState<MCPos>{
         cartGroups.add(newGroup);
     }
 
+    private int curMergingIndex = 0;
+
     private void mergeGroupedCarts(){
-        List<MCTrain> traversedTrains = new ArrayList<>();
+        if(trackingMinecarts.isEmpty()) return;
+
+        List<MCTrain> activeTrains = new ArrayList<>();
         for(Entry<UUID, EntityMinecart> entry : trackingMinecarts.entrySet()) {
             MCTrain train = getTrain(entry.getKey());
             if(train != null) {
-                MCTrain matching = getMatchingTrain(traversedTrains, entry.getValue());
-                if(matching != null) {
-                    //Merge
-                    removeTrain(train);
-                    matching.addCartIDs(train.cartIDs);
-                    cartIDsToTrains = null;
-                    NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(matching));
-                } else {
-                    traversedTrains.add(train);
-                }
+                activeTrains.add(train);
             }
         }
+
+        if(curMergingIndex >= activeTrains.size()) curMergingIndex = 0;
+
+        int i = 0;
+        for(Entry<UUID, EntityMinecart> entry : trackingMinecarts.entrySet()) {
+            if(i >= curMergingIndex) { //Skip as long as we haven't found the index we are currently working on
+                MCTrain train = getTrain(entry.getKey());
+                if(train != null) {
+                    MCTrain matching = getMatchingTrain(activeTrains, entry.getValue());
+                    if(matching != null) {
+                        //Merge
+                        removeTrain(train);
+                        matching.addCartIDs(train.cartIDs);
+                        for(UUID uuid : train.cartIDs) {
+                            cartIDsToTrains.put(uuid, matching);
+                        }
+                        NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(matching));
+                        break; //Stop after combining a single train (because the traversedTrains isn't accurate anymore)
+                    }
+                }
+
+                if(i > curMergingIndex + 100) { //Only check up to 100 carts.
+                    break;
+                }
+            }
+            i++;
+        }
+        curMergingIndex = i; //Next time start from i
     }
 
     private MCTrain getMatchingTrain(List<MCTrain> trains, EntityMinecart cart){
         for(MCTrain train : trains) {
-            EntityMinecart c = getLoadedMinecarts(train.cartIDs).findFirst().orElse(null);
-            if(c != null && RailManager.getInstance().areLinked(c, cart)) {
+            if(!train.getCarts().isEmpty() && RailManager.getInstance().areLinked(train.getCarts().iterator().next(), cart)) {
                 return train;
             }
         }
         return null;
     }
 
-    public Stream<EntityMinecart> getLoadedMinecarts(Collection<UUID> uuids){
-        return StreamUtils.ofType(EntityMinecart.class, uuids.stream().map(id -> trackingMinecarts.get(id)));
-    }
-
     public void onCartKilled(EntityMinecart cart){
-        MCTrain train = findTrainForCartID(cart.getUniqueID());
+        MCTrain train = getTrain(cart.getUniqueID());
         if(train != null) {
-            cartIDsToTrains = null;
             if(train.cartIDs.size() == 1) { //When it's the last cart
                 removeTrain(train);
             } else { //When it's a train consisting of multiple carts, remove the cart from the (still existing) train.
+                cartIDsToTrains.remove(cart.getUniqueID());
                 train.onCartRemoved(cart);
                 train.cartIDs = train.cartIDs.stream().filter(uuid -> !uuid.equals(cart.getUniqueID())).collect(ImmutableSet.toImmutableSet());
                 NetworkHandler.sendToAll(new PacketAddOrUpdateTrain(train));
             }
         }
-    }
-
-    private MCTrain findTrainForCartID(UUID uuid){
-        return getTrainStream().map(t -> (MCTrain)t).filter(t -> t.cartIDs.contains(uuid)).findFirst().orElse(null);
     }
 
     public void writeToNBT(NBTTagCompound tag){

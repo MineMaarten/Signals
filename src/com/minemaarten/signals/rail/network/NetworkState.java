@@ -32,7 +32,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
     public void setTrains(Collection<? extends Train<TPos>> trains){
         this.trains = new TIntObjectHashMap<>(trains.size());
         for(Train<TPos> t : trains) {
-            this.trains.put(t.id, t);
+            addTrain(t);
         }
     }
 
@@ -328,6 +328,7 @@ public class NetworkState<TPos extends IPosition<TPos>> {
 
     private void updateRailLinkHolds(RailNetwork<TPos> network){
         for(Train<TPos> train : trains.valueCollection()) {
+            if(!train.isActive()) continue;
             for(TPos trainPos : train.getPositions()) {
                 int holdDelay = network.getRailLinkDelayFor(trainPos);
                 if(holdDelay > 0) {

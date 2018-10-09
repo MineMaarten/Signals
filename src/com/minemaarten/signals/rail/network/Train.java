@@ -227,4 +227,7 @@ public abstract class Train<TPos extends IPosition<TPos>> {
         return claimedSections;
     }
 
+    protected boolean isActive(){
+        return true;
+    }
 }
