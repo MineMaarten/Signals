@@ -1,0 +1,12 @@
+A Teleport Rail can be used to teleport carts to other dimensions. Use a Rail Configurator to right click a destination rail. After this, sneak-right-click the Teleport rail. There are a few requirements:
+1. The Teleport Rail and the destination must be in different dimensions.
+2. The destination dimension must be loaded.
+3. The destination position must be within 8 blocks of the 'portal position' calculated from the Teleport Rail. These are the same rules that apply for Nether Portals. For example, when having a Teleport Rail in the Overworld at X:80, Z:200, it can teleport to a rail in the Nether positioned at X:10, Z:25 (Overworld coordinates divided by 8). The Teleport Rail can teleport to coordinates within a 8 block range from that position. The Y does not matter.
+
+[prefix{l}]Teleporting to another Teleport Rail [prefix{}]
+It is possible to teleport to another Teleport Rail. When doing so, the cart will get an initial boost in the direction the destination Teleport Rail is facing. This direction can be toggled by sneak-right-clicking the rail with an empty hand.
+
+[prefix{l}]Network connection [prefix{}]
+When linking a Teleport Rail to another rail, the rail networks are automatically connected, as if a Rail Link was used. Signals in front of the Teleport Rail will hold carts until the carts have left the section in the linked dimension.
+
+[crafting{200, 335, key=block/teleport_rail}]

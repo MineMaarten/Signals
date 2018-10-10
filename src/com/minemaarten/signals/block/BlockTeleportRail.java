@@ -16,7 +16,6 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.item.EntityMinecartContainer;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
@@ -24,6 +23,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -269,9 +269,10 @@ public class BlockTeleportRail extends BlockRailBase implements ITileEntityProvi
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
-        if(playerIn.getHeldItem(hand).getItem() == Items.STICK) { //TODO other usage
+        if(playerIn.isSneaking()) {
             if(!worldIn.isRemote) {
                 worldIn.setBlockState(pos, state.cycleProperty(FORWARD));
+                playerIn.sendMessage(new TextComponentTranslation("signals.message.teleport_rail_toggled_direction"));
             }
             return true;
         } else {

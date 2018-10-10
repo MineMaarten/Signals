@@ -216,8 +216,6 @@ public class EventHandler implements IWorldEventListener{
             EntityMinecart cart = (EntityMinecart)entityIn;
             CapabilityMinecartDestination cap = entityIn.getCapability(CapabilityMinecartDestination.INSTANCE, null);
             if(cap != null) cap.onCartBroken(cart);
-
-            RailNetworkManager.getServerInstance().onCartRemoved(cart);
         }
     }
 

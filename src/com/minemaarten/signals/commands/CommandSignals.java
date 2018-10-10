@@ -13,6 +13,7 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 
+import com.minemaarten.signals.rail.network.mc.MCTrain;
 import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 
 public class CommandSignals extends CommandBase{
@@ -47,15 +48,21 @@ public class CommandSignals extends CommandBase{
 
     private boolean debug(MinecraftServer server, ICommandSender sender, String[] args){
         World overworld = server.getWorld(0);
-        for(int i = 0; i < 10000; i++) {
-            EntityMinecartEmpty cart = new EntityMinecartEmpty(overworld, i, 64, Integer.parseInt(args[1]));
-            cart.forceSpawn = true;
-            boolean success = overworld.spawnEntity(cart);
-            if(i % 1000 == 0) {
-                sender.sendMessage(new TextComponentString("Spawned " + i + " / 100.000"));
+        if(args.length < 2) {
+            sender.sendMessage(new TextComponentString("Trains loaded: " + RailNetworkManager.getServerInstance().getState().getTrainStream().filter(x -> !((MCTrain)x).getCarts().isEmpty()).count()));
+            return true;
+        } else {
+            int z = Integer.parseInt(args[1]);
+            for(int i = 0; i < 10000; i++) {
+                EntityMinecartEmpty cart = new EntityMinecartEmpty(overworld, i, 64, z);
+                cart.forceSpawn = true;
+                boolean success = overworld.spawnEntity(cart);
+                if(i % 1000 == 0) {
+                    sender.sendMessage(new TextComponentString("Spawned " + i + " / 100.000"));
+                }
             }
+            return true;
         }
-        return true;
     }
 
     @Override

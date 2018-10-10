@@ -59,7 +59,8 @@ public class ItemRailConfigurator extends ItemSignals{
         ItemStack stack = playerIn.getHeldItem(hand);
         if(!worldIn.isRemote) {
             TileEntity te = worldIn.getTileEntity(pos);
-            if(te instanceof TileEntityRailLinkBase) {
+            NetworkRail<MCPos> rail = RailNetworkManager.getInstance(worldIn.isRemote).getRail(worldIn, pos);
+            if(te instanceof TileEntityRailLinkBase && playerIn.isSneaking()) {
                 TileEntityRailLinkBase railLinkBase = (TileEntityRailLinkBase)te;
                 MCPos railPos = getLinkedRail(stack);
                 if(railPos != null) {
@@ -68,7 +69,6 @@ public class ItemRailConfigurator extends ItemSignals{
                     }
                 }
             } else {
-                NetworkRail<MCPos> rail = RailNetworkManager.getInstance(worldIn.isRemote).getRail(worldIn, pos);
                 if(rail != null) {
                     setLinkedRail(stack, rail.getPos());
                     playerIn.sendMessage(new TextComponentString("Pos: " + pos));

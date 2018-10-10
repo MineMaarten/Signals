@@ -19,6 +19,11 @@ public class TileEntityTeleportRail extends TileEntityRailLinkBase{
      */
     @Override
     protected boolean isDestinationValid(MCPos destination, EntityPlayer player){
+        if(getWorld().provider.getDimension() == destination.getDimID()) {
+            player.sendMessage(new TextComponentTranslation("signals.message.teleport_rail_failed_same_dimension", destination.getX(), destination.getY(), destination.getZ()));
+            return false;
+        }
+
         Pair<MCPos, MCPos> allowedDestinationRange = getAllowedDestinationRange(destination.getWorld());
         if(allowedDestinationRange == null) {
             player.sendMessage(new TextComponentTranslation("signals.message.teleport_rail_failed_unloaded_destination_dimension", destination.getX(), destination.getY(), destination.getZ()));
