@@ -152,6 +152,9 @@ public class RailManager{
     }
 
     public boolean areLinked(EntityMinecart cart1, EntityMinecart cart2){
-        return cartLinkers.stream().anyMatch(x -> x.getLinkedCarts(cart1).contains(cart2));
+        for(ICartLinker linker : cartLinkers) {
+            if(linker.getLinkedCarts(cart1).contains(cart2)) return true;
+        }
+        return false;
     }
 }

@@ -213,8 +213,11 @@ public class EventHandler implements IWorldEventListener{
     @Override
     public void onEntityRemoved(Entity entityIn){
         if(entityIn instanceof EntityMinecart && !entityIn.world.isRemote) {
+            EntityMinecart cart = (EntityMinecart)entityIn;
             CapabilityMinecartDestination cap = entityIn.getCapability(CapabilityMinecartDestination.INSTANCE, null);
-            if(cap != null) cap.onCartBroken((EntityMinecart)entityIn);
+            if(cap != null) cap.onCartBroken(cart);
+
+            RailNetworkManager.getServerInstance().onCartRemoved(cart);
         }
     }
 
