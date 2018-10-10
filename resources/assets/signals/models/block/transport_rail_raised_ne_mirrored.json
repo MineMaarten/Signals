@@ -1,0 +1,6 @@
+{
+    "parent": "signals:block/rail_raised_ne_mirrored",
+    "textures": {
+        "rail": "signals:blocks/rail_transport"
+    }
+}

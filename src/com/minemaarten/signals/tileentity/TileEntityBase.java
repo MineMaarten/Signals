@@ -15,7 +15,7 @@ public class TileEntityBase extends TileEntity{
         return oldState.getBlock() != newSate.getBlock();
     }
 
-    private IBlockState getBlockState(){
+    protected IBlockState getBlockState(){
         return getWorld() != null ? getWorld().getBlockState(getPos()) : null;
     }
 

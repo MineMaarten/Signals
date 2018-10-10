@@ -1,0 +1,3 @@
+A Transport Rail behaves like a Powered Rail, with the exception that it limits the speed of the passing cart to a slow speed when powered. Additionally, the Transport Rail is directional. When a cart is standing still on a Transport Rail and it gets powered, the cart will be boosted towards the direction the Transport Rail is facing. This direction can be toggled by sneak-right-clicking the rail with an empty hand.
+
+[crafting{200, 110, key=block/transport_rail}]

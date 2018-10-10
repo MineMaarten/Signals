@@ -32,10 +32,6 @@ public abstract class TileEntitySignalBase extends TileEntityBase implements ITi
     private String text = "";
     private String arguments = "";
 
-    private IBlockState getBlockState(){
-        return getWorld() != null ? getWorld().getBlockState(getPos()) : null;
-    }
-
     public EnumFacing getFacing(){
         IBlockState state = getBlockState();
         return state != null && state.getBlock() instanceof BlockSignalBase ? state.getValue(BlockSignalBase.FACING) : EnumFacing.NORTH;

@@ -249,6 +249,10 @@ public class BlockTeleportRail extends BlockRailBase implements ITileEntityProvi
     private EnumFacing getTeleportDirection(IBlockState state){
         EnumRailDirection railDir = state.getValue(getShapeProperty());
         boolean forward = state.getValue(FORWARD);
+        return getDirection(railDir, forward);
+    }
+
+    public static EnumFacing getDirection(EnumRailDirection railDir, boolean forward){
         switch(railDir){
             case EAST_WEST:
                 return forward ? EnumFacing.EAST : EnumFacing.WEST;

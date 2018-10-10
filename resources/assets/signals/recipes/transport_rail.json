@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+   	"iri", 
+   	"isi", 
+   	"ici"
+  ],
+  "key": {
+    "r": {
+      "type": "forge:ore_dict",
+      "ore": "dustRedstone"
+    },
+    "i": {
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
+    },
+    "s": {
+      "item": "minecraft:stick"
+    },
+    "c": {
+      "item": "minecraft:comparator"
+    }
+  },
+  "result": {
+    "item": "signals:transport_rail",
+    "count": 6
+  }
+}
