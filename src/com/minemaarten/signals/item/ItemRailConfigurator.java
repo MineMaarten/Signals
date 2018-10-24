@@ -3,6 +3,7 @@ package com.minemaarten.signals.item;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -15,12 +16,12 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
 import com.minemaarten.signals.Signals;
+import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.api.tileentity.IDestinationProvider;
 import com.minemaarten.signals.capabilities.CapabilityDestinationProvider;
 import com.minemaarten.signals.proxy.CommonProxy.EnumGuiId;
-import com.minemaarten.signals.rail.network.NetworkRail;
+import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.network.mc.MCPos;
-import com.minemaarten.signals.rail.network.mc.RailNetworkManager;
 import com.minemaarten.signals.tileentity.TileEntityRailLinkBase;
 
 public class ItemRailConfigurator extends ItemSignals{
@@ -59,7 +60,6 @@ public class ItemRailConfigurator extends ItemSignals{
         ItemStack stack = playerIn.getHeldItem(hand);
         if(!worldIn.isRemote) {
             TileEntity te = worldIn.getTileEntity(pos);
-            NetworkRail<MCPos> rail = RailNetworkManager.getInstance(worldIn.isRemote).getRail(worldIn, pos);
             if(te instanceof TileEntityRailLinkBase && playerIn.isSneaking()) {
                 TileEntityRailLinkBase railLinkBase = (TileEntityRailLinkBase)te;
                 MCPos railPos = getLinkedRail(stack);
@@ -69,8 +69,11 @@ public class ItemRailConfigurator extends ItemSignals{
                     }
                 }
             } else {
-                if(rail != null) {
-                    setLinkedRail(stack, rail.getPos());
+                IBlockState state = worldIn.getBlockState(pos);
+                IRail r = RailManager.getInstance().getRail(worldIn, pos, state);
+
+                if(r != null) {
+                    setLinkedRail(stack, new MCPos(worldIn, pos));
                     playerIn.sendMessage(new TextComponentString("Pos: " + pos));
                 }
             }
