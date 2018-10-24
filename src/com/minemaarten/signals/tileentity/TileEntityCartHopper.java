@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -25,6 +26,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.Lists;
 import com.minemaarten.signals.api.ICartHopperBehaviour;
+import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.api.access.ICartHopper;
 import com.minemaarten.signals.capabilities.CapabilityMinecartDestination;
 import com.minemaarten.signals.init.ModBlocks;
@@ -44,6 +46,8 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
     private UUID managingCartId;
     private boolean pushedLastTick;
     private int lastComparatorInputOverride;
+    private boolean firstTick = true;
+    private boolean extract;
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound tag){
@@ -63,16 +67,32 @@ public class TileEntityCartHopper extends TileEntityBase implements ITickable, I
         pushedLastTick = tag.getBoolean("pushedLastTick");
     }
 
+    public void updateCartAbove(){
+        boolean hasNetworkRailAbove = RailNetworkManager.getInstance(world.isRemote).getRail(getWorld(), getPos().up()) != null;
+        if(hasNetworkRailAbove) {
+            extract = true;
+        } else {
+            //Try to look up a rail using block states.
+            IBlockState state = world.getBlockState(getPos().up());
+            IRail r = RailManager.getInstance().getRail(world, getPos().up(), state);
+            extract = r != null; //Extract when a rail is found
+        }
+    }
+
     @Override
     public void update(){
         if(!getWorld().isRemote) {
+            if(firstTick) {
+                firstTick = false;
+                updateCartAbove();
+            }
+
             if(managingCartId != null) {
                 List<EntityMinecart> carts = getWorld().getEntities(EntityMinecart.class, input -> input.getPersistentID().equals(managingCartId));
                 managingCart = carts.isEmpty() ? null : carts.get(0);
                 managingCartId = null;
             }
 
-            boolean extract = RailNetworkManager.getInstance(world.isRemote).getRail(getWorld(), getPos().up()) != null;
             updateManagingCart(new AxisAlignedBB(extract ? getPos().up() : getPos().down()));
 
             boolean shouldPush;

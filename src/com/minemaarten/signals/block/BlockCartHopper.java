@@ -2,6 +2,7 @@ package com.minemaarten.signals.block;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
@@ -47,5 +48,13 @@ public class BlockCartHopper extends BlockBase{
     @Override
     public int getComparatorInputOverride(IBlockState state, World world, BlockPos pos){
         return ((TileEntityCartHopper)world.getTileEntity(pos)).getComparatorInputOverride();
+    }
+
+    @Override
+    public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos){
+        super.neighborChanged(state, worldIn, pos, blockIn, fromPos);
+        if(!worldIn.isRemote) {
+            ((TileEntityCartHopper)worldIn.getTileEntity(pos)).updateCartAbove();
+        }
     }
 }
