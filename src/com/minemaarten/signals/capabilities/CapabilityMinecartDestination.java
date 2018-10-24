@@ -4,6 +4,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import net.minecraft.block.BlockHopper;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.InventoryBasic;
@@ -31,6 +32,7 @@ import net.minecraftforge.items.wrapper.InvWrapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
+import com.minemaarten.signals.api.IRail;
 import com.minemaarten.signals.api.access.IDestinationAccessor;
 import com.minemaarten.signals.api.access.ISignal.EnumLampStatus;
 import com.minemaarten.signals.chunkloading.ChunkLoadManager;
@@ -43,6 +45,7 @@ import com.minemaarten.signals.network.GuiSynced;
 import com.minemaarten.signals.network.NetworkHandler;
 import com.minemaarten.signals.network.PacketSpawnParticle;
 import com.minemaarten.signals.network.PacketUpdateMinecartEngineState;
+import com.minemaarten.signals.rail.RailManager;
 import com.minemaarten.signals.rail.network.NetworkRail;
 import com.minemaarten.signals.rail.network.NetworkSignal;
 import com.minemaarten.signals.rail.network.NetworkState;
@@ -341,8 +344,11 @@ public class CapabilityMinecartDestination implements IGUITextFieldSensitive, ID
                     hopperTimer = 0;
 
                     NetworkRail<MCPos> rail = RailNetworkManager.getInstance(cart.world.isRemote).getRail(cart.world, event.getPos());
-                    if(rail == null) {
-                        shouldRun = false;
+                    if(rail == null) { //When not traveling over a Signals managed rail network 
+                        //Try to look up a rail using block states.
+                        IBlockState state = cart.world.getBlockState(event.getPos());
+                        IRail r = RailManager.getInstance().getRail(cart.world, event.getPos(), state);
+                        shouldRun = r != null; //Power the engine when a rail is found
                     } else {
                         RailNetwork<MCPos> network = RailNetworkManager.getInstance(cart.world.isRemote).getNetwork();
                         NetworkSignal<MCPos> signal = network.railObjects.getNeighborSignals(rail.getPotentialNeighborObjectLocations()).filter(s -> s.getRailPos().equals(rail.getPos())).findFirst().orElse(null);
