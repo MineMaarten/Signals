@@ -132,6 +132,9 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
             queue.add(goalNode);
             nodeMap.put(goal, goalNode);
 
+            if(start.equals(goal)) {
+                bestRoute = goalNode;
+            } else
             //Special case: start is on the same edge as one of the goals.
             if(startPosEdge != null && startPosEdge.contains(goal)) {
                 int startIndex = startPosEdge.getIndex(start);
@@ -215,10 +218,12 @@ public class RailPathfinder<TPos extends IPosition<TPos>> {
         LinkedHashSet<TPos> routeRails = new LinkedHashSet<>();
         List<NetworkSignal<TPos>> routeSignals = new ArrayList<>();
 
-        routeRails.addAll(node.edge.traverseWithFirst(node.pos).stream().map(NetworkObject::getPos).collect(Collectors.toList()));
-        routeEdges.add(node.edge);
-        routeNodes.addAll(node.edge.getIntersectionsWithFirst(node.pos));
-        routeSignals.addAll(node.edge.traverseSignalsWithFirst(node.pos));
+        if(node.edge != null) {
+            routeRails.addAll(node.edge.traverseWithFirst(node.pos).stream().map(NetworkObject::getPos).collect(Collectors.toList()));
+            routeEdges.add(node.edge);
+            routeNodes.addAll(node.edge.getIntersectionsWithFirst(node.pos));
+            routeSignals.addAll(node.edge.traverseSignalsWithFirst(node.pos));
+        }
 
         AStarRailNode prevNode = node;
         node = node.getNextNode();
