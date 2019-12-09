@@ -173,6 +173,7 @@ public class BlockTeleportRail extends BlockRailBase implements ITileEntityProvi
         Set<MCPos> ret = new HashSet<MCPos>();
         MCPos mcPos = new MCPos(world, pos);
         RailEdge<MCPos> edge = RailNetworkManager.getServerInstance().getNetwork().findEdge(mcPos);
+        if (edge == null) return ret;
         int startIndex = edge.getIndex(mcPos);
         Object thisRailType = edge.get(startIndex).getRailType();
 
